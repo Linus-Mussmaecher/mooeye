@@ -1,0 +1,123 @@
+use ggez::{
+    context::Context,
+    graphics::{Color, Text},
+    winit::event::VirtualKeyCode,
+    *,
+};
+use mooeye::scene_manager::{Scene, SceneSwitch};
+use mooeye::{containers, UiContent, UiElement};
+
+pub struct Scene1 {
+    gui: UiElement,
+}
+
+impl Scene1 {
+    pub fn new(ctx: &Context) -> Self {
+        let mut gui_box = containers::VerticalBox::new();
+
+        let title = Text::new("Pideo Game")
+            .set_font("Alagard")
+            .set_scale(54.)
+            .to_owned()
+            .to_element_measured(1, &ctx);
+
+        let pi_img = graphics::Image::from_path(ctx, "/pi.png")
+            .expect("Error when loading file /pi.png")
+            .to_element_measured(2, &ctx);
+
+        let mut sub_box = containers::VerticalBox::new();
+
+        let mut play = Text::new("Play")
+            .set_font("Alagard")
+            .set_scale(36.)
+            .to_owned()
+            .to_element_measured(3, &ctx);
+
+        play.add_trigger(VirtualKeyCode::P);
+        play.visuals = mooeye::ui_element::Visuals::new(
+            Color::from_rgb(77, 109, 191),
+            Color::from_rgb(55, 67, 87),
+            2.,
+        );
+        play.hover_visuals = Some(mooeye::ui_element::Visuals::new(
+            Color::from_rgb(67, 89, 201),
+            Color::from_rgb(65, 77, 107),
+            4.,
+        ));
+
+        let mut quit = Text::new("Quit")
+            .set_font("Alagard")
+            .set_scale(36.)
+            .to_owned()
+            .to_element_measured(4, &ctx);
+
+        quit.add_trigger(VirtualKeyCode::Q);
+        quit.visuals = mooeye::ui_element::Visuals::new(
+            Color::from_rgb(77, 109, 191),
+            Color::from_rgb(55, 67, 87),
+            2.,
+        );
+        quit.hover_visuals = Some(mooeye::ui_element::Visuals::new(
+            Color::from_rgb(67, 89, 201),
+            Color::from_rgb(65, 77, 107),
+            4.,
+        ));
+
+        gui_box.add(title);
+        gui_box.add(pi_img);
+        sub_box.add(play);
+        sub_box.add(quit);
+        gui_box.add(sub_box.to_element(5));
+
+        let mut gui_box = gui_box.to_element(0);
+        gui_box.visuals = mooeye::ui_element::Visuals::new(
+            Color::from_rgb(120, 170, 200),
+            Color::from_rgb(55, 67, 87),
+            2.,
+        );
+
+        Self { gui: gui_box }
+    }
+}
+
+impl Scene for Scene1 {
+    fn check_for_scene_switch(
+        &mut self,
+        ctx: &Context,
+    ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
+        if self.gui.collect_triggered(ctx).contains(&4) {
+            return Ok(SceneSwitch::Pop(1));
+        }
+        if self.gui.collect_triggered(ctx).contains(&3) {
+            return Ok(SceneSwitch::Replace(
+                1,
+                Box::new(crate::scene_2::Scene2::new(ctx, 35)),
+            ));
+        }
+        Ok(SceneSwitch::None)
+    }
+}
+
+impl event::EventHandler<GameError> for Scene1 {
+    fn update(&mut self, _ctx: &mut Context) -> Result<(), GameError> {
+        Ok(())
+    }
+
+    fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
+        let mut canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
+        canvas.set_sampler(graphics::Sampler::nearest_clamp());
+        self.gui.draw_to_rectangle(
+            ctx,
+            &mut canvas,
+            ggez::graphics::Rect::new(
+                0.,
+                0.,
+                ctx.gfx.window().inner_size().width as f32,
+                ctx.gfx.window().inner_size().height as f32,
+            ),
+        );
+
+        canvas.finish(ctx)?;
+        Ok(())
+    }
+}

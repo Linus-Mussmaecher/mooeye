@@ -8,3 +8,11 @@ authors = ["Linus Mußmächer linus.mussmaecher@gmail.com"]
 
 [dependencies]
 ggez = "0.9.0-rc0"
+
+
+# Tests. GGEZ panicks when creating an event loop outside of the main thread, so we have to disable the cargo test harness to force this tests onto the main thread.
+# This disables the usual testing output, but since tests are mostly visual checks or panic checks (since most functions cant be tested for their 'output'), we at least get an easy way to start a gui window with cargo test.
+[[test]]
+name = "ui-tests"
+path = "tests/ui_tests/main.rs"
+harness = false
