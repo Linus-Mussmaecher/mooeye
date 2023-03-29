@@ -3,7 +3,7 @@ use ggez::{
     Context, 
 };
 
-use crate::mooeye::UiContent;
+use crate::UiContent;
 
 impl UiContent for (){
     fn draw_content(

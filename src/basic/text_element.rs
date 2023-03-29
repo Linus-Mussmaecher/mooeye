@@ -3,7 +3,7 @@ use ggez::{
     Context,
 };
 
-use crate::mooeye::{UiElement, UiContent, ui_element::layout::Size};
+use crate::{UiElement, UiContent, ui_element::layout::Size};
 
 impl UiContent for ggez::graphics::Text {
     fn to_element_measured(self, id: u32, ctx: &Context) -> UiElement where Self:Sized + 'static {

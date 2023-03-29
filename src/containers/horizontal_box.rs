@@ -1,6 +1,6 @@
 use ggez::{graphics::Rect};
 
-use crate::mooeye::{UiElement, UiContent, ui_element::layout::Size};
+use crate::{UiElement, UiContent, ui_element::layout::Size};
 
 /// A horizontal box that will group elements from left to right. Stores elements in a vector that determines order of elements within the box.
 /// Elements will adhere to their own x and y alignment within the box provided to them

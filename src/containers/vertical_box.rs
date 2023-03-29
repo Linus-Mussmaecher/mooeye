@@ -1,6 +1,6 @@
 use ggez::{graphics::Rect};
 
-use crate::mooeye::{UiElement, UiContent, ui_element::layout::Size};
+use crate::{UiElement, UiContent, ui_element::layout::Size};
 
 pub struct VerticalBox {
     pub children: Vec<UiElement>,
