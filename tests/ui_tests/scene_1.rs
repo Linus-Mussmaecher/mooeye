@@ -1,10 +1,11 @@
+use std::collections::HashSet;
+
 use ggez::{
     context::Context,
     graphics::{Color, Text},
-    winit::event::VirtualKeyCode,
     *,
 };
-use mooeye::scene_manager::{Scene, SceneSwitch};
+use mooeye::{scene_manager::{Scene, SceneSwitch}, ui_element::UiMessage};
 use mooeye::{containers, UiContent, UiElement};
 
 pub struct Scene1 {
@@ -33,7 +34,6 @@ impl Scene1 {
             .to_owned()
             .to_element_measured(3, &ctx);
 
-        play.add_trigger(VirtualKeyCode::P);
         play.visuals = mooeye::ui_element::Visuals::new(
             Color::from_rgb(77, 109, 191),
             Color::from_rgb(55, 67, 87),
@@ -51,7 +51,6 @@ impl Scene1 {
             .to_owned()
             .to_element_measured(4, &ctx);
 
-        quit.add_trigger(VirtualKeyCode::Q);
         quit.visuals = mooeye::ui_element::Visuals::new(
             Color::from_rgb(77, 109, 191),
             Color::from_rgb(55, 67, 87),
@@ -85,10 +84,10 @@ impl Scene for Scene1 {
         &mut self,
         ctx: &Context,
     ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
-        if self.gui.collect_triggered(ctx).contains(&4) {
+        if self.gui.manage_messages(ctx, &HashSet::new()).contains(&UiMessage::Clicked(4)) {
             return Ok(SceneSwitch::Pop(1));
         }
-        if self.gui.collect_triggered(ctx).contains(&3) {
+        if self.gui.manage_messages(ctx, &HashSet::new()).contains(&UiMessage::Clicked(3)) {
             return Ok(SceneSwitch::Replace(
                 1,
                 Box::new(crate::scene_2::Scene2::new(ctx, 35)),

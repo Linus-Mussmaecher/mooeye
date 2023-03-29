@@ -1,21 +1,25 @@
-use std::collections::HashSet;
+use std::collections::{HashSet};
 
 use ggez::{
     glam::Vec2,
     graphics::{self, Canvas, Rect},
-    winit::event::VirtualKeyCode,
-    Context,
+    Context, GameResult,
 };
 
 pub mod layout;
-pub mod visuals;
-pub mod transition;
-pub mod draw_cache;
-
 pub use layout::Layout;
+
+pub mod visuals;
 pub use visuals::Visuals;
+
+pub mod transition;
 pub use transition::Transition;
+
+pub mod draw_cache;
 pub use draw_cache::DrawCache;
+
+pub mod message;
+pub use message::UiMessage;
 
 pub struct UiElement {
     /// The elements layout.
@@ -32,9 +36,6 @@ pub struct UiElement {
     pub(crate) draw_cache: DrawCache,
 
     content: Box<dyn UiContent>,
-
-    /// The set of keys that will trigger this element.
-    trigger_keys: HashSet<VirtualKeyCode>,
 }
 
 impl UiElement {
@@ -46,7 +47,6 @@ impl UiElement {
             id,
             draw_cache: DrawCache::default(),
             content: Box::new(content),
-            trigger_keys: HashSet::new(),
         }
     }
 
@@ -63,34 +63,52 @@ impl UiElement {
         )
     }
 
-    /// Returns a HashSet containing the IDs of all child elements of this element that were triggered in the last frame (including itself, if applicable).
-    pub fn collect_triggered(&self, ctx: &ggez::Context) -> HashSet<u32> {
-        let mut hs = HashSet::new();
-        if ctx
-            .mouse
-            .button_just_pressed(ggez::event::MouseButton::Left)
-            && self.draw_cache.outer.contains(ctx.mouse.position())
-            || ctx
-                .keyboard
-                .pressed_keys()
-                .intersection(&self.trigger_keys)
-                .count()
-                > 0
-        {
-            hs.insert(self.get_id());
-        }
+    /// Receives a data structure containing all messages triggered by your game_state this frame.
+    /// It then collects all messages sent by this element and its children and redistributes all of those messages to this element and all children.
+    /// Returns all internal messages to act on them
+    pub fn manage_messages(&self, ctx: &ggez::Context, extern_messages: &HashSet<UiMessage<()>>) -> HashSet<UiMessage<()>> {
+        
+        let intern_messages = self.collect_messages(ctx);
 
-        if let Some(children) = self.content.get_children() {
-            for child in children {
-                hs.extend(child.collect_triggered(ctx));
+        let all_messages = intern_messages.union(extern_messages).copied().collect();
+
+        self.distribute_messages(ctx, &all_messages).expect("Something went wrong delivering or executing messages. Probably you wrote a bad handler function.");
+
+        intern_messages
+    }
+
+    fn collect_messages(&self, ctx: &Context) -> HashSet<UiMessage<()>>{
+        let mut res: HashSet<UiMessage<()>> = HashSet::new();
+
+        if self.draw_cache.outer.contains(ctx.mouse.position()){
+            if ctx.mouse.button_just_pressed(ggez::event::MouseButton::Left){
+                res.insert(UiMessage::Clicked(self.id));
+            }
+
+            if ctx.mouse.button_just_pressed(ggez::event::MouseButton::Right){
+                res.insert(UiMessage::ClickedRight(self.id));
             }
         }
 
-        hs
+        if let Some(children) = self.content.get_children(){
+            for child in children {
+                res.extend(child.collect_messages(ctx));
+            }
+        }
+
+        res
     }
 
-    pub fn add_trigger(&mut self, key: VirtualKeyCode) {
-        self.trigger_keys.insert(key);
+    fn distribute_messages(&self, ctx: &Context, messages: &HashSet<UiMessage<()>>) -> GameResult{
+        //TODO: Do something with those messages
+        
+        if let Some(children) = self.content.get_children(){
+            for child in children {
+                child.distribute_messages(ctx, messages)?;
+            }
+        }
+
+        Ok(())
     }
 
     /// Returns the minimum and maximum width this element this element can have. Calculated from adding left and right padding to the size-data.
