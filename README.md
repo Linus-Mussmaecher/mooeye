@@ -8,6 +8,7 @@ This is a very simple UI-library to be used with the [ggez game library](https:/
  * Can use ggez image and text objects as UI elements.
  * Can order elements in multiple types of boxes, alignments, and dynamic sizing.
  * Caching of element positions means a recalculation of dynamic element positions is only neccessary when the window size changes or the UI elements themselves change.
+ * Stack-based scene Manager to make working with multiple scenes in one game significantly easier.
 
  ## TODOs
 

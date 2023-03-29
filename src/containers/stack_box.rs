@@ -4,7 +4,6 @@ pub struct StackBox{
     pub children: Vec<UiElement>,
 }
 
-#[allow(dead_code)]
 impl StackBox {
     pub fn new() -> Self{
         Self{

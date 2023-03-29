@@ -3,7 +3,6 @@ use ggez::{
     graphics::Rect,
 };
 
-#[allow(dead_code)]
 #[derive(Copy, Clone)]
 /// An enum that describes the alignment behaviour of an element. 3 variants: MIN (top or left), CENTER, MAX (bottom or right).
 pub enum Alignment {

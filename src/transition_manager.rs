@@ -4,12 +4,10 @@ use ggez::{glam::Vec2, graphics::{Rect, Color}, Context};
 
 use super::{Layout, Visuals};
 
-#[allow(dead_code)]
 pub struct TransitionManager {
     transitions: VecDeque<(Layout, Visuals, Duration, Duration)>,
 }
 
-#[allow(dead_code)]
 impl TransitionManager {
     pub fn new() -> Self {
         Self {

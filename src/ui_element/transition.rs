@@ -4,7 +4,6 @@ use super::{Layout, Visuals};
 
 
 
-#[allow(dead_code)]
 #[derive(Clone, Copy)]
 pub struct Transition {
     target_layout: Layout,
@@ -13,7 +12,6 @@ pub struct Transition {
     remaining_duration: Duration,
 }
 
-#[allow(dead_code)]
 impl Transition {
     pub fn new(target_layout: Layout, target_visuals: Visuals, duration: Duration) -> Self {
         Self {
