@@ -1,8 +1,6 @@
 
 //TODOmaybe: Debug impls
-//TODO: Restructure to proper project with lib.rs and put on GitHub
 //TODO: Message System
-//TODO: Transitions (visual, layout)
 //TODO: Grid Box?
 //TODOmaybe: wrappin in hori/verti box
 

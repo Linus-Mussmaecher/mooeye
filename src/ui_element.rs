@@ -65,7 +65,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
     fn cache_valid(&self, target: &Rect) -> bool {
         self.content.get_children().unwrap_or(&[]).iter().fold(
-            self.draw_cache.valid && *target == self.draw_cache.target,
+            self.draw_cache.valid && *target == self.draw_cache.target && self.transitions.is_empty(),
             |valid, child| valid && child.cache_valid(target),
         )
     }
@@ -174,8 +174,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 let trans = self.transitions[0];
                 match trans.new_visuals {
                     // yes: find average between the two visuals
-                    Some(vis) => 
-                        self.visuals.average(vis, trans.get_progress_ratio()),
+                    Some(vis) => self.visuals.average(vis, trans.get_progress_ratio()),
                     // no: just return own visuals
                     None => self.visuals,
                 }
@@ -183,11 +182,23 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
     }
 
-    fn progress_transitions(&mut self, ctx: &Context){
+    fn progress_transitions(&mut self, ctx: &Context) {
         if !self.transitions.is_empty() {
-            self.transitions[0].remaining_duration = self.transitions[0].remaining_duration.saturating_sub(ctx.time.delta());
-            if self.transitions[0].remaining_duration == Duration::ZERO{
-                self.transitions.pop_front();
+            self.transitions[0].remaining_duration = self.transitions[0]
+                .remaining_duration
+                .saturating_sub(ctx.time.delta());
+            if self.transitions[0].remaining_duration == Duration::ZERO {
+                let trans = self.transitions.pop_front().expect("Transitions did not contain a first element despite being not empty 2 lines ago.");
+                if let Some(layout) = trans.new_layout {
+                    self.layout = layout;
+                    self.draw_cache.valid = false;
+                }
+                if let Some(visuals) = trans.new_visuals {
+                    self.visuals = visuals;
+                }
+                if let Some(hover_visuals) = trans.new_hover_visuals {
+                    self.hover_visuals = hover_visuals;
+                }
             }
         }
     }
@@ -231,29 +242,26 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
     }
 
-    /// Takes in a rectangle target, a canvas, a context and draws the UiElement to that rectangle within that canvas using that context.
-    /// The element will either completely fit within the rectangle (including its padding) or not be drawn at all.
-    /// The element will align and offset itself within the rectangle.
-    pub fn draw_to_rectangle(&mut self, ctx: &mut Context, canvas: &mut Canvas, rect: Rect) {
-        self.progress_transitions(ctx);
-
-
-        // if cache is invalidated or we are drawing to a different target than before, update cache
+    fn update_draw_cache(&mut self, ctx: &Context, rect: Rect) {
+        // check wether draw cache needs to be updated at all (or a transition is going on)
         if !self.cache_valid(&rect) {
-            // calculate actual size and update cache
-
-            let (outer, inner) = self
-                .layout
-                .get_outer_inner_bounds_in_target(&rect, self.content_min());
-
-            self.draw_cache = DrawCache {
-                outer: outer,
-                inner: inner,
-                target: rect,
-                valid: false,
+            // first calculate the target of this element if it were on its own
+            let (own_outer, own_inner) = self.layout
+            .get_outer_inner_bounds_in_target(&rect, self.content_min());
+            // check if there is a transition going on
+            let (outer, inner) = if !self.transitions.is_empty() {
+                // the transitions are not empty: check if the top transitions wants to change the layout
+                if let Some(new_layout) = self.transitions[0].new_layout {
+                    let (trans_outer, trans_inner) = new_layout.get_outer_inner_bounds_in_target(&rect, self.content_min());
+                    (transition::average_rect(&own_outer, &trans_outer, self.transitions[0].get_progress_ratio()),
+                    transition::average_rect(&own_inner, &trans_inner, self.transitions[0].get_progress_ratio()),)
+                } else {
+                    (own_outer, own_inner)
+                }
+            } else {
+                // draw cache was invalidated by some other means (e.g. by sub element having a transition, the element not being initalized, etc.) -> calculate target
+                (own_outer, own_inner)
             };
-
-            // premature return if the preferred size does not actually fit within the window
 
             if outer.w > rect.w
                 || outer.h > rect.h
@@ -264,19 +272,40 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             {
                 self.draw_cache = DrawCache::default();
                 return;
+            } else {
+                self.draw_cache = DrawCache {
+                    outer: outer,
+                    inner: inner,
+                    target: rect,
+                    valid: true,
+                };
             }
         }
+    }
 
-        // bind variables
+    /// Takes in a rectangle target, a canvas, a context and draws the UiElement to that rectangle within that canvas using that context.
+    /// The element will either completely fit within the rectangle (including its padding) or not be drawn at all.
+    /// The element will align and offset itself within the rectangle.
+    pub fn draw_to_rectangle(&mut self, ctx: &mut Context, canvas: &mut Canvas, rect: Rect) {
+        self.progress_transitions(ctx);
 
-        let (outer_bounds, inner_bounds) = (self.draw_cache.outer, self.draw_cache.inner);
+        // update draw_cache
+        self.update_draw_cache(ctx, rect);
+
+        // if draw chache is still invalid, early return and try again next frame
+
+        if !self.draw_cache.valid {
+            return;
+        }
 
         // draw visuals
-        self.get_current_visual(ctx).draw(ctx, canvas, outer_bounds);
+        self.get_current_visual(ctx)
+            .draw(ctx, canvas, self.draw_cache.outer);
 
         // draw content
 
-        self.content.draw_content(ctx, canvas, inner_bounds);
+        self.content
+            .draw_content(ctx, canvas, self.draw_cache.inner);
     }
 }
 

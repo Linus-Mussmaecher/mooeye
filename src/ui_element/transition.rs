@@ -2,8 +2,6 @@ use std::time::Duration;
 
 use ggez::graphics::Rect;
 
-use crate::UiContent;
-
 use super::{Layout, Visuals};
 
 #[derive(Clone, Copy)]

@@ -1,18 +1,19 @@
 use std::{collections::HashSet, time::Duration};
 
-
 use ggez::{
     context::Context,
     graphics::{Color, Text},
     *,
 };
-use mooeye::{scene_manager::{Scene, SceneSwitch}, ui_element::{UiMessage, Transition}};
 use mooeye::{containers, UiContent, UiElement};
+use mooeye::{
+    scene_manager::{Scene, SceneSwitch},
+    ui_element::{layout::Alignment, Transition, UiMessage},
+};
 
 pub struct Scene1 {
     gui: UiElement<u32>,
 }
-
 
 impl Scene1 {
     pub fn new(ctx: &Context) -> Self {
@@ -48,15 +49,17 @@ impl Scene1 {
             Color::from_rgb(67, 89, 201),
             Color::from_rgb(65, 77, 107),
             5.,
-            10.
+            10.,
         ));
-        play.add_transition(Transition::new(Duration::from_secs(10))
-            .with_new_visuals(mooeye::ui_element::Visuals::new(
-                Color::from_rgb(191, 89, 81),
-                Color::from_rgb(55, 67, 87),
-                0.,
-                4.,
-            ))
+        play.add_transition(Transition::new(Duration::from_secs(1)));
+        play.add_transition(
+            Transition::new(Duration::from_secs(2))
+                .with_new_visuals(mooeye::ui_element::Visuals::new(
+                    Color::from_rgb(191, 89, 81),
+                    Color::from_rgb(55, 67, 87),
+                    0.,
+                    4.,
+                )),
         );
 
         let mut quit = Text::new("Quit")
@@ -91,6 +94,12 @@ impl Scene1 {
             2.,
             10.,
         );
+        gui_box.add_transition(Transition::new(Duration::from_secs(1))
+        .with_new_layout({
+            let mut la = gui_box.layout.clone();
+            la.x_alignment = Alignment::MIN;
+            la
+        }));
 
         Self { gui: gui_box }
     }
@@ -101,10 +110,18 @@ impl Scene for Scene1 {
         &mut self,
         ctx: &Context,
     ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
-        if self.gui.manage_messages(ctx, &HashSet::new()).contains(&UiMessage::Clicked(4)) {
+        if self
+            .gui
+            .manage_messages(ctx, &HashSet::new())
+            .contains(&UiMessage::Clicked(4))
+        {
             return Ok(SceneSwitch::Pop(1));
         }
-        if self.gui.manage_messages(ctx, &HashSet::new()).contains(&UiMessage::Clicked(3)) {
+        if self
+            .gui
+            .manage_messages(ctx, &HashSet::new())
+            .contains(&UiMessage::Clicked(3))
+        {
             return Ok(SceneSwitch::Replace(
                 1,
                 Box::new(crate::scene_2::Scene2::new(ctx, 35)),
