@@ -39,6 +39,7 @@ impl Scene2 {
             Color::from_rgb(77, 109, 191),
             Color::from_rgb(55, 67, 87),
             2.,
+            0.,
         );
 
         let mut quit = Text::new("Quit")
@@ -52,6 +53,7 @@ impl Scene2 {
             Color::from_rgb(77, 109, 191),
             Color::from_rgb(55, 67, 87),
             2.,
+            0.,
         );
 
         let mut sub_box = containers::HorizontalBox::new();
@@ -73,6 +75,7 @@ impl Scene2 {
             Color::from_rgb(120, 170, 200),
             Color::from_rgb(55, 67, 87),
             2.,
+            0.,
         );
 
         Self { gui: gui_box }

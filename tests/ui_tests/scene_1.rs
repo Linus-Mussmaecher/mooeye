@@ -24,7 +24,7 @@ impl Scene1 {
             .to_owned()
             .to_element_measured(1, &ctx);
 
-        let pi_img = graphics::Image::from_path(ctx, "/pi.png")
+        let mut pi_img = graphics::Image::from_path(ctx, "/pi.png")
             .expect("Error when loading file /pi.png")
             .to_element_measured(2, &ctx);
 
@@ -40,11 +40,13 @@ impl Scene1 {
             Color::from_rgb(77, 109, 191),
             Color::from_rgb(55, 67, 87),
             2.,
+            4.,
         );
         play.hover_visuals = Some(mooeye::ui_element::Visuals::new(
             Color::from_rgb(67, 89, 201),
             Color::from_rgb(65, 77, 107),
-            4.,
+            5.,
+            10.
         ));
 
         let mut quit = Text::new("Quit")
@@ -57,11 +59,13 @@ impl Scene1 {
             Color::from_rgb(77, 109, 191),
             Color::from_rgb(55, 67, 87),
             2.,
+            4.,
         );
         quit.hover_visuals = Some(mooeye::ui_element::Visuals::new(
             Color::from_rgb(67, 89, 201),
             Color::from_rgb(65, 77, 107),
-            4.,
+            5.,
+            10.,
         ));
 
         gui_box.add(title);
@@ -75,6 +79,7 @@ impl Scene1 {
             Color::from_rgb(120, 170, 200),
             Color::from_rgb(55, 67, 87),
             2.,
+            10.,
         );
 
         Self { gui: gui_box }

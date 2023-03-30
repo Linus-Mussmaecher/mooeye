@@ -193,7 +193,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             self.hover_visuals.unwrap_or(self.visuals)
         } else {
             self.visuals
-        }.draw(canvas, outer_bounds);
+        }.draw(ctx, canvas, outer_bounds);
 
         // draw content
 
