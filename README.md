@@ -1,6 +1,6 @@
-# MooEye - A ggez-based UI-library
+# MooEye - A ggez-based UI library
 
-This is a very simple UI-library to be used with the [ggez game library](https://github.com/ggez/ggez). I wrote this for my own projects and as a challenge. The whole library is very much work-in-progress.
+This is a very simple UI library to be used with the [ggez game library](https://github.com/ggez/ggez). I wrote this for my own projects and as a challenge. The whole library is very much work-in-progress.
 
 ## Features
 
