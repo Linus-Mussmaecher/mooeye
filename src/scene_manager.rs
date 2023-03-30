@@ -1,4 +1,4 @@
-use std::collections::LinkedList;
+use std::collections::{VecDeque};
 
 use ggez::event::{self, EventLoop};
 use ggez::*;
@@ -8,7 +8,7 @@ use ggez::*;
 /// SceneManager implements EventHandler as a usual gamestate would and can thus interact with ggez without problems.
 pub struct SceneManager
  {
-    scene_stack: LinkedList<Box<dyn Scene>>,
+    scene_stack: VecDeque<Box<dyn Scene>>,
 }
 
 impl SceneManager
@@ -18,7 +18,7 @@ impl SceneManager
     pub fn new<T: Scene + 'static> (initial_scene: T) -> Self
     {
         let mut sm = SceneManager {
-            scene_stack: LinkedList::new(),
+            scene_stack: VecDeque::new(),
         };
         sm.scene_stack.push_back(Box::new(initial_scene));
         sm

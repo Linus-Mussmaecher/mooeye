@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, time::Duration};
 
 
 use ggez::{
@@ -6,7 +6,7 @@ use ggez::{
     graphics::{Color, Text},
     *,
 };
-use mooeye::{scene_manager::{Scene, SceneSwitch}, ui_element::UiMessage};
+use mooeye::{scene_manager::{Scene, SceneSwitch}, ui_element::{UiMessage, Transition}};
 use mooeye::{containers, UiContent, UiElement};
 
 pub struct Scene1 {
@@ -50,6 +50,14 @@ impl Scene1 {
             5.,
             10.
         ));
+        play.add_transition(Transition::new(Duration::from_secs(10))
+            .with_new_visuals(mooeye::ui_element::Visuals::new(
+                Color::from_rgb(191, 89, 81),
+                Color::from_rgb(55, 67, 87),
+                0.,
+                4.,
+            ))
+        );
 
         let mut quit = Text::new("Quit")
             .set_font("Alagard")

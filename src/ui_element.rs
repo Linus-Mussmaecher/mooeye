@@ -1,5 +1,6 @@
-use std::collections::{HashSet};
+use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
+use std::time::Duration;
 
 use ggez::{
     glam::Vec2,
@@ -22,7 +23,6 @@ pub use draw_cache::DrawCache;
 pub mod message;
 pub use message::UiMessage;
 
-
 pub struct UiElement<T: Copy + Eq + Hash> {
     /// The elements layout.
     pub layout: Layout,
@@ -35,9 +35,13 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     id: u32,
 
     /// This elements draw cache.
-    pub(crate) draw_cache: DrawCache,
+    draw_cache: DrawCache,
 
+    /// The conent managed & displayed by this element
     content: Box<dyn UiContent<T>>,
+
+    /// The transition queue
+    transitions: VecDeque<Transition>,
 }
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
@@ -49,6 +53,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             id,
             draw_cache: DrawCache::default(),
             content: Box::new(content),
+            transitions: VecDeque::new(),
         }
     }
 
@@ -58,7 +63,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
     /// Returns wether this elements cache is still valid. The cache may be invalidated manually or because the target_rect has changed.
     /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
-    pub fn cache_valid(&self, target: &Rect) -> bool {
+    fn cache_valid(&self, target: &Rect) -> bool {
         self.content.get_children().unwrap_or(&[]).iter().fold(
             self.draw_cache.valid && *target == self.draw_cache.target,
             |valid, child| valid && child.cache_valid(target),
@@ -68,8 +73,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Receives a data structure containing all messages triggered by your game_state this frame.
     /// It then collects all messages sent by this element and its children and redistributes all of those messages to this element and all children.
     /// Returns all internal messages to act on them
-    pub fn manage_messages(&self, ctx: &ggez::Context, extern_messages: &HashSet<UiMessage<T>>) -> HashSet<UiMessage<T>> {
-        
+    pub fn manage_messages(
+        &self,
+        ctx: &ggez::Context,
+        extern_messages: &HashSet<UiMessage<T>>,
+    ) -> HashSet<UiMessage<T>> {
         let intern_messages = self.collect_messages(ctx);
 
         let all_messages = intern_messages.union(extern_messages).copied().collect();
@@ -79,20 +87,26 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         intern_messages
     }
 
-    fn collect_messages(&self, ctx: &Context) -> HashSet<UiMessage<T>>{
+    fn collect_messages(&self, ctx: &Context) -> HashSet<UiMessage<T>> {
         let mut res: HashSet<UiMessage<T>> = HashSet::new();
 
-        if self.draw_cache.outer.contains(ctx.mouse.position()){
-            if ctx.mouse.button_just_pressed(ggez::event::MouseButton::Left){
+        if self.draw_cache.outer.contains(ctx.mouse.position()) {
+            if ctx
+                .mouse
+                .button_just_pressed(ggez::event::MouseButton::Left)
+            {
                 res.insert(UiMessage::Clicked(self.id));
             }
 
-            if ctx.mouse.button_just_pressed(ggez::event::MouseButton::Right){
+            if ctx
+                .mouse
+                .button_just_pressed(ggez::event::MouseButton::Right)
+            {
                 res.insert(UiMessage::ClickedRight(self.id));
             }
         }
 
-        if let Some(children) = self.content.get_children(){
+        if let Some(children) = self.content.get_children() {
             for child in children {
                 res.extend(child.collect_messages(ctx));
             }
@@ -101,16 +115,81 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         res
     }
 
-    fn distribute_messages(&self, ctx: &Context, messages: &HashSet<UiMessage<T>>) -> GameResult{
+    fn distribute_messages(&self, ctx: &Context, messages: &HashSet<UiMessage<T>>) -> GameResult {
         //TODO: Do something with those messages
-        
-        if let Some(children) = self.content.get_children(){
+
+        if let Some(children) = self.content.get_children() {
             for child in children {
                 child.distribute_messages(ctx, messages)?;
             }
         }
 
         Ok(())
+    }
+
+    pub fn add_transition(&mut self, transition: Transition) {
+        self.transitions.push_back(transition);
+    }
+
+    /// First checks wether the user is currently hovering this element or not and chooses to return visuals or hover visuals accordingly.
+    /// Then checks if the transition queue contains a (hover-)visual-changing element and returns an average visuals if needed.
+    fn get_current_visual(&self, ctx: &Context) -> Visuals {
+        // check if this element is being hovered
+        if self.draw_cache.outer.contains(ctx.mouse.position()) {
+            // yes: get what this element, diregarding transitions, would display on hover
+            let own_vis = if let Some(hover_visuals) = self.hover_visuals {
+                hover_visuals
+            } else {
+                self.visuals
+            };
+
+            // check wether there are transitions in the queue
+            if self.transitions.is_empty() {
+                //no: just return own visuals
+                own_vis
+            } else {
+                // yes: check wether the top transition wants to change hover_visuals
+                let trans = self.transitions[0];
+                match trans.new_hover_visuals {
+                    // yes: find out what it wants to display on hover and take the average
+                    Some(vis) => {
+                        let trans_vis = if let Some(hover_visuals) = vis {
+                            hover_visuals
+                        } else {
+                            self.visuals
+                        };
+                        own_vis.average(trans_vis, trans.get_progress_ratio())
+                    }
+                    // no: just return own visuals
+                    None => own_vis,
+                }
+            }
+        } else {
+            // not hovered: check wether there are transitons in the queue
+            if self.transitions.is_empty() {
+                // no transitions: just return own visuals
+                self.visuals
+            } else {
+                // transitions: check wether the top transition wants to change visuals
+                let trans = self.transitions[0];
+                match trans.new_visuals {
+                    // yes: find average between the two visuals
+                    Some(vis) => 
+                        self.visuals.average(vis, trans.get_progress_ratio()),
+                    // no: just return own visuals
+                    None => self.visuals,
+                }
+            }
+        }
+    }
+
+    fn progress_transitions(&mut self, ctx: &Context){
+        if !self.transitions.is_empty() {
+            self.transitions[0].remaining_duration = self.transitions[0].remaining_duration.saturating_sub(ctx.time.delta());
+            if self.transitions[0].remaining_duration == Duration::ZERO{
+                self.transitions.pop_front();
+            }
+        }
     }
 
     /// Returns the minimum and maximum width this element this element can have. Calculated from adding left and right padding to the size-data.
@@ -145,7 +224,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         )
     }
 
-    pub fn content_min(&self) -> Vec2 {
+    fn content_min(&self) -> Vec2 {
         Vec2 {
             x: self.content.content_width_range().0,
             y: self.content.content_height_range().0,
@@ -156,13 +235,17 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// The element will either completely fit within the rectangle (including its padding) or not be drawn at all.
     /// The element will align and offset itself within the rectangle.
     pub fn draw_to_rectangle(&mut self, ctx: &mut Context, canvas: &mut Canvas, rect: Rect) {
-        // if cache is invalidated or we are drawing to a differen target than before, update cache
+        self.progress_transitions(ctx);
+
+
+        // if cache is invalidated or we are drawing to a different target than before, update cache
         if !self.cache_valid(&rect) {
             // calculate actual size and update cache
 
             let (outer, inner) = self
                 .layout
                 .get_outer_inner_bounds_in_target(&rect, self.content_min());
+
             self.draw_cache = DrawCache {
                 outer: outer,
                 inner: inner,
@@ -189,11 +272,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         let (outer_bounds, inner_bounds) = (self.draw_cache.outer, self.draw_cache.inner);
 
         // draw visuals
-        if self.draw_cache.outer.contains(ctx.mouse.position()){
-            self.hover_visuals.unwrap_or(self.visuals)
-        } else {
-            self.visuals
-        }.draw(ctx, canvas, outer_bounds);
+        self.get_current_visual(ctx).draw(ctx, canvas, outer_bounds);
 
         // draw content
 
