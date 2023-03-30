@@ -11,7 +11,7 @@ use ggez::{
 use mooeye::{UiElement, containers, UiContent};
 
 pub struct Scene2 {
-    gui: UiElement,
+    gui: UiElement<()>,
 }
 
 impl Scene2 {

@@ -2,10 +2,12 @@ use ggez::{
     graphics::{self},
     Context, 
 };
+use std::hash::Hash;
+
 
 use crate::UiContent;
 
-impl UiContent for (){
+impl<T: Copy + Eq + Hash> UiContent<T> for (){
     fn draw_content(
         &mut self,
         _ctx: &mut Context,

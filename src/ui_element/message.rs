@@ -1,8 +1,7 @@
+use std::hash::Hash;
 
-
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum UiMessage<T: Sized + Copy> {
+#[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
+pub enum UiMessage<T: Copy + Eq + Hash + Hash> {
     Extern(T),
     Clicked(u32),
     ClickedRight(u32),

@@ -1,14 +1,15 @@
 use ggez::{graphics::Rect};
+use std::hash::Hash;
 
 use crate::{UiElement, UiContent, ui_element::layout::Size};
 
-pub struct VerticalBox {
-    pub children: Vec<UiElement>,
+pub struct VerticalBox<T: Copy + Eq + Hash> {
+    pub children: Vec<UiElement<T>>,
     pub spacing: f32,
 }
 
-impl UiContent for VerticalBox {
-    fn to_element(self, id: u32) -> UiElement where Self:Sized + 'static {
+impl<T: Copy + Eq + Hash> UiContent<T> for VerticalBox<T> {
+    fn to_element(self, id: u32) -> UiElement<T> where Self:Sized + 'static {
             let mut res = UiElement::new(id, self);
             res.layout.x_size = Size::SHRINK(0., f32::INFINITY);
             res.layout.y_size = Size::SHRINK(0., f32::INFINITY);
@@ -47,11 +48,11 @@ impl UiContent for VerticalBox {
                 )
     }
 
-    fn get_children(&self) -> Option<&[UiElement]> {
+    fn get_children(&self) -> Option<&[UiElement<T>]> {
         Some(&self.children)
     }
 
-    fn add(&mut self, element: UiElement) -> bool {
+    fn add(&mut self, element: UiElement<T>) -> bool {
         self.children.push(element);
         true
     }
@@ -86,7 +87,7 @@ impl UiContent for VerticalBox {
 }
 
 
-impl VerticalBox {
+impl<T: Copy + Eq + Hash> VerticalBox<T> {
 
     /// Returns a new VerticalBox with a default spacing of 5 pixels.
     pub fn new() -> Self{
@@ -126,7 +127,7 @@ impl VerticalBox {
     ///  - all elements fulfilling the predicate have reached their maximum height.
     fn distribute_height_to_fitting<F>(&self, leftover: &mut f32, res: &mut Vec<f32>, pred: F)
     where
-        F: Fn(&UiElement) -> bool,
+        F: Fn(&UiElement<T>) -> bool,
     {
         // get the number of elements fulfilling the predicate
         let mut element_count = self.children.iter().filter(|e| pred(*e)).count();

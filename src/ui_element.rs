@@ -1,4 +1,5 @@
 use std::collections::{HashSet};
+use std::hash::Hash;
 
 use ggez::{
     glam::Vec2,
@@ -21,7 +22,8 @@ pub use draw_cache::DrawCache;
 pub mod message;
 pub use message::UiMessage;
 
-pub struct UiElement {
+
+pub struct UiElement<T: Copy + Eq + Hash> {
     /// The elements layout.
     pub layout: Layout,
     /// The elements visuals.
@@ -35,11 +37,11 @@ pub struct UiElement {
     /// This elements draw cache.
     pub(crate) draw_cache: DrawCache,
 
-    content: Box<dyn UiContent>,
+    content: Box<dyn UiContent<T>>,
 }
 
-impl UiElement {
-    pub fn new<E: UiContent + 'static>(id: u32, content: E) -> Self {
+impl<T: Copy + Eq + Hash> UiElement<T> {
+    pub fn new<E: UiContent<T> + 'static>(id: u32, content: E) -> Self {
         Self {
             layout: Layout::default(),
             visuals: Visuals::default(),
@@ -66,7 +68,7 @@ impl UiElement {
     /// Receives a data structure containing all messages triggered by your game_state this frame.
     /// It then collects all messages sent by this element and its children and redistributes all of those messages to this element and all children.
     /// Returns all internal messages to act on them
-    pub fn manage_messages(&self, ctx: &ggez::Context, extern_messages: &HashSet<UiMessage<()>>) -> HashSet<UiMessage<()>> {
+    pub fn manage_messages(&self, ctx: &ggez::Context, extern_messages: &HashSet<UiMessage<T>>) -> HashSet<UiMessage<T>> {
         
         let intern_messages = self.collect_messages(ctx);
 
@@ -77,8 +79,8 @@ impl UiElement {
         intern_messages
     }
 
-    fn collect_messages(&self, ctx: &Context) -> HashSet<UiMessage<()>>{
-        let mut res: HashSet<UiMessage<()>> = HashSet::new();
+    fn collect_messages(&self, ctx: &Context) -> HashSet<UiMessage<T>>{
+        let mut res: HashSet<UiMessage<T>> = HashSet::new();
 
         if self.draw_cache.outer.contains(ctx.mouse.position()){
             if ctx.mouse.button_just_pressed(ggez::event::MouseButton::Left){
@@ -99,7 +101,7 @@ impl UiElement {
         res
     }
 
-    fn distribute_messages(&self, ctx: &Context, messages: &HashSet<UiMessage<()>>) -> GameResult{
+    fn distribute_messages(&self, ctx: &Context, messages: &HashSet<UiMessage<T>>) -> GameResult{
         //TODO: Do something with those messages
         
         if let Some(children) = self.content.get_children(){
@@ -199,15 +201,15 @@ impl UiElement {
     }
 }
 
-pub trait UiContent {
-    fn to_element(self, id: u32) -> UiElement
+pub trait UiContent<T: Copy + Eq + Hash> {
+    fn to_element(self, id: u32) -> UiElement<T>
     where
         Self: Sized + 'static,
     {
         UiElement::new(id, self)
     }
 
-    fn to_element_measured(self, id: u32, _ctx: &Context) -> UiElement
+    fn to_element_measured(self, id: u32, _ctx: &Context) -> UiElement<T>
     where
         Self: Sized + 'static,
     {
@@ -236,14 +238,14 @@ pub trait UiContent {
     );
 
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.
-    fn get_children(&self) -> Option<&[UiElement]> {
+    fn get_children(&self) -> Option<&[UiElement<T>]> {
         None
     }
 
     /// Attempts to add a UiElement to this elements children.
     /// Returns true if the operation succeeds.
     /// Returns false if this is a leaf node that cannot have any children.
-    fn add(&mut self, _element: UiElement) -> bool {
+    fn add(&mut self, _element: UiElement<T>) -> bool {
         false
     }
 }

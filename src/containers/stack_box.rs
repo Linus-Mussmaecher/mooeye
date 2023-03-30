@@ -1,10 +1,12 @@
 use crate::{UiElement, UiContent, ui_element::layout::Size};
+use std::hash::Hash;
 
-pub struct StackBox{
-    pub children: Vec<UiElement>,
+
+pub struct StackBox<T: Copy + Eq + Hash>{
+    pub children: Vec<UiElement<T>>,
 }
 
-impl StackBox {
+impl<T: Copy + Eq + Hash> StackBox<T> {
     pub fn new() -> Self{
         Self{
             children: Vec::new(),
@@ -12,10 +14,10 @@ impl StackBox {
     }
 }
 
-impl UiContent for StackBox {
+impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
     
 
-    fn to_element(self, id: u32) -> UiElement
+    fn to_element(self, id: u32) -> UiElement<T>
     where
         Self: Sized + 'static,
     {
@@ -53,11 +55,11 @@ impl UiContent for StackBox {
             })
     }
 
-    fn get_children(&self) -> Option<&[UiElement]> {
+    fn get_children(&self) -> Option<&[UiElement<T>]> {
         Some(&self.children)
     }
 
-    fn add(&mut self, element: UiElement) -> bool {
+    fn add(&mut self, element: UiElement<T>) -> bool {
         self.children.push(element);
         true
     }

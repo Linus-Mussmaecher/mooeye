@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+
 use ggez::{
     context::Context,
     graphics::{Color, Text},
@@ -9,8 +10,9 @@ use mooeye::{scene_manager::{Scene, SceneSwitch}, ui_element::UiMessage};
 use mooeye::{containers, UiContent, UiElement};
 
 pub struct Scene1 {
-    gui: UiElement,
+    gui: UiElement<u32>,
 }
+
 
 impl Scene1 {
     pub fn new(ctx: &Context) -> Self {

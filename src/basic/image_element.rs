@@ -2,11 +2,13 @@ use ggez::{
     Context,
     graphics::{self, DrawParam, Drawable, Rect},
 };
+use std::hash::Hash;
+
 
 use crate::{UiElement, UiContent, ui_element::layout::Size};
 
-impl UiContent for ggez::graphics::Image {
-    fn to_element_measured(self, id: u32, ctx: &Context) -> UiElement where Self:Sized + 'static {
+impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Image {
+    fn to_element_measured(self, id: u32, ctx: &Context) -> UiElement<T> where Self:Sized + 'static {
         let size = self.dimensions(&ctx.gfx).unwrap_or(Rect { x: 0., y: 0., w: 0., h: 0. });
 
         let mut element = UiElement::new(id, self);
