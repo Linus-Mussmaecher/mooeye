@@ -9,8 +9,8 @@ pub struct Transition {
     pub(crate) new_layout: Option<Layout>,
     pub(crate) new_visuals: Option<Visuals>,
     pub(crate) new_hover_visuals: Option<Option<Visuals>>,
-    pub(crate)total_duration: Duration,
-    pub(crate)remaining_duration: Duration,
+    pub(crate) total_duration: Duration,
+    pub(crate) remaining_duration: Duration,
 }
 
 impl Transition {

@@ -45,6 +45,9 @@ pub struct UiElement<T: Copy + Eq + Hash> {
 }
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
+
+    /// Creates a new UiElement containig the specified content and the specified ID. ID should be as unique as you require it.
+    /// Layout and visuals will be set to default values, hover_visuals is initialized as None.
     pub fn new<E: UiContent<T> + 'static>(id: u32, content: E) -> Self {
         Self {
             layout: Layout::default(),
@@ -57,17 +60,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
     }
 
+    /// Returns this elements (not neccessarily unique) ID within this UI. This ID is used to indentify the source of intern messages.
     pub fn get_id(&self) -> u32 {
         self.id
-    }
-
-    /// Returns wether this elements cache is still valid. The cache may be invalidated manually or because the target_rect has changed.
-    /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
-    fn cache_valid(&self, target: &Rect) -> bool {
-        self.content.get_children().unwrap_or(&[]).iter().fold(
-            self.draw_cache.valid && *target == self.draw_cache.target && self.transitions.is_empty(),
-            |valid, child| valid && child.cache_valid(target),
-        )
     }
 
     /// Receives a data structure containing all messages triggered by your game_state this frame.
@@ -127,8 +122,32 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         Ok(())
     }
 
+    /// Adds a transition to the end of the transition queue. It will be executed as soon as all transitions added beforehand have run their course.
     pub fn add_transition(&mut self, transition: Transition) {
         self.transitions.push_back(transition);
+    }
+
+    /// Progresses the currently active transition by the time of the last frame.
+    /// If this ends the current transition, the values of this element are updated to the values given by the transition and it is removed from the queue.
+    fn progress_transitions(&mut self, ctx: &Context) {
+        if !self.transitions.is_empty() {
+            self.transitions[0].remaining_duration = self.transitions[0]
+                .remaining_duration
+                .saturating_sub(ctx.time.delta());
+            if self.transitions[0].remaining_duration == Duration::ZERO {
+                let trans = self.transitions.pop_front().expect("Transitions did not contain a first element despite being not empty 2 lines ago.");
+                if let Some(layout) = trans.new_layout {
+                    self.layout = layout;
+                    self.draw_cache.valid = false;
+                }
+                if let Some(visuals) = trans.new_visuals {
+                    self.visuals = visuals;
+                }
+                if let Some(hover_visuals) = trans.new_hover_visuals {
+                    self.hover_visuals = hover_visuals;
+                }
+            }
+        }
     }
 
     /// First checks wether the user is currently hovering this element or not and chooses to return visuals or hover visuals accordingly.
@@ -182,66 +201,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
     }
 
-    fn progress_transitions(&mut self, ctx: &Context) {
-        if !self.transitions.is_empty() {
-            self.transitions[0].remaining_duration = self.transitions[0]
-                .remaining_duration
-                .saturating_sub(ctx.time.delta());
-            if self.transitions[0].remaining_duration == Duration::ZERO {
-                let trans = self.transitions.pop_front().expect("Transitions did not contain a first element despite being not empty 2 lines ago.");
-                if let Some(layout) = trans.new_layout {
-                    self.layout = layout;
-                    self.draw_cache.valid = false;
-                }
-                if let Some(visuals) = trans.new_visuals {
-                    self.visuals = visuals;
-                }
-                if let Some(hover_visuals) = trans.new_hover_visuals {
-                    self.hover_visuals = hover_visuals;
-                }
-            }
-        }
-    }
-
-    /// Returns the minimum and maximum width this element this element can have. Calculated from adding left and right padding to the size-data.
-    pub fn width_range(&self) -> (f32, f32) {
-        let layout = self.layout;
-        (
-            // get min width by taking minimum of inner min width, clamping it within the bounds given by the layout and adding padding
-            self.content
-                .content_width_range()
-                .0
-                .clamp(layout.x_size.min(), layout.x_size.max())
-                + layout.padding.1
-                + layout.padding.3,
-            // get max width by adding padding, overruling inner max width
-            layout.x_size.max() + layout.padding.1 + layout.padding.3,
-        )
-    }
-
-    /// Returns the minimum and maximum height this element this element can have. Calculated from adding top and bottom padding to the size-data.
-    pub fn height_range(&self) -> (f32, f32) {
-        let layout = self.layout;
-        (
-            // get min width by taking minimum of inner min width, clamping it within the bounds given by the layout and adding padding
-            self.content
-                .content_height_range()
-                .0
-                .clamp(layout.y_size.min(), layout.y_size.max())
-                + layout.padding.0
-                + layout.padding.2,
-            // get max width by adding padding, overruling inner max width
-            layout.y_size.max() + layout.padding.0 + layout.padding.2,
-        )
-    }
-
-    fn content_min(&self) -> Vec2 {
-        Vec2 {
-            x: self.content.content_width_range().0,
-            y: self.content.content_height_range().0,
-        }
-    }
-
+    /// Updates this element's draw cache by checking for validity.
+    /// If the draw cache is still valid (see [UiElement::cache_valid]), nothing happens.
+    /// Otherwise, the function uses ```content_min```, the ```layout``` and the currently active ```Transition``` to generate a valid draw cache
+    /// If no valid draw chache can be generated, the draw_cache wil be reset to default value.
+    /// The function will only change ```draw_cache::valid``` to ```true``` if the generated rectangles fit within the target ```rect```.
     fn update_draw_cache(&mut self, ctx: &Context, rect: Rect) {
         // check wether draw cache needs to be updated at all (or a transition is going on)
         if !self.cache_valid(&rect) {
@@ -283,6 +247,67 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
     }
 
+    /// Returns wether this elements cache is still valid. The cache may be invalidated manually or because the target_rect has changed.
+    /// Any chache is considered invalid if there is currently an active transition that is actively changing the layout
+    /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
+    fn cache_valid(&self, target: &Rect) -> bool {
+
+        let layout_changing_transition = if self.transitions.is_empty() {
+            false
+        } else {
+            if let None = self.transitions[0].new_layout {
+                false
+            } else {
+                true
+            }
+        };
+
+        self.content.get_children().unwrap_or(&[]).iter().fold(
+            self.draw_cache.valid && *target == self.draw_cache.target && !layout_changing_transition,
+            |valid, child| valid && child.cache_valid(target),
+        )
+    }
+
+    /// Returns the minimum and maximum width this element this element can have. Calculated from adding left and right padding to the size-data.
+    pub fn width_range(&self) -> (f32, f32) {
+        let layout = self.layout;
+        (
+            // get min width by taking minimum of inner min width, clamping it within the bounds given by the layout and adding padding
+            self.content
+                .content_width_range()
+                .0
+                .clamp(layout.x_size.min(), layout.x_size.max())
+                + layout.padding.1
+                + layout.padding.3,
+            // get max width by adding padding, overruling inner max width
+            layout.x_size.max() + layout.padding.1 + layout.padding.3,
+        )
+    }
+
+    /// Returns the minimum and maximum height this element this element can have. Calculated from adding top and bottom padding to the size-data.
+    pub fn height_range(&self) -> (f32, f32) {
+        let layout = self.layout;
+        (
+            // get min width by taking minimum of inner min width, clamping it within the bounds given by the layout and adding padding
+            self.content
+                .content_height_range()
+                .0
+                .clamp(layout.y_size.min(), layout.y_size.max())
+                + layout.padding.0
+                + layout.padding.2,
+            // get max width by adding padding, overruling inner max width
+            layout.y_size.max() + layout.padding.0 + layout.padding.2,
+        )
+    }
+
+    /// Returns the minimum size required by the content of this element.
+    fn content_min(&self) -> Vec2 {
+        Vec2 {
+            x: self.content.content_width_range().0,
+            y: self.content.content_height_range().0,
+        }
+    }
+
     /// Takes in a rectangle target, a canvas, a context and draws the UiElement to that rectangle within that canvas using that context.
     /// The element will either completely fit within the rectangle (including its padding) or not be drawn at all.
     /// The element will align and offset itself within the rectangle.
@@ -310,6 +335,8 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 }
 
 pub trait UiContent<T: Copy + Eq + Hash> {
+
+    /// Wraps the content into a UiElement and returns the element.
     fn to_element(self, id: u32) -> UiElement<T>
     where
         Self: Sized + 'static,
@@ -317,6 +344,8 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         UiElement::new(id, self)
     }
 
+    /// Wraps the content into a UiElement and returns that element.
+    /// Drawables may use the context to measure themselves and choose fitting layout bounds based on that measurement.
     fn to_element_measured(self, id: u32, _ctx: &Context) -> UiElement<T>
     where
         Self: Sized + 'static,
