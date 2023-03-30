@@ -27,6 +27,8 @@ impl Scene1 {
         let mut pi_img = graphics::Image::from_path(ctx, "/pi.png")
             .expect("Error when loading file /pi.png")
             .to_element_measured(2, &ctx);
+        pi_img.layout.x_size = pi_img.layout.x_size.scale(6.);
+        pi_img.layout.y_size = pi_img.layout.y_size.scale(6.);
 
         let mut sub_box = containers::VerticalBox::new();
 

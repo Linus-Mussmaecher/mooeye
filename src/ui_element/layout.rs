@@ -29,18 +29,18 @@ impl Size {
     /// Returns the minimum amount of space an element of this size requires.
     pub fn min(&self) -> f32 {
         match self {
-            Size::FIXED(s) => *s,
-            Size::FILL(min, _) => *min,
-            Size::SHRINK(min, _) => *min,
+            Self::FIXED(s) => *s,
+            Self::FILL(min, _) => *min,
+            Self::SHRINK(min, _) => *min,
         }
     }
 
     /// Returns the maximum amount of space an element of this size will grow to.
     pub fn max(&self) -> f32 {
         match self {
-            Size::FIXED(s) => *s,
-            Size::FILL(_, max) => *max,
-            Size::SHRINK(_, max) => *max,
+            Self::FIXED(s) => *s,
+            Self::FILL(_, max) => *max,
+            Self::SHRINK(_, max) => *max,
         }
     }
 
@@ -49,9 +49,17 @@ impl Size {
     /// Thus, FIXED elements will always just return their own size.
     pub fn pref(&self, min: f32, max: f32) -> f32 {
         match self {
-            Size::FIXED(s) => *s,
-            Size::FILL(fmin, fmax) => max.max(min).clamp(*fmin, *fmax), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
-            Size::SHRINK(smin, smax) => min.min(max).clamp(*smin, *smax), //(*smin).min(max).min(*smax).max(min).max(*smin),
+            Self::FIXED(s) => *s,
+            Self::FILL(fmin, fmax) => max.max(min).clamp(*fmin, *fmax), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
+            Self::SHRINK(smin, smax) => min.min(max).clamp(*smin, *smax), //(*smin).min(max).min(*smax).max(min).max(*smin),
+        }
+    }
+
+    pub fn scale(&self, scale: f32) -> Self{
+        match self {
+            Self::FIXED(s) => Self::FIXED(scale * s),
+            Self::FILL(fmin, fmax) => Self::FILL(fmin * scale, fmax * scale), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
+            Self::SHRINK(smin, smax) => Self::SHRINK(smin * scale, smax * scale) //(*smin).min(max).min(*smax).max(min).max(*smin),
         }
     }
 }
