@@ -54,6 +54,10 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
         Some(&self.children)
     }
 
+    fn get_children_mut(&mut self) -> Option<&mut [UiElement<T>]> {
+        Some(&mut self.children)
+    }
+
     fn add(&mut self, element: UiElement<T>) -> bool {
         self.children.push(element);
         true

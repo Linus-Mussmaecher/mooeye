@@ -2,6 +2,7 @@ use std::collections::{VecDeque};
 
 use ggez::event::{self, EventLoop};
 use ggez::*;
+use ggez::graphics::Color;
 
 
 /// A SceneManager instance. When using a game with multiple scenes, the scene_handler replaces you usual game manager.
@@ -82,10 +83,11 @@ impl event::EventHandler<GameError> for SceneManager
     }
 
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
+        let canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(0,0,0));
+        canvas.finish(ctx)?;
         for e in self.scene_stack.iter_mut() {
             e.draw(ctx)?;
         }
-
         Ok(())
     }
 }

@@ -42,6 +42,11 @@ pub struct UiElement<T: Copy + Eq + Hash> {
 
     /// The transition queue
     transitions: VecDeque<Transition>,
+
+    /// The message handler. This function is called on every frame to handle received message.
+    /// The handler receives a hashset of messages and a the elements transition queue
+    /// Overwrite this with a lambda that pushes transitions based on the incoming messages. 
+    message_handler: Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition>)>,
 }
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
@@ -57,6 +62,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             draw_cache: DrawCache::default(),
             content: Box::new(content),
             transitions: VecDeque::new(),
+            message_handler: Box::new(|_messages, _layout, _transition_queue| {}),
         }
     }
 
@@ -69,7 +75,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// It then collects all messages sent by this element and its children and redistributes all of those messages to this element and all children.
     /// Returns all internal messages to act on them
     pub fn manage_messages(
-        &self,
+        &mut self,
         ctx: &ggez::Context,
         extern_messages: &HashSet<UiMessage<T>>,
     ) -> HashSet<UiMessage<T>> {
@@ -110,16 +116,26 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         res
     }
 
-    fn distribute_messages(&self, ctx: &Context, messages: &HashSet<UiMessage<T>>) -> GameResult {
-        //TODO: Do something with those messages
+    fn distribute_messages(&mut self, ctx: &Context, messages: &HashSet<UiMessage<T>>) -> GameResult {
+        
+        (self.message_handler)(messages, self.layout, &mut self.transitions);
 
-        if let Some(children) = self.content.get_children() {
-            for child in children {
+        if let Some(children) = self.content.get_children_mut() {
+            for child in children.iter_mut() {
                 child.distribute_messages(ctx, messages)?;
             }
         }
 
         Ok(())
+    }
+
+    /// Overwrites this elements message handler.
+    /// The message hanlder lambda receives each frame a hash set consisting of all internal and external messages received by this element.
+    /// It also receives a function pointer. Calling this pointer with a transition pushes that transition to this elements transition queue.
+    pub fn set_message_handler<E> (&mut self, handler: E)
+    where E: Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition>) + 'static
+    {
+        self.message_handler = Box::new(handler);
     }
 
     /// Adds a transition to the end of the transition queue. It will be executed as soon as all transitions added beforehand have run their course.
@@ -227,12 +243,13 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 (own_outer, own_inner)
             };
 
-            if outer.w > rect.w
-                || outer.h > rect.h
+            // checking bounds, adding 0.01 to deal with problems stemming from imprecise multiplication
+            if outer.w > rect.w + 0.01
+                || outer.h > rect.h  + 0.01
                 || outer.x < 0.
                 || outer.y < 0.
-                || outer.x + outer.w > ctx.gfx.window().inner_size().width as f32
-                || outer.y + outer.h > ctx.gfx.window().inner_size().height as f32
+                || outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
+                || outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
             {
                 self.draw_cache = DrawCache::default();
                 return;
@@ -376,6 +393,11 @@ pub trait UiContent<T: Copy + Eq + Hash> {
 
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.
     fn get_children(&self) -> Option<&[UiElement<T>]> {
+        None
+    }
+
+    /// Returns mutatble access to this elements children, if there are any. Returns None if this is a leaf node.
+    fn get_children_mut(&mut self) -> Option<&mut [UiElement<T>]> {
         None
     }
 

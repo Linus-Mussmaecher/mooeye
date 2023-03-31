@@ -45,19 +45,21 @@ impl Scene1 {
             2.,
             4.,
         );
+
         play.hover_visuals = Some(mooeye::ui_element::Visuals::new(
             Color::from_rgb(67, 89, 201),
             Color::from_rgb(65, 77, 107),
-            5.,
-            10.,
+            2.,
+            4.,
         ));
+
         play.add_transition(Transition::new(Duration::from_secs(1)));
         play.add_transition(
             Transition::new(Duration::from_secs(2))
                 .with_new_visuals(mooeye::ui_element::Visuals::new(
                     Color::from_rgb(191, 89, 81),
                     Color::from_rgb(55, 67, 87),
-                    0.,
+                    2.,
                     4.,
                 )),
         );
@@ -74,11 +76,12 @@ impl Scene1 {
             2.,
             4.,
         );
+
         quit.hover_visuals = Some(mooeye::ui_element::Visuals::new(
             Color::from_rgb(67, 89, 201),
             Color::from_rgb(65, 77, 107),
-            5.,
-            10.,
+            2.,
+            4.,
         ));
 
         gui_box.add(title);
@@ -122,8 +125,7 @@ impl Scene for Scene1 {
             .manage_messages(ctx, &HashSet::new())
             .contains(&UiMessage::Clicked(3))
         {
-            return Ok(SceneSwitch::Replace(
-                1,
+            return Ok(SceneSwitch::Push(
                 Box::new(crate::scene_2::Scene2::new(ctx, 35)),
             ));
         }
