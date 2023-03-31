@@ -11,3 +11,4 @@ pub mod basic;
 pub mod containers;
 
 pub mod scene_manager;
+pub mod sprite;

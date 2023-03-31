@@ -402,7 +402,7 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     );
 
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.
-    fn get_children(&self) -> Option<&[UiElement<T>]> {
+    fn get_children(&self) ->  Option<&[UiElement<T>]> {
         None
     }
 
