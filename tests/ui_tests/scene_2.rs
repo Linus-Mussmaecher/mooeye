@@ -1,9 +1,12 @@
-use std::{collections::{HashSet, HashMap}, time::Duration};
+use std::{
+    collections::{HashMap, HashSet},
+    time::Duration,
+};
 
 use mooeye::{
     containers::{HorizontalBox, VerticalBox},
     scene_manager::{Scene, SceneSwitch},
-    ui_element::{UiMessage, layout::Alignment, Transition},
+    ui_element::{layout::Alignment, Transition, UiMessage},
 };
 
 use ggez::{
@@ -56,7 +59,7 @@ impl Scene2 {
             .to_element_measured(12, ctx);
         vert_ce.visuals = vis;
         vert_box.add(vert_ce);
-        let mut vert_do = Text::new( " v ")
+        let mut vert_do = Text::new(" v ")
             .set_font("Alagard")
             .to_owned()
             .to_element_measured(13, ctx);
@@ -83,9 +86,14 @@ impl Scene2 {
         hor_do.visuals = vis;
         hor_box.add(hor_do);
 
+        let mut back = Text::new("Back").set_font("Alagard").to_owned().to_element_measured(31, ctx);
+        back.visuals = vis;
+        back.layout.x_size = mooeye::ui_element::layout::Size::FILL(back.layout.x_size.min(), f32::INFINITY);
+
         let mut sub_box = HorizontalBox::new();
         sub_box.add(vert_box.to_element(10));
         sub_box.add(hor_box.to_element(20));
+        sub_box.add(back);
 
         gui_box.add(title);
         gui_box.add(pi_img);
@@ -103,39 +111,39 @@ impl Scene2 {
         );
 
         gui_box.set_message_handler(|messages, layout, transitions| {
-            if !transitions.is_empty(){
+            if !transitions.is_empty() {
                 return;
             }
             let vert_map = HashMap::from([
                 (11, Alignment::MIN),
                 (12, Alignment::CENTER),
-                (13, Alignment::MAX)
+                (13, Alignment::MAX),
             ]);
             let hor_map = HashMap::from([
                 (21, Alignment::MIN),
                 (22, Alignment::CENTER),
-                (23, Alignment::MAX)
+                (23, Alignment::MAX),
             ]);
-            for (key, val) in vert_map{
-                if messages.contains(&UiMessage::Clicked(key)){
-                    transitions.push_back(Transition::new(Duration::from_secs_f32(1.5)).with_new_layout(
-                        {
+            for (key, val) in vert_map {
+                if messages.contains(&UiMessage::Clicked(key)) {
+                    transitions.push_back(
+                        Transition::new(Duration::from_secs_f32(1.5)).with_new_layout({
                             let mut new_layout = layout;
                             new_layout.y_alignment = val;
                             new_layout
-                        }
-                    ));
+                        }),
+                    );
                 }
             }
-            for (key, val) in hor_map{
-                if messages.contains(&UiMessage::Clicked(key)){
-                    transitions.push_back(Transition::new(Duration::from_secs_f32(1.5)).with_new_layout(
-                        {
+            for (key, val) in hor_map {
+                if messages.contains(&UiMessage::Clicked(key)) {
+                    transitions.push_back(
+                        Transition::new(Duration::from_secs_f32(1.5)).with_new_layout({
                             let mut new_layout = layout;
                             new_layout.x_alignment = val;
                             new_layout
-                        }
-                    ));
+                        }),
+                    );
                 }
             }
         });
@@ -152,19 +160,9 @@ impl Scene for Scene2 {
         if self
             .gui
             .manage_messages(ctx, &HashSet::new())
-            .contains(&UiMessage::Clicked(4))
+            .contains(&UiMessage::Clicked(31))
         {
-            return Ok(SceneSwitch::Pop(2));
-        }
-        if self
-            .gui
-            .manage_messages(ctx, &HashSet::new())
-            .contains(&UiMessage::Clicked(3))
-        {
-            return Ok(SceneSwitch::Replace(
-                2,
-                Box::new(crate::scene_1::Scene1::new(&ctx)),
-            ));
+            return Ok(SceneSwitch::Pop(1));
         }
         Ok(SceneSwitch::None)
     }
@@ -179,13 +177,7 @@ impl event::EventHandler<GameError> for Scene2 {
         let mut canvas = graphics::Canvas::from_frame(ctx, None);
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
 
-        self.gui.draw_to_rectangle(
-            ctx,
-            &mut canvas,
-            graphics::Rect::new(0., 0., 
-                ctx.gfx.window().inner_size().width as f32,
-                ctx.gfx.window().inner_size().height as f32,),
-        );
+        self.gui.draw_to_screen(ctx, &mut canvas);
 
         canvas.finish(ctx)?;
 

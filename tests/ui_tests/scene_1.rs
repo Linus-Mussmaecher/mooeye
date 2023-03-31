@@ -54,15 +54,14 @@ impl Scene1 {
         ));
 
         play.add_transition(Transition::new(Duration::from_secs(1)));
-        play.add_transition(
-            Transition::new(Duration::from_secs(2))
-                .with_new_visuals(mooeye::ui_element::Visuals::new(
-                    Color::from_rgb(191, 89, 81),
-                    Color::from_rgb(55, 67, 87),
-                    2.,
-                    4.,
-                )),
-        );
+        play.add_transition(Transition::new(Duration::from_secs(2)).with_new_visuals(
+            mooeye::ui_element::Visuals::new(
+                Color::from_rgb(191, 89, 81),
+                Color::from_rgb(55, 67, 87),
+                2.,
+                4.,
+            ),
+        ));
 
         let mut quit = Text::new("Quit")
             .set_font("Alagard")
@@ -97,8 +96,7 @@ impl Scene1 {
             2.,
             10.,
         );
-        gui_box.add_transition(Transition::new(Duration::from_secs(1))
-        .with_new_layout({
+        gui_box.add_transition(Transition::new(Duration::from_secs(1)).with_new_layout({
             let mut la = gui_box.layout.clone();
             la.x_alignment = Alignment::MIN;
             la
@@ -125,9 +123,9 @@ impl Scene for Scene1 {
             .manage_messages(ctx, &HashSet::new())
             .contains(&UiMessage::Clicked(3))
         {
-            return Ok(SceneSwitch::Push(
-                Box::new(crate::scene_2::Scene2::new(ctx, 35)),
-            ));
+            return Ok(SceneSwitch::Push(Box::new(crate::scene_2::Scene2::new(
+                ctx, 35,
+            ))));
         }
         Ok(SceneSwitch::None)
     }
@@ -141,16 +139,8 @@ impl event::EventHandler<GameError> for Scene1 {
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
         let mut canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
-        self.gui.draw_to_rectangle(
-            ctx,
-            &mut canvas,
-            ggez::graphics::Rect::new(
-                0.,
-                0.,
-                ctx.gfx.window().inner_size().width as f32,
-                ctx.gfx.window().inner_size().height as f32,
-            ),
-        );
+        
+        self.gui.draw_to_screen(ctx, &mut canvas);
 
         canvas.finish(ctx)?;
         Ok(())

@@ -328,7 +328,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Takes in a rectangle target, a canvas, a context and draws the UiElement to that rectangle within that canvas using that context.
     /// The element will either completely fit within the rectangle (including its padding) or not be drawn at all.
     /// The element will align and offset itself within the rectangle.
-    pub fn draw_to_rectangle(&mut self, ctx: &mut Context, canvas: &mut Canvas, rect: Rect) {
+    pub(crate) fn draw_to_rectangle(&mut self, ctx: &mut Context, canvas: &mut Canvas, rect: Rect) {
         self.progress_transitions(ctx);
 
         // update draw_cache
@@ -348,6 +348,16 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
         self.content
             .draw_content(ctx, canvas, self.draw_cache.inner);
+    }
+
+    /// Draws this UiElement to the current screen. Call this on your root element every frame.
+    pub fn draw_to_screen(&mut self, ctx: &mut Context, canvas: &mut Canvas){
+        self.draw_to_rectangle(ctx, canvas, Rect::new(
+            0.,
+            0.,
+            ctx.gfx.window().inner_size().width as f32,
+            ctx.gfx.window().inner_size().height as f32,
+        ));
     }
 }
 
