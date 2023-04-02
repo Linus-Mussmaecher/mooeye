@@ -61,7 +61,10 @@ impl Scene1 {
                 2.,
                 4.,
             ),
-        ));
+        ).with_new_content(Text::new("Start")
+        .set_font("Alagard")
+        .set_scale(36.)
+        .to_owned()));
 
         let mut quit = Text::new("Quit")
             .set_font("Alagard")

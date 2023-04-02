@@ -1,24 +1,27 @@
-use std::time::Duration;
+use std::{time::Duration, hash::Hash};
 
 use ggez::graphics::Rect;
 
+use crate::UiContent;
+
 use super::{Layout, Visuals};
 
-#[derive(Clone, Copy)]
-pub struct Transition {
+pub struct Transition<T: Copy + Eq + Hash> {
     pub(crate) new_layout: Option<Layout>,
     pub(crate) new_visuals: Option<Visuals>,
     pub(crate) new_hover_visuals: Option<Option<Visuals>>,
+    pub(crate) new_content: Option<Box<dyn UiContent<T>>>,
     pub(crate) total_duration: Duration,
     pub(crate) remaining_duration: Duration,
 }
 
-impl Transition {
+impl<T: Copy + Eq + Hash> Transition<T> {
     pub fn new(duration: Duration) -> Self {
         Self {
             new_layout: None,
             new_visuals: None,
             new_hover_visuals: None,
+            new_content: None,
             total_duration: duration,
             remaining_duration: duration,
         }
@@ -36,6 +39,12 @@ impl Transition {
 
     pub fn with_new_hover_visuals(mut self, new_hover_visuals: Option<Visuals>) -> Self{
         self.new_hover_visuals = Some(new_hover_visuals);
+        self
+    }
+
+    pub fn with_new_content<E>(mut self, new_content: E) -> Self
+    where E: UiContent<T> + 'static{
+        self.new_content = Some(Box::new(new_content));
         self
     }
 

@@ -41,12 +41,12 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     content: Box<dyn UiContent<T>>,
 
     /// The transition queue
-    transitions: VecDeque<Transition>,
+    transitions: VecDeque<Transition<T>>,
 
     /// The message handler. This function is called on every frame to handle received message.
     /// The handler receives a hashset of messages and a the elements transition queue
     /// Overwrite this with a lambda that pushes transitions based on the incoming messages. 
-    message_handler: Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition>)>,
+    message_handler: Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>)>,
 }
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
@@ -133,13 +133,13 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// The message hanlder lambda receives each frame a hash set consisting of all internal and external messages received by this element.
     /// It also receives a function pointer. Calling this pointer with a transition pushes that transition to this elements transition queue.
     pub fn set_message_handler<E> (&mut self, handler: E)
-    where E: Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition>) + 'static
+    where E: Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>) + 'static
     {
         self.message_handler = Box::new(handler);
     }
 
     /// Adds a transition to the end of the transition queue. It will be executed as soon as all transitions added beforehand have run their course.
-    pub fn add_transition(&mut self, transition: Transition) {
+    pub fn add_transition(&mut self, transition: Transition<T>) {
         self.transitions.push_back(transition);
     }
 
@@ -161,6 +161,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 }
                 if let Some(hover_visuals) = trans.new_hover_visuals {
                     self.hover_visuals = hover_visuals;
+                }
+                if let Some(content) = trans.new_content{
+                    self.content = content;
                 }
             }
         }
@@ -184,7 +187,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 own_vis
             } else {
                 // yes: check wether the top transition wants to change hover_visuals
-                let trans = self.transitions[0];
+                let trans = &self.transitions[0];
                 match trans.new_hover_visuals {
                     // yes: find out what it wants to display on hover and take the average
                     Some(vis) => {
@@ -206,7 +209,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 self.visuals
             } else {
                 // transitions: check wether the top transition wants to change visuals
-                let trans = self.transitions[0];
+                let trans = &self.transitions[0];
                 match trans.new_visuals {
                     // yes: find average between the two visuals
                     Some(vis) => self.visuals.average(vis, trans.get_progress_ratio()),
