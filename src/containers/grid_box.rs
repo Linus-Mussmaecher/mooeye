@@ -60,7 +60,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                     self.children
                         .iter()
                         .enumerate()
-                        .filter(|(index, _)| *index % self.rows == col)
+                        .filter(|(index, _)| *index % self.cols == col)
                         .fold(false, |hs, (_, element)| {
                             hs || matches!(element.layout.x_size, Size::FILL(_, _))
                         })
@@ -79,7 +79,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                     self.children
                         .iter()
                         .enumerate()
-                        .filter(|(index, _)| *index % self.rows == col)
+                        .filter(|(index, _)| *index % self.cols == col)
                         .fold(false, |hs, (_, element)| {
                             hs || matches!(element.layout.x_size, Size::SHRINK(_, _))
                         })
@@ -111,7 +111,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                     self.children
                         .iter()
                         .enumerate()
-                        .filter(|(index, _)| *index / self.rows == col)
+                        .filter(|(index, _)| *index / self.cols == col)
                         .fold(false, |hs, (_, element)| {
                             hs || matches!(element.layout.y_size, Size::FILL(_, _))
                         })
@@ -130,7 +130,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                     self.children
                         .iter()
                         .enumerate()
-                        .filter(|(index, _)| *index / self.rows == col)
+                        .filter(|(index, _)| *index / self.cols == col)
                         .fold(false, |hs, (_, element)| {
                             hs || matches!(element.layout.y_size, Size::SHRINK(_, _))
                         })
@@ -193,7 +193,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                 self.children
                     .iter()
                     .enumerate()
-                    .filter(|(index, _)| *index % self.rows == col)
+                    .filter(|(index, _)| *index % self.cols == col)
                     .fold((f32::EPSILON, f32::INFINITY), |old, (_, element)| {
                         (
                             old.0.max(element.width_range().0),
@@ -258,7 +258,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
     }
 
     fn add(&mut self, _element: UiElement<T>) -> bool {
-        false
+        
+        true
     }
 
     fn draw_content(

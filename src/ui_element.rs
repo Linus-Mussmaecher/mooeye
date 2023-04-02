@@ -251,6 +251,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 || outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
                 || outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
             {
+                                println!("Skipped Element. Outer: {:?}, Rect: {:?}", outer, rect);
                 self.draw_cache = DrawCache::default();
                 return;
             } else {
@@ -364,6 +365,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 pub trait UiContent<T: Copy + Eq + Hash> {
 
     /// Wraps the content into a UiElement and returns the element.
+    ///  Use of ID 0 is discouraged, as 0 is used for IDs of some default elements.
     fn to_element(self, id: u32) -> UiElement<T>
     where
         Self: Sized + 'static,
@@ -371,7 +373,8 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         UiElement::new(id, self)
     }
 
-    /// Wraps the content into a UiElement and returns that element.
+    /// Wraps the content into a UiElement and returns the element.
+    ///  Use of ID 0 is discouraged, as 0 is used for IDs of some default elements.
     /// Drawables may use the context to measure themselves and choose fitting layout bounds based on that measurement.
     fn to_element_measured(self, id: u32, _ctx: &Context) -> UiElement<T>
     where
