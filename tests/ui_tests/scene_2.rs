@@ -4,7 +4,7 @@ use std::{
 };
 
 use mooeye::{
-    containers::{HorizontalBox, VerticalBox},
+    containers::{HorizontalBox, VerticalBox, grid_box::GridBox},
     scene_manager::{Scene, SceneSwitch},
     ui_element::{layout::Alignment, Transition, UiMessage},
 };
@@ -46,58 +46,67 @@ impl Scene2 {
             4.,
         );
 
-        let mut vert_box = VerticalBox::new();
+        let mut grid_box = GridBox::new(2, 3);
+
+        //let mut vert_box = VerticalBox::new();
         let mut vert_up = Text::new(" ^ ")
             .set_font("Alagard")
             .to_owned()
             .to_element_measured(11, ctx);
         vert_up.visuals = vis;
-        vert_box.add(vert_up);
+        //vert_box.add(vert_up);
+        grid_box.add(vert_up, 0, 0);
         let mut vert_ce = Text::new(" . ")
             .set_font("Alagard")
             .to_owned()
             .to_element_measured(12, ctx);
         vert_ce.visuals = vis;
-        vert_box.add(vert_ce);
+        //vert_box.add(vert_ce);
+        grid_box.add(vert_ce, 0, 1);
         let mut vert_do = Text::new(" v ")
             .set_font("Alagard")
             .to_owned()
             .to_element_measured(13, ctx);
         vert_do.visuals = vis;
-        vert_box.add(vert_do);
+        //vert_box.add(vert_do);
+        grid_box.add(vert_do, 0, 2);
 
-        let mut hor_box = VerticalBox::new();
+        //let mut hor_box = VerticalBox::new();
         let mut hor_up = Text::new(" < ")
             .set_font("Alagard")
             .to_owned()
             .to_element_measured(21, ctx);
         hor_up.visuals = vis;
-        hor_box.add(hor_up);
+        //hor_box.add(hor_up);
+        grid_box.add(hor_up, 1, 0);
         let mut hor_ce = Text::new(" . ")
             .set_font("Alagard")
             .to_owned()
             .to_element_measured(22, ctx);
         hor_ce.visuals = vis;
-        hor_box.add(hor_ce);
+        //hor_box.add(hor_ce);
+        grid_box.add(hor_ce, 1, 1);
         let mut hor_do = Text::new(" > ")
             .set_font("Alagard")
             .to_owned()
             .to_element_measured(23, ctx);
         hor_do.visuals = vis;
-        hor_box.add(hor_do);
+        //hor_box.add(hor_do);
+        grid_box.add(hor_do, 1, 2);
 
         let mut back = Text::new("Back").set_font("Alagard").to_owned().to_element_measured(31, ctx);
         back.visuals = vis;
-        back.layout.x_size = mooeye::ui_element::layout::Size::FILL(back.layout.x_size.min(), f32::INFINITY);
+        back.layout.y_size = mooeye::ui_element::layout::Size::FILL(back.layout.y_size.min(), f32::INFINITY);
 
-        let mut sub_box = HorizontalBox::new();
-        sub_box.add(vert_box.to_element(10));
-        sub_box.add(hor_box.to_element(20));
-        sub_box.add(back);
+        // let mut sub_box = HorizontalBox::new();
+        // sub_box.add(vert_box.to_element(10));
+        // sub_box.add(hor_box.to_element(20));
+        // sub_box.add(back);
 
         gui_box.add(title);
         gui_box.add(pi_img);
-        gui_box.add(sub_box.to_element(30));
+        gui_box.add(grid_box.to_element(30));
+        gui_box.add(back);
 
         let mut gui_box = gui_box.to_element(0);
 

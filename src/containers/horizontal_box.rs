@@ -1,7 +1,7 @@
-use ggez::{graphics::Rect};
+use ggez::graphics::Rect;
 use std::hash::Hash;
 
-use crate::{UiElement, UiContent, ui_element::layout::Size};
+use crate::{ui_element::layout::Size, UiContent, UiElement};
 
 /// A horizontal box that will group elements from left to right. Stores elements in a vector that determines order of elements within the box.
 /// Elements will adhere to their own x and y alignment within the box provided to them
@@ -13,27 +13,29 @@ pub struct HorizontalBox<T: Copy + Eq + Hash> {
 }
 
 impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
-    fn to_element(self, id: u32) -> UiElement<T> where Self:Sized + 'static {
-            let mut res = UiElement::new(id, self);
-            res.layout.x_size = Size::SHRINK(0., f32::INFINITY);
-            res.layout.y_size = Size::SHRINK(0., f32::INFINITY);
-            res
+    fn to_element(self, id: u32) -> UiElement<T>
+    where
+        Self: Sized + 'static,
+    {
+        let mut res = UiElement::new(id, self);
+        res.layout.x_size = Size::SHRINK(0., f32::INFINITY);
+        res.layout.y_size = Size::SHRINK(0., f32::INFINITY);
+        res
     }
     fn content_width_range(&self) -> (f32, f32) {
-        // sum of all min widths and sum of all max widths, as elements are stacked in y direction
+        // sum of all min widths and sum of all max widths, as elements are stacked in y direction. Add spacing.
 
-        let pure_inner = self.children.iter().fold((0., 0.), |last, element| {
+        self.children.iter().fold(
             (
-                last.0 + element.width_range().0,
-                last.1 + element.width_range().1,
-            )
-        });
-
-        // add spacing and return
-
-        (
-            pure_inner.0 + (0.max(self.children.len() as i32 - 1)) as f32 * self.spacing,
-            pure_inner.1 + (0.max(self.children.len() as i32 - 1)) as f32 * self.spacing,
+                (0.max(self.children.len() as i32 - 1)) as f32 * self.spacing,
+                (0.max(self.children.len() as i32 - 1)) as f32 * self.spacing,
+            ),
+            |last, element| {
+                (
+                    last.0 + element.width_range().0,
+                    last.1 + element.width_range().1,
+                )
+            },
         )
     }
 
@@ -46,7 +48,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
                 (
                     last.0.max(element.height_range().0),
                     last.1.min(element.height_range().1),
-                )
+                                )
             })
     }
 

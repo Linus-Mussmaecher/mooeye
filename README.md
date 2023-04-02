@@ -15,7 +15,10 @@ This is a very simple UI library to be used with the [ggez game library](https:/
 
  ## TODOs
 
- * More types of containers (especially a grid based one).
+ * More types of containers.
+    * Container that adds a hover tooltip
+    * Container that helps with drag & drop
+    * Related: Grant transitions access to element content
  * Examples & usage guides.
  * More extensive documentation.
  * Possibly docs.rs and crates.io releaes.
