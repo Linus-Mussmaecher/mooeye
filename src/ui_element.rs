@@ -268,7 +268,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Returns wether this elements cache is still valid. The cache may be invalidated manually or because the target_rect has changed.
     /// Any chache is considered invalid if there is currently an active transition that is actively changing the layout
     /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
-    fn cache_valid(&self, target: &Rect) -> bool {
+    pub(crate) fn cache_valid(&self, target: &Rect) -> bool {
 
         let layout_changing_transition = if self.transitions.is_empty() {
             false

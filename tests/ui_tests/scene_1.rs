@@ -8,7 +8,7 @@ use ggez::{
 use mooeye::{containers, UiContent, UiElement};
 use mooeye::{
     scene_manager::{Scene, SceneSwitch},
-    ui_element::{layout::Alignment, Transition, UiMessage},
+    ui_element::{Transition, UiMessage},
 };
 
 pub struct Scene1 {
@@ -96,11 +96,6 @@ impl Scene1 {
             2.,
             10.,
         );
-        gui_box.add_transition(Transition::new(Duration::from_secs(1)).with_new_layout({
-            let mut la = gui_box.layout.clone();
-            la.x_alignment = Alignment::MIN;
-            la
-        }));
 
         Self { gui: gui_box }
     }

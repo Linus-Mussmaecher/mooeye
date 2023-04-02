@@ -3,31 +3,40 @@ use std::hash::Hash;
 
 use crate::{ui_element::layout::Size, UiContent, UiElement};
 
+/// A Grid Box that is initialized with a fixed width and height an can display elements in every cell.
 pub struct GridBox<T: Copy + Eq + Hash> {
+    /// The contents of this grid box, organized by rows
     children: Vec<UiElement<T>>,
-    pub v_spacing: f32,
-    pub h_spacing: f32,
+
+    /// The distance between two rows of this grid box.
+    pub vertical_spacing: f32,
+    /// The distance between two columns of this grid box.
+    pub horizontal_spacing: f32,
+
+    /// The number of rows in this grid box.
     rows: usize,
+    /// The number of columns in thei grid box.
     cols: usize,
+
+    ///// A rectangle cache to prevent recalculation of child boxes every frame.
+    //children_rects: Vec<Rect>,
 }
 
 impl<T: Copy + Eq + Hash> GridBox<T> {
-    pub fn new(width: usize, height: usize) -> Self {
+    /// Creates a new GridBox with the specified number of columns and rows.
+    pub fn new(columns: usize, rows: usize) -> Self {
         Self {
-            children: {
-                let mut children = Vec::new();
-                for _ in 0..width * height {
-                    children.push(().to_element(0));
-                }
-                children
-            },
-            v_spacing: 5.,
-            h_spacing: 5.,
-            cols: width,
-            rows: height,
+            children: (0..columns * rows).map(|_| ().to_element(0)).collect(),
+            vertical_spacing: 5.,
+            horizontal_spacing: 5.,
+            cols: columns,
+            rows,
+            //children_rects: vec![Rect::default(); rows * columns],
         }
     }
 
+    /// Adds an element to the specified position in the grid, overwriting any element previously there.
+    /// If the index is out of bounds, this function will return an error.
     pub fn add(&mut self, element: UiElement<T>, x: usize, y: usize) -> GameResult {
         if x >= self.cols || y >= self.rows {
             Err(ggez::GameError::CustomError(
@@ -187,6 +196,8 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
         }
     }
 
+    /// Returns a vector containing for every column in this grid the width_range of that column.
+    /// Width range is calculated by taking the maximum min_width and minimum max_width of all children in each column.
     fn get_column_ranges(&self) -> Vec<(f32, f32)> {
         (0..self.cols)
             .map(|col| {
@@ -204,6 +215,9 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
             .collect()
     }
 
+    
+    /// Returns a vector containing for every row in this grid the height_range of that row.
+    /// Height range is calculated by taking the maximum min_height and minimum max_height of all children in each row.
     fn get_row_ranges(&self) -> Vec<(f32, f32)> {
         (0..self.rows)
             .map(|row| {
@@ -236,8 +250,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
     fn content_width_range(&self) -> (f32, f32) {
         self.get_column_ranges().iter().fold(
             (
-                (0.max(self.cols - 1)) as f32 * self.h_spacing,
-                (0.max(self.cols - 1)) as f32 * self.h_spacing,
+                (0.max(self.cols - 1)) as f32 * self.horizontal_spacing,
+                (0.max(self.cols - 1)) as f32 * self.horizontal_spacing,
             ),
             |old, range| (old.0 + range.0, old.1 + range.1),
         )
@@ -246,8 +260,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
     fn content_height_range(&self) -> (f32, f32) {
         self.get_row_ranges().iter().fold(
             (
-                (0.max(self.rows - 1)) as f32 * self.v_spacing,
-                (0.max(self.rows - 1)) as f32 * self.v_spacing,
+                (0.max(self.rows - 1)) as f32 * self.vertical_spacing,
+                (0.max(self.rows - 1)) as f32 * self.vertical_spacing,
             ),
             |old, range| (old.0 + range.0, old.1 + range.1),
         )
@@ -258,7 +272,6 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
     }
 
     fn add(&mut self, _element: UiElement<T>) -> bool {
-        
         true
     }
 
@@ -268,22 +281,30 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         canvas: &mut ggez::graphics::Canvas,
         content_bounds: ggez::graphics::Rect,
     ) {
+
         // get column widths
         let column_widths = self.get_column_widths(content_bounds.w);
         // ... and partial sum
-        let column_widths_ps = column_widths.iter().fold(Vec::from([content_bounds.x]), |mut vec, val| {
-            vec.push(*vec.last().unwrap_or(&0.) + val + self.h_spacing);
-            vec
-        });
+        let column_widths_ps =
+            column_widths
+                .iter()
+                .fold(Vec::from([content_bounds.x]), |mut vec, val| {
+                    vec.push(*vec.last().unwrap_or(&0.) + val + self.horizontal_spacing);
+                    vec
+                });
 
         // get row heights
         let row_heights = self.get_row_heights(content_bounds.h);
         // ... and partial sum
-        let row_heights_ps = row_heights.iter().fold(Vec::from([content_bounds.y]), |mut vec, val| {
-            vec.push(*vec.last().unwrap_or(&0.) + val + self.v_spacing);
-            vec
-        });
-
+        let row_heights_ps =
+            row_heights
+                .iter()
+                .fold(Vec::from([content_bounds.y]), |mut vec, val| {
+                    vec.push(*vec.last().unwrap_or(&0.) + val + self.vertical_spacing);
+                    vec
+                });
+        
+        // actually draw children
         for (index, element) in self.children.iter_mut().enumerate() {
             element.draw_to_rectangle(
                 ctx,

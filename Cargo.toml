@@ -8,6 +8,7 @@ authors = ["Linus Mußmächer linus.mussmaecher@gmail.com"]
 
 [dependencies]
 ggez = "0.9.0-rc0"
+#tinyvec = "1.6.0"
 
 
 # Tests. GGEZ panicks when creating an event loop outside of the main thread, so we have to disable the cargo test harness to force this tests onto the main thread.
