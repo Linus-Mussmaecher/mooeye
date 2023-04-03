@@ -5,7 +5,7 @@ use ggez::{
     graphics::{Color, Text},
     *,
 };
-use mooeye::{containers, UiContent, UiElement, ui_element::Alignment};
+use mooeye::{containers, sprite::Sprite, ui_element::Alignment, UiContent, UiElement};
 use mooeye::{
     scene_manager::{Scene, SceneSwitch},
     ui_element::{Transition, UiMessage},
@@ -25,9 +25,12 @@ impl Scene1 {
             .to_owned()
             .to_element_measured(1, &ctx);
 
-        let mut pi_img = graphics::Image::from_path(ctx, "/pi.png")
-            .expect("Error when loading file /pi.png")
-            .to_element_measured(2, &ctx);
+        let mut pi_img =
+            //Sprite::from_path("/pi_sheet.png", ctx, 16, 24, Duration::from_secs_f32(0.2))
+            Sprite::from_path_fmt("/pi_sheet_16_24.png", ctx, Duration::from_secs_f32(0.25))
+                .expect("Spritesheet loading failed.")
+                .to_element(2);
+
         pi_img.layout.x_size = pi_img.layout.x_size.scale(6.);
         pi_img.layout.y_size = pi_img.layout.y_size.scale(6.);
         pi_img.set_tooltip(Some({

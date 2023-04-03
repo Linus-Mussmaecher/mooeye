@@ -2,7 +2,7 @@
 
 This is a very simple UI library to be used with the [ggez game library](https://github.com/ggez/ggez). I wrote this for my own projects and as a challenge. The whole library is very much work-in-progress.
 
-## Features
+## UI Features
 
  * Static UI that communicates with each other via a message-based system.
  * Can use ggez image and text objects as UI elements.
@@ -11,7 +11,11 @@ This is a very simple UI library to be used with the [ggez game library](https:/
  * Caching of element positions means a recalculation of dynamic element positions is only neccessary when the window size changes or the UI elements themselves change.
  * Transitions system to change layout, look and content of the UI while running. For larger changes of the structure, I suggest a complete re-build of the UI (similar to how an immediate UI rebuilds every frame). Not for performance, but code-readability.
  * Message based communication featuring both internal (clicks) and external (what ever your gamestats wants to tell the UI) messages that can initiate transitions using a customizable message handler.
+
+ ## Additional Features
+
  * Stack-based scene Manager to make working with multiple scenes in one game significantly easier.
+ * Sprite struct automates drawing an animated sprite with multiple variants (e.g. an attacking, walking, ... character) and can be loaded from a single spritesheet file.
  
 
  ## TODOs
