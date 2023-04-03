@@ -9,8 +9,8 @@ use ggez::{
 };
 
 mod layout;
-pub use layout::Layout;
 pub use layout::Alignment;
+pub use layout::Layout;
 pub use layout::Size;
 
 mod visuals;
@@ -140,10 +140,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Overwrites this elements message handler.
     /// The message hanlder lambda receives each frame a hash set consisting of all internal and external messages received by this element.
     /// It also receives a function pointer. Calling this pointer with a transition pushes that transition to this elements transition queue.
-    pub fn set_message_handler<E>(&mut self, handler: E)
-    where
-        E: Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>) + 'static,
-    {
+    /// Lastly, it receives the current layout of the element. This allows any transitions to re-use that layout and only change the variables the transition wants to change.
+    pub fn set_message_handler(
+        &mut self,
+        handler: impl Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>) + 'static,
+    ) {
         self.message_handler = Box::new(handler);
     }
 

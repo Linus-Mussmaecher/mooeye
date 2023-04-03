@@ -129,9 +129,7 @@ impl<T: Copy + Eq + Hash> VerticalBox<T> {
     /// Iterates over the vector and all elements in this box that fullfil the predicate simulateously, adding height to each element (reducing leftover in parallel) until
     ///  - leftover has reached 0 and no height is left to distribute
     ///  - all elements fulfilling the predicate have reached their maximum height.
-    fn distribute_height_to_fitting<F>(&self, leftover: &mut f32, res: &mut Vec<f32>, pred: F)
-    where
-        F: Fn(&UiElement<T>) -> bool,
+    fn distribute_height_to_fitting(&self, leftover: &mut f32, res: &mut Vec<f32>, pred: impl Fn(&UiElement<T>) -> bool)
     {
         // get the number of elements fulfilling the predicate
         let mut element_count = self.children.iter().filter(|e| pred(*e)).count();
