@@ -1,5 +1,8 @@
 use ggez::{graphics::Rect, GameResult};
+use tinyvec::TinyVec;
 use std::hash::Hash;
+
+const VECSIZE: usize = 32;
 
 use crate::{ui_element::Size, UiContent, UiElement};
 
@@ -49,7 +52,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     }
 
     /// Returns a Vector with as many entries as this element has columns, each describin the dynamically allocated width for that column.
-    fn get_column_widths(&self, width_available: f32) -> Vec<f32> {
+    fn get_column_widths(&self, width_available: f32) -> TinyVec<[f32; VECSIZE]> {
         // Use helper function to calculate the width range of each column.
         let ranges = self.get_column_ranges();
 
@@ -100,7 +103,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     }
 
     /// Returns a Vector with as many entries as this element has rows, each describin the dynamically allocated height for that row.
-    fn get_row_heights(&self, height_available: f32) -> Vec<f32> {
+    fn get_row_heights(&self, height_available: f32) -> TinyVec<[f32; VECSIZE]> {
         // Use helper function to calculate the height range of each row.
         let ranges = self.get_row_ranges();
 
@@ -156,9 +159,9 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     fn distribute_to_fitting(
         &self,
         leftover: &mut f32,
-        res: &mut Vec<f32>,
-        ranges: &Vec<(f32, f32)>,
-        receives: &Vec<bool>,
+        res: &mut TinyVec<[f32; VECSIZE]>,
+        ranges: &TinyVec<[(f32, f32); VECSIZE]>,
+        receives: &TinyVec<[bool; VECSIZE]>,
     ) {
         // get the number of elements fulfilling the predicate
         let mut element_count = receives.iter().filter(|a| **a).count();
@@ -198,7 +201,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
 
     /// Returns a vector containing for every column in this grid the width_range of that column.
     /// Width range is calculated by taking the maximum min_width and minimum max_width of all children in each column.
-    fn get_column_ranges(&self) -> Vec<(f32, f32)> {
+    fn get_column_ranges(&self) -> TinyVec<[(f32, f32); VECSIZE]> {
         (0..self.cols)
             .map(|col| {
                 self.children
@@ -218,7 +221,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     
     /// Returns a vector containing for every row in this grid the height_range of that row.
     /// Height range is calculated by taking the maximum min_height and minimum max_height of all children in each row.
-    fn get_row_ranges(&self) -> Vec<(f32, f32)> {
+    fn get_row_ranges(&self) -> TinyVec<[(f32, f32); VECSIZE]> {
         (0..self.rows)
             .map(|row| {
                 self.children
