@@ -5,7 +5,7 @@ use ggez::{
     graphics::{Color, Text},
     *,
 };
-use mooeye::{containers, sprite::Sprite, ui_element::Alignment, UiContent, UiElement};
+use mooeye::{containers::{self, StackBox}, sprite::Sprite, ui_element::{Alignment, Size}, UiContent, UiElement};
 use mooeye::{
     scene_manager::{Scene, SceneSwitch},
     ui_element::{Transition, UiMessage},
@@ -91,6 +91,28 @@ impl Scene1 {
                 ),
         );
 
+        let mut minipi = graphics::Image::from_path(ctx, "/pi.png")
+            .expect("Something went wrong loading /pi.png")
+            .to_element_measured(2, &ctx);
+        minipi.layout.x_alignment = Alignment::MIN;
+        minipi.layout.y_alignment = Alignment::MIN;
+        minipi.layout.x_size = minipi.layout.x_size.to_shrink();//TODO : THIS DOES NOT SHRINK
+        minipi.layout.y_size = minipi.layout.y_size.to_shrink();
+        minipi.layout.x_offset = -10.;
+        minipi.layout.y_offset = -10.;
+
+
+        let mut stack = StackBox::new();
+        let playlayout = play.layout;
+        stack.add(play);
+        stack.add_top(minipi);
+        let mut stack = stack.to_element(50);
+        stack.layout = playlayout;
+        stack.layout.x_size = Size::FILL(playlayout.x_size.min() + 10., f32::INFINITY);
+        stack.layout.y_size = Size::FILL(playlayout.y_size.min() + 10., f32::INFINITY);
+        stack.layout.padding = (0., 0., 0., 0.);
+        
+
         let mut quit = Text::new("Quit")
             .set_font("Alagard")
             .set_scale(36.)
@@ -113,7 +135,7 @@ impl Scene1 {
 
         gui_box.add(title);
         gui_box.add(pi_img);
-        sub_box.add(play);
+        sub_box.add(stack);
         sub_box.add(quit);
         gui_box.add(sub_box.to_element(5));
 
