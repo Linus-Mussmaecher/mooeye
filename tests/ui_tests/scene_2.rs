@@ -6,7 +6,8 @@ use std::{
 use mooeye::{
     containers::grid_box::GridBox,
     scene_manager::{Scene, SceneSwitch},
-    ui_element::{layout::Alignment, Transition, UiMessage},
+    ui_element::Transition,
+    UiMessage, *,
 };
 
 use ggez::{
@@ -27,8 +28,8 @@ impl Scene2 {
         let mut pi_img = graphics::Image::from_path(ctx, "/pi.png")
             .expect("Something went wrong loading /pi.png")
             .to_element_measured(2, &ctx);
-        pi_img.layout.x_size = mooeye::ui_element::layout::Size::FIXED(96.);
-        pi_img.layout.y_size = mooeye::ui_element::layout::Size::FIXED(96.);
+        pi_img.layout.x_size = ui_element::Size::FIXED(96.);
+        pi_img.layout.y_size = ui_element::Size::FIXED(96.);
 
         let title = Text::new(format!(
             "Move this element with the buttons.\nHere is a number: {}.",
@@ -39,7 +40,7 @@ impl Scene2 {
         .to_owned()
         .to_element_measured(1, &ctx);
 
-        let vis = mooeye::ui_element::Visuals::new(
+        let vis = ui_element::Visuals::new(
             Color::from_rgb(77, 109, 191),
             Color::from_rgb(55, 67, 87),
             2.,
@@ -105,7 +106,7 @@ impl Scene2 {
             .to_element_measured(31, ctx);
         back.visuals = vis;
         back.layout.y_size =
-            mooeye::ui_element::layout::Size::FILL(back.layout.y_size.min(), f32::INFINITY);
+            ui_element::Size::FILL(back.layout.y_size.min(), f32::INFINITY);
 
         gui_box.add(title);
         gui_box.add(pi_img);
@@ -114,9 +115,9 @@ impl Scene2 {
 
         let mut gui_box = gui_box.to_element(0);
 
-        gui_box.layout.x_size = mooeye::ui_element::layout::Size::SHRINK(128., f32::INFINITY);
-        gui_box.layout.y_size = mooeye::ui_element::layout::Size::SHRINK(0., f32::INFINITY);
-        gui_box.visuals = mooeye::ui_element::Visuals::new(
+        gui_box.layout.x_size = ui_element::Size::SHRINK(128., f32::INFINITY);
+        gui_box.layout.y_size = ui_element::Size::SHRINK(0., f32::INFINITY);
+        gui_box.visuals = ui_element::Visuals::new(
             Color::from_rgb(120, 170, 200),
             Color::from_rgb(55, 67, 87),
             2.,
@@ -128,14 +129,14 @@ impl Scene2 {
                 return;
             }
             let vert_map = HashMap::from([
-                (11, Alignment::MIN),
-                (12, Alignment::CENTER),
-                (13, Alignment::MAX),
+                (11, ui_element::Alignment::MIN),
+                (12, ui_element::Alignment::CENTER),
+                (13, ui_element::Alignment::MAX),
             ]);
             let hor_map = HashMap::from([
-                (21, Alignment::MIN),
-                (22, Alignment::CENTER),
-                (23, Alignment::MAX),
+                (21, ui_element::Alignment::MIN),
+                (22, ui_element::Alignment::CENTER),
+                (23, ui_element::Alignment::MAX),
             ]);
             for (key, val) in vert_map {
                 if messages.contains(&UiMessage::Clicked(key)) {

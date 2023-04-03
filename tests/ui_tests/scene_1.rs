@@ -5,7 +5,7 @@ use ggez::{
     graphics::{Color, Text},
     *,
 };
-use mooeye::{containers, UiContent, UiElement, ui_element::layout::Alignment};
+use mooeye::{containers, UiContent, UiElement, ui_element::Alignment};
 use mooeye::{
     scene_manager::{Scene, SceneSwitch},
     ui_element::{Transition, UiMessage},
