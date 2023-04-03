@@ -31,7 +31,7 @@ impl Scene2 {
         pi_img.layout.x_size = ui_element::Size::FIXED(96.);
         pi_img.layout.y_size = ui_element::Size::FIXED(96.);
 
-        let title = Text::new(format!(
+        let mut title = Text::new(format!(
             "Move this element with the buttons.\nHere is a number: {}.",
             score
         ))
@@ -39,6 +39,26 @@ impl Scene2 {
         .set_scale(28.)
         .to_owned()
         .to_element_measured(1, &ctx);
+        title.set_message_handler(|messages,_,transitions| {
+            let ids = [11,12,13,21,22,23,];
+            for id in ids{
+                for message in messages{
+                    if *message == UiMessage::<()>::Clicked(id){
+                        transitions.push_back(
+                            Transition::new(Duration::ZERO)
+                            .with_new_content(Text::new(format!(
+                                "Move this element with the buttons.\nYou clicked a button with id {}.",
+                                id
+                            ))
+                            .set_font("Alagard")
+                            .set_scale(24.)
+                            .to_owned())
+                        )
+                        
+                    }
+                }
+            }
+        });
 
         let vis = ui_element::Visuals::new(
             Color::from_rgb(77, 109, 191),

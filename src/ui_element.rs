@@ -403,8 +403,8 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                         ctx,
                         canvas,
                         Rect::new(
-                            mouse_pos.x,
-                            mouse_pos.y,
+                            mouse_pos.x + 10.,
+                            mouse_pos.y - 10.,
                             screen_size.width as f32 - mouse_pos.x,
                             screen_size.height as f32 - mouse_pos.y,
                         ),
