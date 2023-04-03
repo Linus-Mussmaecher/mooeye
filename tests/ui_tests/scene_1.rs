@@ -5,7 +5,7 @@ use ggez::{
     graphics::{Color, Text},
     *,
 };
-use mooeye::{containers, UiContent, UiElement};
+use mooeye::{containers, UiContent, UiElement, ui_element::layout::Alignment};
 use mooeye::{
     scene_manager::{Scene, SceneSwitch},
     ui_element::{Transition, UiMessage},
@@ -30,6 +30,24 @@ impl Scene1 {
             .to_element_measured(2, &ctx);
         pi_img.layout.x_size = pi_img.layout.x_size.scale(6.);
         pi_img.layout.y_size = pi_img.layout.y_size.scale(6.);
+        pi_img.set_tooltip(Some({
+            let mut text = Text::new("This is Pi!")
+                .set_font("Alagard")
+                .set_scale(28.)
+                .to_owned()
+                .to_element_measured(0, ctx);
+            text.visuals = mooeye::ui_element::Visuals::new(
+                Color::from_rgb(67, 99, 181),
+                Color::from_rgb(45, 57, 77),
+                2.,
+                0.,
+            );
+            text.layout.x_alignment = Alignment::MIN;
+            text.layout.y_alignment = Alignment::MIN;
+            text.layout.x_size = text.layout.x_size.to_shrink();
+            text.layout.y_size = text.layout.y_size.to_shrink();
+            text
+        }));
 
         let mut sub_box = containers::VerticalBox::new();
 
@@ -54,17 +72,21 @@ impl Scene1 {
         ));
 
         play.add_transition(Transition::new(Duration::from_secs(1)));
-        play.add_transition(Transition::new(Duration::from_secs(2)).with_new_visuals(
-            mooeye::ui_element::Visuals::new(
-                Color::from_rgb(191, 89, 81),
-                Color::from_rgb(55, 67, 87),
-                2.,
-                4.,
-            ),
-        ).with_new_content(Text::new("Start")
-        .set_font("Alagard")
-        .set_scale(36.)
-        .to_owned()));
+        play.add_transition(
+            Transition::new(Duration::from_secs(2))
+                .with_new_visuals(mooeye::ui_element::Visuals::new(
+                    Color::from_rgb(191, 89, 81),
+                    Color::from_rgb(55, 67, 87),
+                    2.,
+                    4.,
+                ))
+                .with_new_content(
+                    Text::new("Start")
+                        .set_font("Alagard")
+                        .set_scale(36.)
+                        .to_owned(),
+                ),
+        );
 
         let mut quit = Text::new("Quit")
             .set_font("Alagard")
@@ -137,7 +159,7 @@ impl event::EventHandler<GameError> for Scene1 {
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
         let mut canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
-        
+
         self.gui.draw_to_screen(ctx, &mut canvas);
 
         canvas.finish(ctx)?;

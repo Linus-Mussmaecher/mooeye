@@ -7,6 +7,7 @@ This is a very simple UI library to be used with the [ggez game library](https:/
  * Static UI that communicates with each other via a message-based system.
  * Can use ggez image and text objects as UI elements.
  * Can order elements in multiple types of boxes, alignments, and dynamic sizing.
+ * Can add tooltip to elements.
  * Caching of element positions means a recalculation of dynamic element positions is only neccessary when the window size changes or the UI elements themselves change.
  * Transitions system to change layout, look and content of the UI while running. For larger changes of the structure, I suggest a complete re-build of the UI (similar to how an immediate UI rebuilds every frame). Not for performance, but code-readability.
  * Message based communication featuring both internal (clicks) and external (what ever your gamestats wants to tell the UI) messages that can initiate transitions using a customizable message handler.
@@ -16,7 +17,6 @@ This is a very simple UI library to be used with the [ggez game library](https:/
  ## TODOs
 
  * More types of containers.
-    * Container that adds a hover tooltip
     * Container that helps with drag & drop
  * Examples & usage guides.
  * More extensive documentation.

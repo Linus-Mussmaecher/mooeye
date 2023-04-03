@@ -40,17 +40,19 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     /// The conent managed & displayed by this element
     content: Box<dyn UiContent<T>>,
 
+    /// The tooltip managed by this element, if it has one.
+    tooltip: Option<Box<UiElement<T>>>,
+
     /// The transition queue
     transitions: VecDeque<Transition<T>>,
 
     /// The message handler. This function is called on every frame to handle received message.
     /// The handler receives a hashset of messages and a the elements transition queue
-    /// Overwrite this with a lambda that pushes transitions based on the incoming messages. 
+    /// Overwrite this with a lambda that pushes transitions based on the incoming messages.
     message_handler: Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>)>,
 }
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
-
     /// Creates a new UiElement containig the specified content and the specified ID. ID should be as unique as you require it.
     /// Layout and visuals will be set to default values, hover_visuals is initialized as None.
     pub fn new<E: UiContent<T> + 'static>(id: u32, content: E) -> Self {
@@ -61,6 +63,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             id,
             draw_cache: DrawCache::default(),
             content: Box::new(content),
+            tooltip: None,
             transitions: VecDeque::new(),
             message_handler: Box::new(|_messages, _layout, _transition_queue| {}),
         }
@@ -116,8 +119,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         res
     }
 
-    fn distribute_messages(&mut self, ctx: &Context, messages: &HashSet<UiMessage<T>>) -> GameResult {
-        
+    fn distribute_messages(
+        &mut self,
+        ctx: &Context,
+        messages: &HashSet<UiMessage<T>>,
+    ) -> GameResult {
         (self.message_handler)(messages, self.layout, &mut self.transitions);
 
         if let Some(children) = self.content.get_children_mut() {
@@ -132,8 +138,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Overwrites this elements message handler.
     /// The message hanlder lambda receives each frame a hash set consisting of all internal and external messages received by this element.
     /// It also receives a function pointer. Calling this pointer with a transition pushes that transition to this elements transition queue.
-    pub fn set_message_handler<E> (&mut self, handler: E)
-    where E: Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>) + 'static
+    pub fn set_message_handler<E>(&mut self, handler: E)
+    where
+        E: Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>) + 'static,
     {
         self.message_handler = Box::new(handler);
     }
@@ -162,7 +169,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 if let Some(hover_visuals) = trans.new_hover_visuals {
                     self.hover_visuals = hover_visuals;
                 }
-                if let Some(content) = trans.new_content{
+                if let Some(content) = trans.new_content {
                     self.content = content;
                 }
             }
@@ -229,15 +236,27 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         // check wether draw cache needs to be updated at all (or a transition is going on)
         if !self.cache_valid(&rect) {
             // first calculate the target of this element if it were on its own
-            let (own_outer, own_inner) = self.layout
-            .get_outer_inner_bounds_in_target(&rect, self.content_min());
+            let (own_outer, own_inner) = self
+                .layout
+                .get_outer_inner_bounds_in_target(&rect, self.content_min());
             // check if there is a transition going on
             let (outer, inner) = if !self.transitions.is_empty() {
                 // the transitions are not empty: check if the top transitions wants to change the layout
                 if let Some(new_layout) = self.transitions[0].new_layout {
-                    let (trans_outer, trans_inner) = new_layout.get_outer_inner_bounds_in_target(&rect, self.content_min());
-                    (transition::average_rect(&own_outer, &trans_outer, self.transitions[0].get_progress_ratio()),
-                    transition::average_rect(&own_inner, &trans_inner, self.transitions[0].get_progress_ratio()),)
+                    let (trans_outer, trans_inner) =
+                        new_layout.get_outer_inner_bounds_in_target(&rect, self.content_min());
+                    (
+                        transition::average_rect(
+                            &own_outer,
+                            &trans_outer,
+                            self.transitions[0].get_progress_ratio(),
+                        ),
+                        transition::average_rect(
+                            &own_inner,
+                            &trans_inner,
+                            self.transitions[0].get_progress_ratio(),
+                        ),
+                    )
                 } else {
                     (own_outer, own_inner)
                 }
@@ -248,13 +267,13 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
             // checking bounds, adding 0.01 to deal with problems stemming from imprecise multiplication
             if outer.w > rect.w + 0.01
-                || outer.h > rect.h  + 0.01
+                || outer.h > rect.h + 0.01
                 || outer.x < 0.
                 || outer.y < 0.
                 || outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
                 || outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
             {
-                                println!("Skipped Element. Outer: {:?}, Rect: {:?}", outer, rect);
+                println!("Skipped Element. Outer: {:?}, Rect: {:?}", outer, rect);
                 self.draw_cache = DrawCache::default();
                 return;
             } else {
@@ -272,7 +291,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Any chache is considered invalid if there is currently an active transition that is actively changing the layout
     /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
     pub(crate) fn cache_valid(&self, target: &Rect) -> bool {
-
         let layout_changing_transition = if self.transitions.is_empty() {
             false
         } else {
@@ -284,7 +302,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         };
 
         self.content.get_children().unwrap_or(&[]).iter().fold(
-            self.draw_cache.valid && *target == self.draw_cache.target && !layout_changing_transition,
+            self.draw_cache.valid
+                && *target == self.draw_cache.target
+                && !layout_changing_transition,
             |valid, child| valid && child.cache_valid(target),
         )
     }
@@ -354,19 +374,64 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             .draw_content(ctx, canvas, self.draw_cache.inner);
     }
 
+    /// Sets this elements tooltip to the specified UiContent (or disables any tooltip by passing None).
+    /// Tooltips are displayed when hovering over an element with the mouse cursor.
+    pub fn set_tooltip(&mut self, tooltip: Option<UiElement<T>>) {
+        match tooltip {
+            Some(tt) => self.tooltip = Some(Box::new(tt)),
+            None => self.tooltip = None,
+        }
+    }
+
+    /// Draws exactly one tooltip of this elements or any child element, prefering the element most deeply nested in the tree.
+    fn draw_tooltip(&mut self, ctx: &mut Context, canvas: &mut Canvas) -> bool {
+        if self.draw_cache.outer.contains(ctx.mouse.position()) {
+            if let Some(children) = self.content.get_children_mut() {
+                for child in children {
+                    if child.draw_tooltip(ctx, canvas) {
+                        return true;
+                    }
+                }
+            }
+            match &mut self.tooltip {
+                Some(tt) => {
+                    let mouse_pos = ctx.mouse.position();
+                    let screen_size = ctx.gfx.window().inner_size();
+                    tt.draw_to_rectangle(
+                        ctx,
+                        canvas,
+                        Rect::new(
+                            mouse_pos.x,
+                            mouse_pos.y,
+                            screen_size.width as f32 - mouse_pos.x,
+                            screen_size.height as f32 - mouse_pos.y,
+                        ),
+                    );
+                    return true;
+                }
+                None => {}
+            };
+        }
+        false
+    }
+
     /// Draws this UiElement to the current screen. Call this on your root element every frame.
-    pub fn draw_to_screen(&mut self, ctx: &mut Context, canvas: &mut Canvas){
-        self.draw_to_rectangle(ctx, canvas, Rect::new(
-            0.,
-            0.,
-            ctx.gfx.window().inner_size().width as f32,
-            ctx.gfx.window().inner_size().height as f32,
-        ));
+    pub fn draw_to_screen(&mut self, ctx: &mut Context, canvas: &mut Canvas) {
+        self.draw_to_rectangle(
+            ctx,
+            canvas,
+            Rect::new(
+                0.,
+                0.,
+                ctx.gfx.window().inner_size().width as f32,
+                ctx.gfx.window().inner_size().height as f32,
+            ),
+        );
+        self.draw_tooltip(ctx, canvas);
     }
 }
 
 pub trait UiContent<T: Copy + Eq + Hash> {
-
     /// Wraps the content into a UiElement and returns the element.
     ///  Use of ID 0 is discouraged, as 0 is used for IDs of some default elements.
     fn to_element(self, id: u32) -> UiElement<T>
@@ -408,7 +473,7 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     );
 
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.
-    fn get_children(&self) ->  Option<&[UiElement<T>]> {
+    fn get_children(&self) -> Option<&[UiElement<T>]> {
         None
     }
 

@@ -47,7 +47,7 @@ impl Size {
     /// Returs the size this element would prefer within a range.
     /// Elements will never leave their layout bounds, even if that means ignoring the passed  bounds.
     /// Thus, FIXED elements will always just return their own size.
-    pub fn pref(&self, min: f32, max: f32) -> f32 {
+    pub(crate) fn pref(&self, min: f32, max: f32) -> f32 {
         match self {
             Self::FIXED(s) => *s,
             Self::FILL(fmin, fmax) => max.max(min).clamp(*fmin, *fmax), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
@@ -60,6 +60,30 @@ impl Size {
             Self::FIXED(s) => Self::FIXED(scale * s),
             Self::FILL(fmin, fmax) => Self::FILL(fmin * scale, fmax * scale), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
             Self::SHRINK(smin, smax) => Self::SHRINK(smin * scale, smax * scale) //(*smin).min(max).min(*smax).max(min).max(*smin),
+        }
+    }
+
+    pub fn to_shrink(self) -> Self{
+        match self {
+            Size::FIXED(s) => Self::SHRINK(s, f32::INFINITY),
+            Size::FILL(min, max) => Self::SHRINK(min, max),
+            Size::SHRINK(min, max) => Self::SHRINK(min, max),
+        }
+    }
+
+    pub fn to_fill(self) -> Self{
+        match self {
+            Size::FIXED(s) => Self::FILL(s, f32::INFINITY),
+            Size::FILL(min, max) => Self::FILL(min, max),
+            Size::SHRINK(min, max) => Self::FILL(min, max),
+        }
+    }
+
+    pub fn to_fixed(self) -> Self{
+        match self {
+            Size::FIXED(s) => Self::FIXED(s),
+            Size::FILL(min, _) => Self::FIXED(min),
+            Size::SHRINK(min, _) => Self::FIXED(min),
         }
     }
 }
