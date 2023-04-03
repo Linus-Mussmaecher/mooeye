@@ -12,3 +12,4 @@ pub mod containers;
 
 pub mod scene_manager;
 pub mod sprite;
+pub use sprite::Sprite;
