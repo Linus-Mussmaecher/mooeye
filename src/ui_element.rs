@@ -8,19 +8,21 @@ use ggez::{
     Context, GameResult,
 };
 
-pub mod layout;
+mod layout;
 pub use layout::Layout;
+pub use layout::Alignment;
+pub use layout::Size;
 
-pub mod visuals;
+mod visuals;
 pub use visuals::Visuals;
 
-pub mod transition;
+mod transition;
 pub use transition::Transition;
 
-pub mod draw_cache;
-pub use draw_cache::DrawCache;
+mod draw_cache;
+use draw_cache::DrawCache;
 
-pub mod message;
+mod message;
 pub use message::UiMessage;
 
 pub struct UiElement<T: Copy + Eq + Hash> {

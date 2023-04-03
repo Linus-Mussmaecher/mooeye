@@ -1,7 +1,7 @@
 use ggez::{graphics::Rect};
 use std::hash::Hash;
 
-use crate::{UiElement, UiContent, ui_element::layout::Size};
+use crate::{UiElement, UiContent, ui_element::Size};
 
 pub struct VerticalBox<T: Copy + Eq + Hash> {
     pub children: Vec<UiElement<T>>,

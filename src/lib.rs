@@ -5,6 +5,7 @@
 pub mod ui_element;
 pub use ui_element::UiContent;
 pub use ui_element::UiElement;
+pub use ui_element::UiMessage;
 
 pub mod basic;
 pub mod containers;

@@ -5,7 +5,7 @@ use ggez::{
 use std::hash::Hash;
 
 
-use crate::{UiElement, UiContent, ui_element::layout::Size};
+use crate::{UiElement, UiContent, ui_element::Size};
 
 impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Image {
     fn to_element_measured(self, id: u32, ctx: &Context) -> UiElement<T> where Self:Sized + 'static {

@@ -1,7 +1,7 @@
 use ggez::graphics::Rect;
 use std::hash::Hash;
 
-use crate::{ui_element::layout::Size, UiContent, UiElement};
+use crate::{ui_element::Size, UiContent, UiElement};
 
 /// A horizontal box that will group elements from left to right. Stores elements in a vector that determines order of elements within the box.
 /// Elements will adhere to their own x and y alignment within the box provided to them

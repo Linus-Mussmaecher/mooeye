@@ -1,7 +1,7 @@
 use ggez::{graphics::Rect, GameResult};
 use std::hash::Hash;
 
-use crate::{ui_element::layout::Size, UiContent, UiElement};
+use crate::{ui_element::Size, UiContent, UiElement};
 
 /// A Grid Box that is initialized with a fixed width and height an can display elements in every cell.
 pub struct GridBox<T: Copy + Eq + Hash> {

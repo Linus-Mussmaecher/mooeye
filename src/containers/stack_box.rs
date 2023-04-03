@@ -1,4 +1,4 @@
-use crate::{UiElement, UiContent, ui_element::layout::Size};
+use crate::{UiElement, UiContent, ui_element::Size};
 use std::hash::Hash;
 
 
@@ -11,6 +11,12 @@ impl<T: Copy + Eq + Hash> StackBox<T> {
         Self{
             children: Vec::new(),
         }
+    }
+
+    /// Adds a UiElement to the top of this stack box (unlike the normal add function, which adds to the bottom).
+    fn add_top(&mut self, element: UiElement<T>) -> bool {
+        self.children.insert(0, element);
+        true
     }
 }
 
@@ -74,7 +80,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
         canvas: &mut ggez::graphics::Canvas,
         content_bounds: ggez::graphics::Rect,
     ) {
-        for child in self.children.iter_mut() {
+        for child in self.children.iter_mut().rev() {
             child.draw_to_rectangle(ctx, canvas, content_bounds);
         }
     }
