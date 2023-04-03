@@ -1,38 +1,42 @@
 # MooEye - A ggez-based UI library
 
-This is a very simple UI library to be used with the [ggez game library](https://github.com/ggez/ggez). I wrote this for my own projects and as a challenge. The whole library is very much work-in-progress.
+This is a very simple UI library building upon [ggez game library](https://github.com/ggez/ggez). It was originally written for personal use with my own Rust gamedev projets. The whole library is very much work-in-progress.
 
 ## UI Features
 
- * Static UI that communicates with each other via a message-based system.
+ * Static UI that communicates with itself via a message-based system.
  * Can use ggez image and text objects as UI elements.
  * Can order elements in multiple types of boxes, alignments, and dynamic sizing.
  * Can add tooltip to elements.
  * Caching of element positions means a recalculation of dynamic element positions is only neccessary when the window size changes or the UI elements themselves change.
- * Transitions system to change layout, look and content of the UI while running. For larger changes of the structure, I suggest a complete re-build of the UI (similar to how an immediate UI rebuilds every frame). Not for performance, but code-readability.
- * Message based communication featuring both internal (clicks) and external (what ever your gamestats wants to tell the UI) messages that can initiate transitions using a customizable message handler.
+ * Transitions system to change layout, look and content of the UI while running. For larger changes of the structure, a complete re-build of the UI (similar to how an immediate UI rebuilds every frame) is suggested.
+ * Message based communication with both internal (a user clicks a button) and external (a resource amount in your game changes) sources. Messages are handled internally with a customizable message handler, allowing you to change the look and content of your UI to react to user interaction or game state changes. All internal messages are also returned from the message handling function of your top UI element, allowing your game state to react to user inputs.
 
  ## Additional Features
 
- * Stack-based scene Manager to make working with multiple scenes in one game significantly easier.
+ * Stack-based scene manager eases the work with multiple scenes in a single game significantly by handling changes of main game state and appropriate drawing of (stacked) scenes.
  * Sprite struct automates drawing an animated sprite with multiple variants (e.g. an attacking, walking, ... character) and can be loaded from a single spritesheet file.
  
 
  ## TODOs
 
- * More types of containers.
-    * Container that helps with drag & drop
+ * Drag & Drop
+ * Overhaul the current tooltip implementation using z-levels.
  * Examples & usage guides.
  * More extensive documentation.
  * Possibly docs.rs and crates.io releaes.
 
  ## Maintenance
 
- I am maintaining this project mostly for my own purposes. You may not actually want to use this, but hey, it's public. Bug fixes are not guaranteed and features may be lacking.
+ I am maintaining this project mostly for my own purposes. You may not actually want to use this, but hey, it's public. Bug fixes are not guaranteed and features ~~may be~~ are lacking, as they are most precisely what I wanted from a UI library, which may not neccessarily be what you want.
 
  ## How to use
 
+ TODO
+
  ### Dynamic sizing rules
+
+ The following rules guide how an element in MooEye tries to size itself.
 
  #### Outer bounds:
 
@@ -50,9 +54,6 @@ This is a very simple UI library to be used with the [ggez game library](https:/
  #### Preserve ratio:
 
 Elements with the ``preserve_ratio`` flag of their ``layout`` set to true will only display their content in the ratio of the lower limits of their ``layout::size``. Their background will be drawn as normal, and the element will then scale down in the dimension that would have been stretched more in order to fit onto this background.
-
-
-
 
  ## License
 
