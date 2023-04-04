@@ -82,6 +82,15 @@ impl Scene2 {
             .to_owned()
             .to_element_measured(12, ctx);
         vert_ce.visuals = vis;
+        vert_ce.set_tooltip(Some(
+            ui_element::make_tooltip(Text::new("Move the element to the vertical center of the screen.")
+            .set_font("Alagard")
+            .set_wrap(true)
+            .set_bounds(glam::Vec2::new(200., 500.))
+            .set_scale(20.)
+            .to_owned()
+            .to_element_measured(12, ctx), vis)
+        ));
         grid_box
             .add(vert_ce, 0, 1)
             .expect("Index Out Of Bounds, probably.");

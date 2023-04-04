@@ -487,3 +487,16 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         false
     }
 }
+
+
+/// Sets the elements visuals to the provided visuals and sets its alignment to MIN/MIN and its size to SHRINK/SHRINK, as is usually the most pretty way to layout tooltips.
+pub fn make_tooltip<T: Copy + Eq + Hash>(mut element: UiElement<T>, visuals: Visuals) -> UiElement<T>{
+    element.visuals = visuals;
+    
+    element.layout.x_alignment = Alignment::MIN;
+    element.layout.y_alignment = Alignment::MIN;
+    element.layout.x_size = element.layout.x_size.to_shrink();
+    element.layout.y_size = element.layout.y_size.to_shrink();
+
+    element
+}
