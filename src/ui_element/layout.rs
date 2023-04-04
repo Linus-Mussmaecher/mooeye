@@ -160,16 +160,16 @@ impl Layout {
         // calculate position of top left of outer box
 
         let x_out = match self.x_alignment {
-            Alignment::MIN => target.x + self.x_offset,
+            Alignment::MIN => target.x,
             Alignment::CENTER => target.x + target.w / 2. - w_out / 2.,
-            Alignment::MAX => target.x + target.w - w_out - self.x_offset,
-        };
+            Alignment::MAX => target.x + target.w - w_out,
+        } + self.x_offset;
 
         let y_out = match self.y_alignment {
-            Alignment::MIN => target.y + self.y_offset,
+            Alignment::MIN => target.y,
             Alignment::CENTER => target.y + target.h / 2. - h_out / 2.,
-            Alignment::MAX => target.y + target.h - h_out - self.y_offset,
-        };
+            Alignment::MAX => target.y + target.h - h_out,
+        } + self.y_offset;
 
         // calculate inner positions independently. Adding padding does not work, as w/h might have changed as a result of ration preservation
 
