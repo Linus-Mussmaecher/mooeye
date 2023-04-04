@@ -356,7 +356,13 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Takes in a rectangle target, a canvas, a context and draws the UiElement to that rectangle within that canvas using that context.
     /// The element will either completely fit within the rectangle (including its padding) or not be drawn at all.
     /// The element will align and offset itself within the rectangle.
-    pub(crate) fn draw_to_rectangle(&mut self, ctx: &mut Context, canvas: &mut Canvas, rect: Rect, param: DrawParam) {
+    pub(crate) fn draw_to_rectangle(
+        &mut self,
+        ctx: &mut Context,
+        canvas: &mut Canvas,
+        rect: Rect,
+        param: DrawParam,
+    ) {
         self.progress_transitions(ctx);
 
         // update draw_cache
@@ -376,6 +382,25 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
         self.content
             .draw_content(ctx, canvas, self.draw_cache.inner, param);
+
+        // draw tooltip
+        if self.draw_cache.outer.contains(ctx.mouse.position()) {
+            if let Some(tt) = &mut self.tooltip {
+                let mouse_pos = ctx.mouse.position();
+                let screen_size = ctx.gfx.window().inner_size();
+                tt.draw_to_rectangle(
+                    ctx,
+                    canvas,
+                    Rect::new(
+                        mouse_pos.x + 10.,
+                        mouse_pos.y - 10.,
+                        screen_size.width as f32 - mouse_pos.x,
+                        screen_size.height as f32 - mouse_pos.y,
+                    ),
+                    param.z(1),
+                );
+            }
+        }
     }
 
     /// Sets this elements tooltip to the specified UiContent (or disables any tooltip by passing None).
@@ -385,39 +410,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             Some(tt) => self.tooltip = Some(Box::new(tt)),
             None => self.tooltip = None,
         }
-    }
-
-    /// Draws exactly one tooltip of this elements or any child element, prefering the element most deeply nested in the tree.
-    fn draw_tooltip(&mut self, ctx: &mut Context, canvas: &mut Canvas) -> bool {
-        if self.draw_cache.outer.contains(ctx.mouse.position()) {
-            if let Some(children) = self.content.get_children_mut() {
-                for child in children {
-                    if child.draw_tooltip(ctx, canvas) {
-                        return true;
-                    }
-                }
-            }
-            match &mut self.tooltip {
-                Some(tt) => {
-                    let mouse_pos = ctx.mouse.position();
-                    let screen_size = ctx.gfx.window().inner_size();
-                    tt.draw_to_rectangle(
-                        ctx,
-                        canvas,
-                        Rect::new(
-                            mouse_pos.x + 10.,
-                            mouse_pos.y - 10.,
-                            screen_size.width as f32 - mouse_pos.x,
-                            screen_size.height as f32 - mouse_pos.y,
-                        ),
-                        DrawParam::default(),
-                    );
-                    return true;
-                }
-                None => {}
-            };
-        }
-        false
     }
 
     /// Draws this UiElement to the current screen. Call this on your root element every frame.
@@ -433,7 +425,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             ),
             DrawParam::default(),
         );
-        self.draw_tooltip(ctx, canvas);
     }
 }
 
