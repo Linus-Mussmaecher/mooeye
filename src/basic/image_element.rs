@@ -24,11 +24,12 @@ impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Image {
         ctx: &mut Context,
         canvas: &mut graphics::Canvas,
         content_bounds: graphics::Rect,
+        param: DrawParam,
     ) {
         if let Some(dim) = self.dimensions(ctx) {
             canvas.draw(
                 self,
-                DrawParam::default().dest_rect(Rect::new(
+                param.dest_rect(Rect::new(
                     content_bounds.x,
                     content_bounds.y,
                     content_bounds.w / dim.w,

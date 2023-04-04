@@ -70,6 +70,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
         ctx: &mut ggez::Context,
         canvas: &mut ggez::graphics::Canvas,
         content_bounds: ggez::graphics::Rect,
+        param: ggez::graphics::DrawParam,
     ) {
         // get calculate vector of dynamically allocated total heights for each element
 
@@ -86,6 +87,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
                     w: ele_dyn_width,
                     h: content_bounds.h,
                 },
+                param,
             );
             x += ele_dyn_width + self.spacing;
         }

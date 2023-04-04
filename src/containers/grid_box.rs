@@ -1,4 +1,4 @@
-use ggez::{graphics::Rect, GameResult};
+use ggez::{graphics::{Rect, DrawParam}, GameResult};
 use tinyvec::TinyVec;
 use std::hash::Hash;
 
@@ -283,6 +283,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         ctx: &mut ggez::Context,
         canvas: &mut ggez::graphics::Canvas,
         content_bounds: ggez::graphics::Rect,
+        param: DrawParam,
     ) {
 
         // get column widths
@@ -318,6 +319,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
                     *column_widths.get(index % self.cols).unwrap_or(&0.),
                     *row_heights.get(index / self.cols).unwrap_or(&0.),
                 ),
+                param,
             );
         }
     }

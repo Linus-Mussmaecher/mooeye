@@ -170,11 +170,12 @@ impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
         ctx: &mut Context,
         canvas: &mut graphics::Canvas,
         content_bounds: graphics::Rect,
+        param: DrawParam,
     ) {
         self.draw_sprite(
             ctx,
             canvas,
-            DrawParam::default().dest_rect(Rect::new(
+            param.dest_rect(Rect::new(
                 content_bounds.x,
                 content_bounds.y,
                 content_bounds.w / self.w as f32,

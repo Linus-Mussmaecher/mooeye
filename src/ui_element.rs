@@ -2,6 +2,7 @@ use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 use std::time::Duration;
 
+use ggez::graphics::DrawParam;
 use ggez::{
     glam::Vec2,
     graphics::{self, Canvas, Rect},
@@ -355,7 +356,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Takes in a rectangle target, a canvas, a context and draws the UiElement to that rectangle within that canvas using that context.
     /// The element will either completely fit within the rectangle (including its padding) or not be drawn at all.
     /// The element will align and offset itself within the rectangle.
-    pub(crate) fn draw_to_rectangle(&mut self, ctx: &mut Context, canvas: &mut Canvas, rect: Rect) {
+    pub(crate) fn draw_to_rectangle(&mut self, ctx: &mut Context, canvas: &mut Canvas, rect: Rect, param: DrawParam) {
         self.progress_transitions(ctx);
 
         // update draw_cache
@@ -369,12 +370,12 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
         // draw visuals
         self.get_current_visual(ctx)
-            .draw(ctx, canvas, self.draw_cache.outer);
+            .draw(ctx, canvas, self.draw_cache.outer, param);
 
         // draw content
 
         self.content
-            .draw_content(ctx, canvas, self.draw_cache.inner);
+            .draw_content(ctx, canvas, self.draw_cache.inner, param);
     }
 
     /// Sets this elements tooltip to the specified UiContent (or disables any tooltip by passing None).
@@ -409,6 +410,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                             screen_size.width as f32 - mouse_pos.x,
                             screen_size.height as f32 - mouse_pos.y,
                         ),
+                        DrawParam::default(),
                     );
                     return true;
                 }
@@ -429,6 +431,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 ctx.gfx.window().inner_size().width as f32,
                 ctx.gfx.window().inner_size().height as f32,
             ),
+            DrawParam::default(),
         );
         self.draw_tooltip(ctx, canvas);
     }
@@ -473,6 +476,7 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         ctx: &mut Context,
         canvas: &mut Canvas,
         content_bounds: graphics::Rect,
+        param: DrawParam,
     );
 
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.

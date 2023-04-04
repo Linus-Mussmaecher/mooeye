@@ -28,7 +28,8 @@ impl Visuals {
     }
 
     /// Draws the background to the canvas, filling the rectangle target.
-    pub(crate) fn draw(&self, ctx: &Context, canvas: &mut Canvas, target: Rect) {
+    pub(crate) fn draw(&self, ctx: &Context, canvas: &mut Canvas, target: Rect,
+        param: DrawParam,) {
 
         let tolerance = 1.;
         let inner_radius = (self.rounded_corners - self.border_width).max(0.);
@@ -47,7 +48,7 @@ impl Visuals {
         mesh_builder.rectangle(graphics::DrawMode::fill(), Rect::new(target.x + self.border_width, target.y + self.border_width + inner_radius, target.w - 2. * self.border_width, target.h - 2. * self.border_width - 2. * inner_radius), self.background).expect("Adding rect went wrong");
         mesh_builder.rectangle(graphics::DrawMode::fill(), Rect::new(target.x + self.border_width + inner_radius, target.y + self.border_width, target.w - 2. * self.border_width - 2. * inner_radius, target.h - 2. * self.border_width), self.background).expect("Adding rect went wrong");
 
-        canvas.draw(&Mesh::from_data(ctx, mesh_builder.build()), DrawParam::default());
+        canvas.draw(&Mesh::from_data(ctx, mesh_builder.build()), param);
 
     }
 

@@ -66,6 +66,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for VerticalBox<T> {
         ctx: &mut ggez::Context,
         canvas: &mut ggez::graphics::Canvas,
         content_bounds: ggez::graphics::Rect,
+        param: ggez::graphics::DrawParam,
     ) {
                 // get calculate vector of dynamically allocated total heights for each element
         
@@ -84,6 +85,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for VerticalBox<T> {
                             w: content_bounds.w,
                             h: ele_dyn_height,
                         },
+                        param,
                     );
                     y += ele_dyn_height + self.spacing;
                 }
