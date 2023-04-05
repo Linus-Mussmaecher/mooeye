@@ -185,9 +185,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
     /// First checks wether the user is currently hovering this element or not and chooses to return visuals or hover visuals accordingly.
     /// Then checks if the transition queue contains a (hover-)visual-changing element and returns an average visuals if needed.
-    fn get_current_visual(&self, ctx: &Context) -> Visuals {
+    fn get_current_visual(&self, ctx: &Context, param: UiDrawParam) -> Visuals {
         // check if this element is being hovered
-        if self.draw_cache.outer.contains(ctx.mouse.position()) {
+        if param.mouse_listen && self.draw_cache.outer.contains(ctx.mouse.position()) {
             // yes: get what this element, diregarding transitions, would display on hover
             let own_vis = if let Some(hover_visuals) = self.hover_visuals {
                 hover_visuals
@@ -377,7 +377,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
 
         // draw visuals
-        self.get_current_visual(ctx)
+        self.get_current_visual(ctx, param)
             .draw(ctx, canvas, param.target(self.draw_cache.outer));
 
         // draw content
@@ -386,7 +386,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             .draw_content(ctx, canvas, param.target(self.draw_cache.inner));
 
         // draw tooltip
-        if self.draw_cache.outer.contains(ctx.mouse.position()) {
+        if param.mouse_listen && self.draw_cache.outer.contains(ctx.mouse.position()) {
             if let Some(tt) = &mut self.tooltip {
                 let mouse_pos = ctx.mouse.position();
                 let screen_size = ctx.gfx.window().inner_size();
@@ -414,7 +414,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     }
 
     /// Draws this UiElement to the current screen. Call this on your root element every frame.
-    pub fn draw_to_screen(&mut self, ctx: &mut Context, canvas: &mut Canvas) {
+    pub fn draw_to_screen(&mut self, ctx: &mut Context, canvas: &mut Canvas, mouse_listen: bool) {
         self.draw_to_rectangle(
             ctx,
             canvas,
@@ -424,7 +424,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                     0.,
                     ctx.gfx.window().inner_size().width as f32,
                     ctx.gfx.window().inner_size().height as f32,
-                )),
+                )).mouse_listen(mouse_listen),
         );
     }
 }

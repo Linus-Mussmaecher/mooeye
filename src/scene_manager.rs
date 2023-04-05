@@ -73,11 +73,19 @@ impl event::EventHandler<GameError> for SceneManager {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
-        let canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(0, 0, 0));
+        // Clear the background (scenes should in general not clear the background, as they may be on top of other scenes)
+        let canvas = graphics::Canvas::from_frame(
+            ctx, 
+            Color::from_rgb(0, 0, 0)
+        );
         canvas.finish(ctx)?;
-        for e in self.scene_stack.iter_mut() {
-            e.draw(ctx)?;
+
+        // iterate over all elements, only the last (=top) element may listen to the mouse position for hover-related visual changes
+        let mut it = self.scene_stack.iter_mut().peekable();
+        while let Some(scenebox) =  it.next(){
+            scenebox.draw(ctx, it.peek().is_none())?;
         }
+
         Ok(())
     }
 }
@@ -97,12 +105,10 @@ pub enum SceneSwitch {
 /// A scene in your game. This is basically a version of the EventHandler usually used with ggez that also returns a possible scene switch in its update function.
 pub trait Scene {
     /// A function that fulfils the same purpose as [ggez::events::EventHandler::update] but also returns if the scene is to be switched.
-    fn update(&mut self, _ctx: &mut Context) -> Result<SceneSwitch, GameError> {
-        todo!()
-    }
+    fn update(&mut self, _ctx: &mut Context) -> Result<SceneSwitch, GameError>;
 
-    /// A function that fulfils all the purposes of [ggez::events::EventHandler::draw].
-    fn draw(&mut self, _ctx: &mut Context) -> Result<(), GameError> {
-        todo!()
-    }
+    /// A function that fulfils the same purposes of [ggez::events::EventHandler::draw], but can take an additional parameter that manages wether or not the scene reacts to the mouse (as in, tooltips show and visuals may show on hover).
+    /// In general, you should NOT clear the background when drawing your scene, as it may be on top of other scenes that also need to be drawn.
+    /// If you want those scenes to remain hidden, clear the background.
+    fn draw(&mut self, _ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError>;
 }

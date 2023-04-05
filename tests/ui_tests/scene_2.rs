@@ -209,11 +209,11 @@ impl Scene for Scene2 {
     
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
+    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
         let mut canvas = graphics::Canvas::from_frame(ctx, None);
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
 
-        self.gui.draw_to_screen(ctx, &mut canvas);
+        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
 
         canvas.finish(ctx)?;
 
