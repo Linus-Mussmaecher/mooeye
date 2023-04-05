@@ -1,6 +1,5 @@
 use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
-use std::time::Duration;
 
 use ggez::graphics::DrawParam;
 use ggez::{
@@ -158,11 +157,10 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// If this ends the current transition, the values of this element are updated to the values given by the transition and it is removed from the queue.
     fn progress_transitions(&mut self, ctx: &Context) {
         if !self.transitions.is_empty() {
-            self.transitions[0].remaining_duration = self.transitions[0]
-                .remaining_duration
-                .saturating_sub(ctx.time.delta());
-            if self.transitions[0].remaining_duration == Duration::ZERO {
+            if self.transitions[0].progress(ctx.time.delta()) {
+
                 let trans = self.transitions.pop_front().expect("Transitions did not contain a first element despite being not empty 2 lines ago.");
+
                 if let Some(layout) = trans.new_layout {
                     self.layout = layout;
                     self.draw_cache.valid = false;
@@ -175,6 +173,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 }
                 if let Some(content) = trans.new_content {
                     self.content = content;
+                }
+                if let Some(tooltip) = trans.new_tooltip {
+                    self.tooltip = tooltip;
                 }
             }
         }
