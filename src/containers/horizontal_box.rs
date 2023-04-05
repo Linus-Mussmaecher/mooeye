@@ -48,7 +48,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
                 (
                     last.0.max(element.height_range().0),
                     last.1.min(element.height_range().1),
-                                )
+                )
             })
     }
 
@@ -69,25 +69,23 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
         &mut self,
         ctx: &mut ggez::Context,
         canvas: &mut ggez::graphics::Canvas,
-        content_bounds: ggez::graphics::Rect,
-        param: ggez::graphics::DrawParam,
+        param: crate::ui_element::UiDrawParam,
     ) {
         // get calculate vector of dynamically allocated total heights for each element
 
-        let dyn_width = self.get_element_widths(content_bounds.w);
-        let mut x = content_bounds.x;
+        let dyn_width = self.get_element_widths(param.target.w);
+        let mut x = param.target.x;
         // draw subelements
         for (element, ele_dyn_width) in self.children.iter_mut().zip(dyn_width) {
             element.draw_to_rectangle(
                 ctx,
                 canvas,
-                Rect {
+                param.target(Rect {
                     x: x,
-                    y: content_bounds.y,
+                    y: param.target.y,
                     w: ele_dyn_width,
-                    h: content_bounds.h,
-                },
-                param,
+                    h: param.target.h,
+                }),
             );
             x += ele_dyn_width + self.spacing;
         }
@@ -133,8 +131,12 @@ impl<T: Copy + Eq + Hash> HorizontalBox<T> {
     /// Iterates over the vector and all elements in this box that fullfil the predicate simulateously, adding height to each element (reducing leftover in parallel) until
     ///  - leftover has reached 0 and no height is left to distribute
     ///  - all elements fulfilling the predicate have reached their maximum height.
-    fn distribute_width_to_fitting(&self, leftover: &mut f32, res: &mut Vec<f32>, pred: impl Fn(&UiElement<T>) -> bool)
-    {
+    fn distribute_width_to_fitting(
+        &self,
+        leftover: &mut f32,
+        res: &mut Vec<f32>,
+        pred: impl Fn(&UiElement<T>) -> bool,
+    ) {
         // get the number of elements fulfilling the predicate
         let mut element_count = self.children.iter().filter(|e| pred(*e)).count();
 

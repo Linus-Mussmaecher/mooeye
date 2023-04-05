@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{Canvas, Color, DrawParam, Rect, MeshBuilder, Mesh},
+    graphics::{Canvas, Color, Rect, MeshBuilder, Mesh},
     *, glam::Vec2,
 };
 
@@ -28,11 +28,17 @@ impl Visuals {
     }
 
     /// Draws the background to the canvas, filling the rectangle target.
-    pub(crate) fn draw(&self, ctx: &Context, canvas: &mut Canvas, target: Rect,
-        param: DrawParam,) {
+    pub(crate) fn draw(
+        &self,
+        ctx: &Context,
+        canvas: &mut Canvas,
+        param: super::UiDrawParam,
+    ) {
+        let target = param.target;
 
         let tolerance = 1.;
         let inner_radius = (self.rounded_corners - self.border_width).max(0.);
+
 
         let mut mesh_builder = MeshBuilder::new();
         mesh_builder.circle(graphics::DrawMode::fill(), Vec2::new(target.x + self.rounded_corners, target.y + self.rounded_corners), self.rounded_corners, tolerance, self.border).expect("Adding circle did not work.");
@@ -48,7 +54,7 @@ impl Visuals {
         mesh_builder.rectangle(graphics::DrawMode::fill(), Rect::new(target.x + self.border_width, target.y + self.border_width + inner_radius, target.w - 2. * self.border_width, target.h - 2. * self.border_width - 2. * inner_radius), self.background).expect("Adding rect went wrong");
         mesh_builder.rectangle(graphics::DrawMode::fill(), Rect::new(target.x + self.border_width + inner_radius, target.y + self.border_width, target.w - 2. * self.border_width - 2. * inner_radius, target.h - 2. * self.border_width), self.background).expect("Adding rect went wrong");
 
-        canvas.draw(&Mesh::from_data(ctx, mesh_builder.build()), param);
+        canvas.draw(&Mesh::from_data(ctx, mesh_builder.build()), param.param);
 
     }
 

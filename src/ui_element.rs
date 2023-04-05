@@ -1,10 +1,9 @@
 use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 
-use ggez::graphics::DrawParam;
 use ggez::{
     glam::Vec2,
-    graphics::{self, Canvas, Rect},
+    graphics::{Canvas, Rect},
     Context, GameResult,
 };
 
@@ -24,6 +23,9 @@ use draw_cache::DrawCache;
 
 mod message;
 pub use message::UiMessage;
+
+mod ui_draw_param;
+pub use ui_draw_param::UiDrawParam;
 
 pub struct UiElement<T: Copy + Eq + Hash> {
     /// The elements layout.
@@ -361,13 +363,12 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         &mut self,
         ctx: &mut Context,
         canvas: &mut Canvas,
-        rect: Rect,
-        param: DrawParam,
+        param: UiDrawParam,
     ) {
         self.progress_transitions(ctx);
 
         // update draw_cache
-        self.update_draw_cache(ctx, rect);
+        self.update_draw_cache(ctx, param.target);
 
         // if draw chache is still invalid, early return and try again next frame
 
@@ -377,12 +378,12 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
         // draw visuals
         self.get_current_visual(ctx)
-            .draw(ctx, canvas, self.draw_cache.outer, param);
+            .draw(ctx, canvas, param.target(self.draw_cache.outer));
 
         // draw content
 
         self.content
-            .draw_content(ctx, canvas, self.draw_cache.inner, param);
+            .draw_content(ctx, canvas, param.target(self.draw_cache.inner));
 
         // draw tooltip
         if self.draw_cache.outer.contains(ctx.mouse.position()) {
@@ -392,13 +393,12 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 tt.draw_to_rectangle(
                     ctx,
                     canvas,
-                    Rect::new(
+                    param.target(Rect::new(
                         mouse_pos.x + 10.,
                         mouse_pos.y - 10.,
                         screen_size.width as f32 - mouse_pos.x,
                         screen_size.height as f32 - mouse_pos.y,
-                    ),
-                    param.z(1),
+                    )).z_level(1),
                 );
             }
         }
@@ -418,13 +418,13 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         self.draw_to_rectangle(
             ctx,
             canvas,
-            Rect::new(
-                0.,
-                0.,
-                ctx.gfx.window().inner_size().width as f32,
-                ctx.gfx.window().inner_size().height as f32,
-            ),
-            DrawParam::default(),
+            UiDrawParam::default().target(
+                Rect::new(
+                    0.,
+                    0.,
+                    ctx.gfx.window().inner_size().width as f32,
+                    ctx.gfx.window().inner_size().height as f32,
+                )),
         );
     }
 }
@@ -467,8 +467,7 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         &mut self,
         ctx: &mut Context,
         canvas: &mut Canvas,
-        content_bounds: graphics::Rect,
-        param: DrawParam,
+        param: UiDrawParam,
     );
 
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.

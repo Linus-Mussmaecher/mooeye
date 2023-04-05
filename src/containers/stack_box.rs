@@ -1,4 +1,3 @@
-use ggez::graphics::DrawParam;
 
 use crate::{UiElement, UiContent, ui_element::Size};
 use std::hash::Hash;
@@ -80,11 +79,10 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
         &mut self,
         ctx: &mut ggez::Context,
         canvas: &mut ggez::graphics::Canvas,
-        content_bounds: ggez::graphics::Rect,
-        param: DrawParam,
+        param: crate::ui_element::UiDrawParam,
     ) {
         for child in self.children.iter_mut().rev() {
-            child.draw_to_rectangle(ctx, canvas, content_bounds, param);
+            child.draw_to_rectangle(ctx, canvas, param);
         }
     }
 }

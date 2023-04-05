@@ -1,6 +1,6 @@
-use ggez::{graphics::{Rect, DrawParam}, GameResult};
-use tinyvec::TinyVec;
+use ggez::{graphics::Rect, GameResult};
 use std::hash::Hash;
+use tinyvec::TinyVec;
 
 const VECSIZE: usize = 32;
 
@@ -20,7 +20,6 @@ pub struct GridBox<T: Copy + Eq + Hash> {
     rows: usize,
     /// The number of columns in thei grid box.
     cols: usize,
-
     ///// A rectangle cache to prevent recalculation of child boxes every frame.
     //children_rects: Vec<Rect>,
 }
@@ -218,7 +217,6 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
             .collect()
     }
 
-    
     /// Returns a vector containing for every row in this grid the height_range of that row.
     /// Height range is calculated by taking the maximum min_height and minimum max_height of all children in each row.
     fn get_row_ranges(&self) -> TinyVec<[(f32, f32); VECSIZE]> {
@@ -282,44 +280,41 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         &mut self,
         ctx: &mut ggez::Context,
         canvas: &mut ggez::graphics::Canvas,
-        content_bounds: ggez::graphics::Rect,
-        param: DrawParam,
+        param: crate::ui_element::UiDrawParam,
     ) {
-
         // get column widths
-        let column_widths = self.get_column_widths(content_bounds.w);
+        let column_widths = self.get_column_widths(param.target.w);
         // ... and partial sum
         let column_widths_ps =
             column_widths
                 .iter()
-                .fold(Vec::from([content_bounds.x]), |mut vec, val| {
+                .fold(Vec::from([param.target.x]), |mut vec, val| {
                     vec.push(*vec.last().unwrap_or(&0.) + val + self.horizontal_spacing);
                     vec
                 });
 
         // get row heights
-        let row_heights = self.get_row_heights(content_bounds.h);
+        let row_heights = self.get_row_heights(param.target.h);
         // ... and partial sum
         let row_heights_ps =
             row_heights
                 .iter()
-                .fold(Vec::from([content_bounds.y]), |mut vec, val| {
+                .fold(Vec::from([param.target.y]), |mut vec, val| {
                     vec.push(*vec.last().unwrap_or(&0.) + val + self.vertical_spacing);
                     vec
                 });
-        
+
         // actually draw children
         for (index, element) in self.children.iter_mut().enumerate() {
             element.draw_to_rectangle(
                 ctx,
                 canvas,
-                Rect::new(
+                param.target(Rect::new(
                     *column_widths_ps.get(index % self.cols).unwrap_or(&0.),
                     *row_heights_ps.get(index / self.cols).unwrap_or(&0.),
                     *column_widths.get(index % self.cols).unwrap_or(&0.),
                     *row_heights.get(index / self.cols).unwrap_or(&0.),
-                ),
-                param,
+                )),
             );
         }
     }

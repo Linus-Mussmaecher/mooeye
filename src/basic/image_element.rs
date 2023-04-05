@@ -1,6 +1,6 @@
 use ggez::{
     Context,
-    graphics::{self, DrawParam, Drawable, Rect},
+    graphics::{self, Drawable, Rect},
 };
 use std::hash::Hash;
 
@@ -23,17 +23,16 @@ impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Image {
         &mut self,
         ctx: &mut Context,
         canvas: &mut graphics::Canvas,
-        content_bounds: graphics::Rect,
-        param: DrawParam,
+        param: crate::ui_element::UiDrawParam,
     ) {
         if let Some(dim) = self.dimensions(ctx) {
             canvas.draw(
                 self,
-                param.dest_rect(Rect::new(
-                    content_bounds.x,
-                    content_bounds.y,
-                    content_bounds.w / dim.w,
-                    content_bounds.h / dim.h,
+                param.param.dest_rect(Rect::new(
+                    param.target.x,
+                    param.target.y,
+                    param.target.w / dim.w,
+                    param.target.h / dim.h,
                 )),
             );
         }

@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, DrawParam},
+    graphics,
     Context,
 };
 use std::hash::Hash;
@@ -11,8 +11,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for () {
         &mut self,
         _ctx: &mut Context,
         _canvas: &mut graphics::Canvas,
-        _content_bounds: graphics::Rect,
-        _param: DrawParam,
+        _param: crate::ui_element::UiDrawParam,
     ) {
     }
 }

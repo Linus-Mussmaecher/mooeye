@@ -10,10 +10,15 @@ use super::{Layout, Visuals};
 /// A Transition stuct that can be added to an UiElement to slowly change that elements properties over time.
 /// A transition can change the elements layout, visuals, hover_visuals, content and tooltip by first augmenting the transition with the relevant methods.
 pub struct Transition<T: Copy + Eq + Hash> {
+    /// The layout transitioned to.
     pub(crate) new_layout: Option<Layout>,
+    /// The visuals transitioned to.
     pub(crate) new_visuals: Option<Visuals>,
+    /// The hover visuals transitioned to.
     pub(crate) new_hover_visuals: Option<Option<Visuals>>,
+    /// The content transitioned to.
     pub(crate) new_content: Option<Box<dyn UiContent<T>>>,
+    /// The tooltip transitioned to.
     pub(crate) new_tooltip: Option<Option<Box<UiElement<T>>>>,
 
     total_duration: Duration,
