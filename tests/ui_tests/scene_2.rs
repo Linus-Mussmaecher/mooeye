@@ -195,11 +195,9 @@ impl Scene2 {
     }
 }
 
+
 impl Scene for Scene2 {
-    fn check_for_scene_switch(
-        &mut self,
-        ctx: &Context,
-    ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
+    fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError> {
         if self
             .gui
             .manage_messages(ctx, &HashSet::new())
@@ -208,12 +206,7 @@ impl Scene for Scene2 {
             return Ok(SceneSwitch::Pop(1));
         }
         Ok(SceneSwitch::None)
-    }
-}
-
-impl event::EventHandler<GameError> for Scene2 {
-    fn update(&mut self, _ctx: &mut Context) -> Result<(), GameError> {
-        Ok(())
+    
     }
 
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {

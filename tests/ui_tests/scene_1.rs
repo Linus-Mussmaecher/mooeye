@@ -5,7 +5,12 @@ use ggez::{
     graphics::{Color, Text},
     *,
 };
-use mooeye::{containers::{self, StackBox}, sprite::Sprite, ui_element::{Alignment, Size}, UiContent, UiElement};
+use mooeye::{
+    containers::{self, StackBox},
+    sprite::Sprite,
+    ui_element::{Alignment, Size},
+    UiContent, UiElement,
+};
 use mooeye::{
     scene_manager::{Scene, SceneSwitch},
     ui_element::{Transition, UiMessage},
@@ -96,11 +101,10 @@ impl Scene1 {
             .to_element_measured(2, &ctx);
         minipi.layout.x_alignment = Alignment::MIN;
         minipi.layout.y_alignment = Alignment::MIN;
-        minipi.layout.x_size = minipi.layout.x_size.to_shrink();//TODO : THIS DOES NOT SHRINK
+        minipi.layout.x_size = minipi.layout.x_size.to_shrink(); //TODO : THIS DOES NOT SHRINK
         minipi.layout.y_size = minipi.layout.y_size.to_shrink();
         minipi.layout.x_offset = -10.;
         minipi.layout.y_offset = -10.;
-
 
         let mut stack = StackBox::new();
         let playlayout = play.layout;
@@ -111,7 +115,6 @@ impl Scene1 {
         stack.layout.x_size = Size::FILL(playlayout.x_size.min() + 10., f32::INFINITY);
         stack.layout.y_size = Size::FILL(playlayout.y_size.min() + 10., f32::INFINITY);
         stack.layout.padding = (0., 0., 0., 0.);
-        
 
         let mut quit = Text::new("Quit")
             .set_font("Alagard")
@@ -151,11 +154,9 @@ impl Scene1 {
     }
 }
 
+
 impl Scene for Scene1 {
-    fn check_for_scene_switch(
-        &mut self,
-        ctx: &Context,
-    ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
+    fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError> {
         if self
             .gui
             .manage_messages(ctx, &HashSet::new())
@@ -173,12 +174,6 @@ impl Scene for Scene1 {
             ))));
         }
         Ok(SceneSwitch::None)
-    }
-}
-
-impl event::EventHandler<GameError> for Scene1 {
-    fn update(&mut self, _ctx: &mut Context) -> Result<(), GameError> {
-        Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
