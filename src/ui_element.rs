@@ -194,16 +194,16 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     fn get_current_visual(&self, ctx: &Context, param: UiDrawParam) -> Visuals {
         // check if this element is being hovered
 
-        let mouse_in_outer = match self.draw_cache {
-            DrawCache::Invalid => false,
-            DrawCache::Valid {
-                outer,
-                inner: _,
-                target: _,
-            } => outer.contains(ctx.mouse.position()),
-        };
-
-        if param.mouse_listen && mouse_in_outer {
+        if param.mouse_listen
+            && match self.draw_cache {
+                DrawCache::Invalid => false,
+                DrawCache::Valid {
+                    outer,
+                    inner: _,
+                    target: _,
+                } => outer.contains(ctx.mouse.position()),
+            }
+        {
             // yes: get what this element, diregarding transitions, would display on hover
             let own_vis = if let Some(hover_visuals) = self.hover_visuals {
                 hover_visuals
@@ -384,7 +384,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
         let (outer, inner) = match self.draw_cache {
             DrawCache::Invalid => return,
-            DrawCache::Valid { outer, inner, target: _ } => (outer, inner),
+            DrawCache::Valid {
+                outer,
+                inner,
+                target: _,
+            } => (outer, inner),
         };
 
         // draw visuals
@@ -393,8 +397,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
         // draw content
 
-        self.content
-            .draw_content(ctx, canvas, param.target(inner));
+        self.content.draw_content(ctx, canvas, param.target(inner));
 
         // draw tooltip
         if param.mouse_listen && outer.contains(ctx.mouse.position()) {
