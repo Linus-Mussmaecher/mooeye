@@ -98,19 +98,26 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     fn collect_messages(&self, ctx: &Context) -> HashSet<UiMessage<T>> {
         let mut res: HashSet<UiMessage<T>> = HashSet::new();
 
-        if self.draw_cache.outer.contains(ctx.mouse.position()) {
-            if ctx
-                .mouse
-                .button_just_pressed(ggez::event::MouseButton::Left)
-            {
-                res.insert(UiMessage::Clicked(self.id));
-            }
+        if let DrawCache::Valid {
+            outer,
+            inner: _,
+            target: _,
+        } = self.draw_cache
+        {
+            if outer.contains(ctx.mouse.position()) {
+                if ctx
+                    .mouse
+                    .button_just_pressed(ggez::event::MouseButton::Left)
+                {
+                    res.insert(UiMessage::Clicked(self.id));
+                }
 
-            if ctx
-                .mouse
-                .button_just_pressed(ggez::event::MouseButton::Right)
-            {
-                res.insert(UiMessage::ClickedRight(self.id));
+                if ctx
+                    .mouse
+                    .button_just_pressed(ggez::event::MouseButton::Right)
+                {
+                    res.insert(UiMessage::ClickedRight(self.id));
+                }
             }
         }
 
@@ -160,12 +167,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     fn progress_transitions(&mut self, ctx: &Context) {
         if !self.transitions.is_empty() {
             if self.transitions[0].progress(ctx.time.delta()) {
-
                 let trans = self.transitions.pop_front().expect("Transitions did not contain a first element despite being not empty 2 lines ago.");
 
                 if let Some(layout) = trans.new_layout {
                     self.layout = layout;
-                    self.draw_cache.valid = false;
+                    self.draw_cache = DrawCache::Invalid;
                 }
                 if let Some(visuals) = trans.new_visuals {
                     self.visuals = visuals;
@@ -187,7 +193,17 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Then checks if the transition queue contains a (hover-)visual-changing element and returns an average visuals if needed.
     fn get_current_visual(&self, ctx: &Context, param: UiDrawParam) -> Visuals {
         // check if this element is being hovered
-        if param.mouse_listen && self.draw_cache.outer.contains(ctx.mouse.position()) {
+
+        let mouse_in_outer = match self.draw_cache {
+            DrawCache::Invalid => false,
+            DrawCache::Valid {
+                outer,
+                inner: _,
+                target: _,
+            } => outer.contains(ctx.mouse.position()),
+        };
+
+        if param.mouse_listen && mouse_in_outer {
             // yes: get what this element, diregarding transitions, would display on hover
             let own_vis = if let Some(hover_visuals) = self.hover_visuals {
                 hover_visuals
@@ -239,19 +255,19 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Otherwise, the function uses ```content_min```, the ```layout``` and the currently active ```Transition``` to generate a valid draw cache
     /// If no valid draw chache can be generated, the draw_cache wil be reset to default value.
     /// The function will only change ```draw_cache::valid``` to ```true``` if the generated rectangles fit within the target ```rect```.
-    fn update_draw_cache(&mut self, ctx: &Context, rect: Rect) {
+    fn update_draw_cache(&mut self, ctx: &Context, target: Rect) {
         // check wether draw cache needs to be updated at all (or a transition is going on)
-        if !self.cache_valid(&rect) {
+        if !self.cache_valid(target) {
             // first calculate the target of this element if it were on its own
             let (own_outer, own_inner) = self
                 .layout
-                .get_outer_inner_bounds_in_target(&rect, self.content_min());
+                .get_outer_inner_bounds_in_target(&target, self.content_min());
             // check if there is a transition going on
             let (outer, inner) = if !self.transitions.is_empty() {
                 // the transitions are not empty: check if the top transitions wants to change the layout
                 if let Some(new_layout) = self.transitions[0].new_layout {
                     let (trans_outer, trans_inner) =
-                        new_layout.get_outer_inner_bounds_in_target(&rect, self.content_min());
+                        new_layout.get_outer_inner_bounds_in_target(&target, self.content_min());
                     (
                         transition::average_rect(
                             &own_outer,
@@ -273,22 +289,21 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             };
 
             // checking bounds, adding 0.01 to deal with problems stemming from imprecise multiplication
-            if outer.w > rect.w + 0.01
-                || outer.h > rect.h + 0.01
+            if outer.w > target.w + 0.01
+                || outer.h > target.h + 0.01
                 || outer.x < 0.
                 || outer.y < 0.
                 || outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
                 || outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
             {
-                println!("Skipped Element. Outer: {:?}, Rect: {:?}", outer, rect);
+                println!("Skipped Element. Outer: {:?}, Rect: {:?}", outer, target);
                 self.draw_cache = DrawCache::default();
                 return;
             } else {
-                self.draw_cache = DrawCache {
-                    outer: outer,
-                    inner: inner,
-                    target: rect,
-                    valid: true,
+                self.draw_cache = DrawCache::Valid {
+                    outer,
+                    inner,
+                    target,
                 };
             }
         }
@@ -297,21 +312,16 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Returns wether this elements cache is still valid. The cache may be invalidated manually or because the target_rect has changed.
     /// Any chache is considered invalid if there is currently an active transition that is actively changing the layout
     /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
-    pub(crate) fn cache_valid(&self, target: &Rect) -> bool {
-        let layout_changing_transition = if self.transitions.is_empty() {
-            false
-        } else {
-            if let None = self.transitions[0].new_layout {
-                false
-            } else {
-                true
-            }
-        };
-
+    pub(crate) fn cache_valid(&self, target: Rect) -> bool {
         self.content.get_children().unwrap_or(&[]).iter().fold(
-            self.draw_cache.valid
-                && *target == self.draw_cache.target
-                && !layout_changing_transition,
+            match self.draw_cache {
+                DrawCache::Invalid => false,
+                DrawCache::Valid {
+                    outer: _,
+                    inner: _,
+                    target: cache_target,
+                } => cache_target == target,
+            } && (self.transitions.is_empty() || matches!(self.transitions[0].new_layout, None)),
             |valid, child| valid && child.cache_valid(target),
         )
     }
@@ -372,33 +382,36 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
         // if draw chache is still invalid, early return and try again next frame
 
-        if !self.draw_cache.valid {
-            return;
-        }
+        let (outer, inner) = match self.draw_cache {
+            DrawCache::Invalid => return,
+            DrawCache::Valid { outer, inner, target: _ } => (outer, inner),
+        };
 
         // draw visuals
         self.get_current_visual(ctx, param)
-            .draw(ctx, canvas, param.target(self.draw_cache.outer));
+            .draw(ctx, canvas, param.target(outer));
 
         // draw content
 
         self.content
-            .draw_content(ctx, canvas, param.target(self.draw_cache.inner));
+            .draw_content(ctx, canvas, param.target(inner));
 
         // draw tooltip
-        if param.mouse_listen && self.draw_cache.outer.contains(ctx.mouse.position()) {
+        if param.mouse_listen && outer.contains(ctx.mouse.position()) {
             if let Some(tt) = &mut self.tooltip {
                 let mouse_pos = ctx.mouse.position();
                 let screen_size = ctx.gfx.window().inner_size();
                 tt.draw_to_rectangle(
                     ctx,
                     canvas,
-                    param.target(Rect::new(
-                        mouse_pos.x + 10.,
-                        mouse_pos.y - 10.,
-                        screen_size.width as f32 - mouse_pos.x,
-                        screen_size.height as f32 - mouse_pos.y,
-                    )).z_level(1),
+                    param
+                        .target(Rect::new(
+                            mouse_pos.x + 10.,
+                            mouse_pos.y - 10.,
+                            screen_size.width as f32 - mouse_pos.x,
+                            screen_size.height as f32 - mouse_pos.y,
+                        ))
+                        .z_level(1),
                 );
             }
         }
@@ -418,13 +431,14 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         self.draw_to_rectangle(
             ctx,
             canvas,
-            UiDrawParam::default().target(
-                Rect::new(
+            UiDrawParam::default()
+                .target(Rect::new(
                     0.,
                     0.,
                     ctx.gfx.window().inner_size().width as f32,
                     ctx.gfx.window().inner_size().height as f32,
-                )).mouse_listen(mouse_listen),
+                ))
+                .mouse_listen(mouse_listen),
         );
     }
 }
@@ -463,12 +477,7 @@ pub trait UiContent<T: Copy + Eq + Hash> {
 
     /// Takes in a rectangle target, a canvas, a context and draws the contents (not the border etc.) to that rectangle within that canvas using that context.
     /// Normally, this will only be called from within the [UiElement::draw_to_rectangle] function, when the cache has been modified appropiately and only use the inner rectangle of the draw cache as content_bounds. Do not call otherwise.
-    fn draw_content(
-        &mut self,
-        ctx: &mut Context,
-        canvas: &mut Canvas,
-        param: UiDrawParam,
-    );
+    fn draw_content(&mut self, ctx: &mut Context, canvas: &mut Canvas, param: UiDrawParam);
 
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.
     fn get_children(&self) -> Option<&[UiElement<T>]> {
@@ -488,11 +497,13 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     }
 }
 
-
 /// Sets the elements visuals to the provided visuals and sets its alignment to MIN/MIN and its size to SHRINK/SHRINK, as is usually the most pretty way to layout tooltips.
-pub fn make_tooltip<T: Copy + Eq + Hash>(mut element: UiElement<T>, visuals: Visuals) -> UiElement<T>{
+pub fn make_tooltip<T: Copy + Eq + Hash>(
+    mut element: UiElement<T>,
+    visuals: Visuals,
+) -> UiElement<T> {
     element.visuals = visuals;
-    
+
     element.layout.x_alignment = Alignment::MIN;
     element.layout.y_alignment = Alignment::MIN;
     element.layout.x_size = element.layout.x_size.to_shrink();
