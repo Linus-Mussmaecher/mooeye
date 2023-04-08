@@ -1,5 +1,10 @@
 # MooEye - A ggez-based UI library
 
+[![Docs Status](https://docs.rs/mooeye/badge.svg)](https://docs.rs/ggez)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Linus-Mussmaecher/mooeye/LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/mooeye.svg)](https://crates.io/crates/mooeye)
+[![Crates.io](https://img.shields.io/crates/d/mooeye.svg)](https://crates.io/crates/mooeye)
+
 This is a very simple UI library building upon [ggez game library](https://github.com/ggez/ggez). It was originally written for personal use with my own Rust gamedev projets. The whole library is very much work-in-progress.
 
 ## UI Features
