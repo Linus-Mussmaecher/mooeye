@@ -5,9 +5,11 @@ use ggez::{
     Context, GameError,
 };
 
-use crate::{ui_element::Size, UiContent, UiElement};
+use crate::{
+    ui_element::{Size, UiElementBuilder},
+    UiContent,
+};
 use std::hash::Hash;
-
 
 /// A Sprite is an advanced version of an image element, displaying an animated picture that can have multiple states (e.g. a walking, attacking, etc. version of a player character)
 /// The sprite is initalized using an image file that contains multiple rows of images (each row representing a variant), where each row contains the same number of animation frames for each variant.
@@ -24,7 +26,6 @@ pub struct Sprite {
 }
 
 impl Sprite {
-
     /// Create a new sprite using the passed [ggez::graphics::Image] and set the duration after which a frame change occurs.
     /// The values for the width and height of a single image within the sheet have to be passed manually.
     /// Will never fail, as the image is already loaded by ggez.
@@ -40,7 +41,6 @@ impl Sprite {
         }
     }
 
-    
     /// Create a new sprite using from the file found at the passed path and set the duration after which a frame change occurs.
     /// The values for the width and height of a single image within the sheet have to be passed manually.
     /// May fail if the image cannot be loaded, because f.e. the path is wrong. Passing 'wrong' size values will yield unexpected behaviour but not panic.
@@ -75,7 +75,10 @@ impl Sprite {
             .as_ref()
             .file_name()
             .unwrap_or(OsStr::new(""))
-            .to_str().ok_or(GameError::CustomError("Path formatted incorrectly.".to_owned()))?;
+            .to_str()
+            .ok_or(GameError::CustomError(
+                "Path formatted incorrectly.".to_owned(),
+            ))?;
 
         let width_height = pathstring
             .split('.')
@@ -92,9 +95,16 @@ impl Sprite {
 
         let w = *width_height.get(0).ok_or(GameError::CustomError("Filename formatted incorretly - not ending in _width_height.extension. (first element missign)".to_owned()))?;
         let h = *width_height.get(1).ok_or(GameError::CustomError("Filename formatted incorretly - not ending in _width_height.extension. (second element missing)".to_owned()))?;
-        let w = w.parse::<u32>().map_err(|_| GameError::CustomError("Filename formatted correctly, but width numbers could not be parsed.".to_owned()))?;
-        let h = h.parse::<u32>().map_err(|_| GameError::CustomError("Filename formatted correctly, but height numbers could not be parsed.".to_owned()))?;
-
+        let w = w.parse::<u32>().map_err(|_| {
+            GameError::CustomError(
+                "Filename formatted correctly, but width numbers could not be parsed.".to_owned(),
+            )
+        })?;
+        let h = h.parse::<u32>().map_err(|_| {
+            GameError::CustomError(
+                "Filename formatted correctly, but height numbers could not be parsed.".to_owned(),
+            )
+        })?;
 
         Ok(Self {
             frame_time,
@@ -106,7 +116,6 @@ impl Sprite {
             current_variant: 0,
         })
     }
-
 
     /// Sets the variant this sprite currently displays. Numbers that are too large to represent a valid variant will wrap around.
     pub fn set_variant(&mut self, variant: u32) {
@@ -152,17 +161,17 @@ impl Drawable for Sprite {
 }
 
 impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
-    fn to_element(self, id: u32) -> UiElement<T>
+    fn to_element_builder(self, id: u32, _ctx: &Context) -> UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
         let (w, h) = (self.w, self.h);
-        let mut element = UiElement::new(id, self);
-        element.layout.x_size = Size::FILL(w as f32, f32::INFINITY);
-        element.layout.y_size = Size::FILL(h as f32, f32::INFINITY);
-        element.layout.preserve_ratio = true;
-
-        element
+        UiElementBuilder::new(id, self)
+            .with_size(
+                Size::FILL(w as f32, f32::INFINITY),
+                Size::FILL(h as f32, f32::INFINITY),
+            )
+            .with_preserve_ratio(true)
     }
 
     fn draw_content(

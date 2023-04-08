@@ -4,7 +4,10 @@ use tinyvec::TinyVec;
 
 const VECSIZE: usize = 32;
 
-use crate::{ui_element::Size, UiContent, UiElement};
+use crate::{
+    ui_element::{Size, UiElementBuilder},
+    UiContent, UiElement,
+};
 
 /// A Grid Box that is initialized with a fixed width and height an can display elements in every cell.
 pub struct GridBox<T: Copy + Eq + Hash> {
@@ -28,7 +31,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     /// Creates a new GridBox with the specified number of columns and rows.
     pub fn new(columns: usize, rows: usize) -> Self {
         Self {
-            children: (0..columns * rows).map(|_| ().to_element(0)).collect(),
+            children: (0..columns * rows).map(|_| UiElement::new(0, ())).collect(),
             vertical_spacing: 5.,
             horizontal_spacing: 5.,
             cols: columns,
@@ -73,7 +76,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index % self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.layout.x_size, Size::FILL(_, _))
+                            hs || matches!(element.get_layout().x_size, Size::FILL(_, _))
                         })
                 })
                 .collect(),
@@ -92,7 +95,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index % self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.layout.x_size, Size::SHRINK(_, _))
+                            hs || matches!(element.get_layout().x_size, Size::SHRINK(_, _))
                         })
                 })
                 .collect(),
@@ -124,7 +127,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index / self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.layout.y_size, Size::FILL(_, _))
+                            hs || matches!(element.get_layout().y_size, Size::FILL(_, _))
                         })
                 })
                 .collect(),
@@ -143,7 +146,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index / self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.layout.y_size, Size::SHRINK(_, _))
+                            hs || matches!(element.get_layout().y_size, Size::SHRINK(_, _))
                         })
                 })
                 .collect(),
@@ -238,14 +241,18 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
 }
 
 impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
-    fn to_element(self, id: u32) -> UiElement<T>
+    fn to_element_builder(
+        self,
+        id: u32,
+        _ctx: &ggez::Context,
+    ) -> crate::ui_element::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
-        let mut res = UiElement::new(id, self);
-        res.layout.x_size = Size::SHRINK(0., f32::INFINITY);
-        res.layout.y_size = Size::SHRINK(0., f32::INFINITY);
-        res
+        UiElementBuilder::new(id, self).with_size(
+            Size::SHRINK(0., f32::INFINITY),
+            Size::SHRINK(0., f32::INFINITY),
+        )
     }
 
     fn content_width_range(&self) -> (f32, f32) {

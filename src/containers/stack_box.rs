@@ -24,14 +24,18 @@ impl<T: Copy + Eq + Hash> StackBox<T> {
 impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
     
 
-    fn to_element(self, id: u32) -> UiElement<T>
+    fn to_element_builder(
+        self,
+        id: u32,
+        _ctx: &ggez::Context,
+    ) -> crate::ui_element::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
-        let mut res = UiElement::new(id, self);
-            res.layout.x_size = Size::SHRINK(0., f32::INFINITY);
-            res.layout.y_size = Size::SHRINK(0., f32::INFINITY);
-            res
+        crate::ui_element::UiElementBuilder::new(id, self).with_size(
+            Size::SHRINK(0., f32::INFINITY),
+            Size::SHRINK(0., f32::INFINITY),
+        )
     }
 
     fn content_width_range(&self) -> (f32, f32) {

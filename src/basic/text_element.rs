@@ -5,18 +5,26 @@ use ggez::{
 use std::hash::Hash;
 
 
-use crate::{UiElement, UiContent, ui_element::Size};
+use crate::{UiContent, ui_element::Size};
 
 impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Text {
-    fn to_element_measured(self, id: u32, ctx: &Context) -> UiElement<T> where Self:Sized + 'static {
-        let size = self.dimensions(&ctx.gfx).unwrap_or(Rect { x: 0., y: 0., w: 0., h: 0. });
+    fn to_element_builder(self, id: u32, ctx: &Context) -> crate::ui_element::UiElementBuilder<T>
+    where
+        Self: Sized + 'static,
+    {
+        let size = self.dimensions(&ctx.gfx).unwrap_or(Rect {
+            x: 0.,
+            y: 0.,
+            w: 0.,
+            h: 0.,
+        });
 
-        let mut element = UiElement::new(id, self);
-        element.layout.x_size = Size::FILL(size.w, f32::INFINITY);
-        element.layout.y_size = Size::FILL(size.h, f32::INFINITY);
-        element.layout.preserve_ratio = true;
-
-        element
+        crate::ui_element::UiElementBuilder::new(id, self)
+            .with_size(
+                Size::FILL(size.w, f32::INFINITY),
+                Size::FILL(size.h, f32::INFINITY),
+            )
+            .with_preserve_ratio(true)
     }
 
 

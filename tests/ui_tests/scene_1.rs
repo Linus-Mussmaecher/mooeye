@@ -8,7 +8,7 @@ use ggez::{
 use mooeye::{
     containers::{self, StackBox},
     sprite::Sprite,
-    ui_element::{Alignment, Size},
+    ui_element::{Alignment, UiElementBuilder},
     UiContent, UiElement,
 };
 use mooeye::{
@@ -28,34 +28,26 @@ impl Scene1 {
             .set_font("Alagard")
             .set_scale(54.)
             .to_owned()
-            .to_element_measured(1, &ctx);
+            .to_element_builder(1, ctx)
+            .build();
 
-        let mut pi_img =
-            //Sprite::from_path("/pi_sheet.png", ctx, 16, 24, Duration::from_secs_f32(0.2))
+        let pi_img =
             Sprite::from_path_fmt("/pi_sheet_16_24.png", ctx, Duration::from_secs_f32(0.25))
                 .expect("Spritesheet loading failed.")
-                .to_element(2);
-
-        pi_img.layout.x_size = pi_img.layout.x_size.scale(6.);
-        pi_img.layout.y_size = pi_img.layout.y_size.scale(6.);
-        pi_img.set_tooltip(Some({
-            let mut text = Text::new("This is Pi!")
-                .set_font("Alagard")
-                .set_scale(28.)
-                .to_owned()
-                .to_element_measured(0, ctx);
-            text.visuals = mooeye::ui_element::Visuals::new(
-                Color::from_rgb(67, 99, 181),
-                Color::from_rgb(45, 57, 77),
-                2.,
-                0.,
-            );
-            text.layout.x_alignment = Alignment::MIN;
-            text.layout.y_alignment = Alignment::MIN;
-            text.layout.x_size = text.layout.x_size.to_shrink();
-            text.layout.y_size = text.layout.y_size.to_shrink();
-            text
-        }));
+                .to_element_builder(0, ctx)
+                .scaled(6., 6.)
+                .with_tooltip(
+                    UiElementBuilder::new(
+                        0,
+                        Text::new("This is Pi!")
+                            .set_font("Alagard")
+                            .set_scale(28.)
+                            .to_owned(),
+                    )
+                    .with_tooltip_layout()
+                    .build(),
+                )
+                .build();
 
         let mut sub_box = containers::VerticalBox::new();
 
@@ -63,21 +55,20 @@ impl Scene1 {
             .set_font("Alagard")
             .set_scale(36.)
             .to_owned()
-            .to_element_measured(3, &ctx);
-
-        play.visuals = mooeye::ui_element::Visuals::new(
-            Color::from_rgb(77, 109, 191),
-            Color::from_rgb(55, 67, 87),
-            2.,
-            4.,
-        );
-
-        play.hover_visuals = Some(mooeye::ui_element::Visuals::new(
-            Color::from_rgb(67, 89, 201),
-            Color::from_rgb(65, 77, 107),
-            2.,
-            4.,
-        ));
+            .to_element_builder(3, ctx)
+            .with_visuals(mooeye::ui_element::Visuals::new(
+                Color::from_rgb(77, 109, 191),
+                Color::from_rgb(55, 67, 87),
+                2.,
+                4.,
+            ))
+            .with_hover_visuals(mooeye::ui_element::Visuals::new(
+                Color::from_rgb(67, 89, 201),
+                Color::from_rgb(65, 77, 107),
+                2.,
+                4.,
+            ))
+            .build();
 
         play.add_transition(Transition::new(Duration::from_secs(1)));
         play.add_transition(
@@ -96,64 +87,60 @@ impl Scene1 {
                 ),
         );
 
-        let mut minipi = graphics::Image::from_path(ctx, "/pi.png")
+        let minipi = graphics::Image::from_path(ctx, "/pi.png")
             .expect("Something went wrong loading /pi.png")
-            .to_element_measured(2, &ctx);
-        minipi.layout.x_alignment = Alignment::MIN;
-        minipi.layout.y_alignment = Alignment::MIN;
-        minipi.layout.x_size = minipi.layout.x_size.to_shrink(); //TODO : THIS DOES NOT SHRINK
-        minipi.layout.y_size = minipi.layout.y_size.to_shrink();
-        minipi.layout.x_offset = -10.;
-        minipi.layout.y_offset = -10.;
+            .to_element_builder(3, ctx)
+            .with_alignment(Alignment::MIN, Alignment::MIN)
+            .as_shrink()
+            .with_offset(-10., -10.)
+            .build();
 
         let mut stack = StackBox::new();
-        let playlayout = play.layout;
+        let playlayout = play.get_layout();
         stack.add(play);
         stack.add_top(minipi);
-        let mut stack = stack.to_element(50);
-        stack.layout = playlayout;
-        stack.layout.x_size = Size::FILL(playlayout.x_size.min() + 10., f32::INFINITY);
-        stack.layout.y_size = Size::FILL(playlayout.y_size.min() + 10., f32::INFINITY);
-        stack.layout.padding = (0., 0., 0., 0.);
+        let stack = UiElementBuilder::new(0, stack)
+            .with_wrapper_layout(playlayout)
+            .build();
 
-        let mut quit = Text::new("Quit")
+        let quit = Text::new("Quit")
             .set_font("Alagard")
             .set_scale(36.)
             .to_owned()
-            .to_element_measured(4, &ctx);
-
-        quit.visuals = mooeye::ui_element::Visuals::new(
-            Color::from_rgb(77, 109, 191),
-            Color::from_rgb(55, 67, 87),
-            2.,
-            4.,
-        );
-
-        quit.hover_visuals = Some(mooeye::ui_element::Visuals::new(
-            Color::from_rgb(67, 89, 201),
-            Color::from_rgb(65, 77, 107),
-            2.,
-            4.,
-        ));
+            .to_element_builder(4, ctx)
+            .with_visuals(mooeye::ui_element::Visuals::new(
+                Color::from_rgb(77, 109, 191),
+                Color::from_rgb(55, 67, 87),
+                2.,
+                4.,
+            ))
+            .with_hover_visuals(mooeye::ui_element::Visuals::new(
+                Color::from_rgb(67, 89, 201),
+                Color::from_rgb(65, 77, 107),
+                2.,
+                4.,
+            ))
+            .build();
 
         gui_box.add(title);
         gui_box.add(pi_img);
         sub_box.add(stack);
         sub_box.add(quit);
-        gui_box.add(sub_box.to_element(5));
+        gui_box.add(sub_box.to_element(0, ctx));
 
-        let mut gui_box = gui_box.to_element(0);
-        gui_box.visuals = mooeye::ui_element::Visuals::new(
-            Color::from_rgb(120, 170, 200),
-            Color::from_rgb(55, 67, 87),
-            2.,
-            10.,
-        );
+        let gui_box = gui_box
+            .to_element_builder(0, ctx)
+            .with_visuals(mooeye::ui_element::Visuals::new(
+                Color::from_rgb(120, 170, 200),
+                Color::from_rgb(55, 67, 87),
+                2.,
+                10.,
+            ))
+            .build();
 
         Self { gui: gui_box }
     }
 }
-
 
 impl Scene for Scene1 {
     fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError> {

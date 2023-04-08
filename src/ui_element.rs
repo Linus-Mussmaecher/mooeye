@@ -24,16 +24,19 @@ use draw_cache::DrawCache;
 mod message;
 pub use message::UiMessage;
 
+mod ui_element_builder;
+pub use ui_element_builder::UiElementBuilder;
+
 mod ui_draw_param;
 pub use ui_draw_param::UiDrawParam;
 
 pub struct UiElement<T: Copy + Eq + Hash> {
     /// The elements layout.
-    pub layout: Layout,
+    layout: Layout,
     /// The elements visuals.
-    pub visuals: Visuals,
+    visuals: Visuals,
     /// The alternative visuals of this element, displayed while the user hovers the mouse cursor above it.
-    pub hover_visuals: Option<Visuals>,
+    hover_visuals: Option<Visuals>,
 
     /// The elements ID. Not neccessarily guaranteed to be unique.
     id: u32,
@@ -51,8 +54,9 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     transitions: VecDeque<Transition<T>>,
 
     /// The message handler. This function is called on every frame to handle received message.
-    /// The handler receives a hashset of messages and a the elements transition queue
-    /// Overwrite this with a lambda that pushes transitions based on the incoming messages.
+    // The message handler lambda receives each frame a hash set consisting of all internal and external messages received by this element.
+    /// It also receives a function pointer. Calling this pointer with a transition pushes that transition to this elements transition queue.
+    /// Lastly, it receives the current layout of the element. This allows any transitions to re-use that layout and only change the variables the transition wants to change.
     message_handler: Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>)>,
 }
 
@@ -76,6 +80,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Returns this elements (not neccessarily unique) ID within this UI. This ID is used to indentify the source of intern messages.
     pub fn get_id(&self) -> u32 {
         self.id
+    }
+
+    /// Returns this elements (current) layout.
+    pub fn get_layout(&self) -> Layout {
+        self.layout
     }
 
     /// Receives a data structure containing all messages triggered by your game_state this frame.
@@ -144,17 +153,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
 
         Ok(())
-    }
-
-    /// Overwrites this elements message handler.
-    /// The message hanlder lambda receives each frame a hash set consisting of all internal and external messages received by this element.
-    /// It also receives a function pointer. Calling this pointer with a transition pushes that transition to this elements transition queue.
-    /// Lastly, it receives the current layout of the element. This allows any transitions to re-use that layout and only change the variables the transition wants to change.
-    pub fn set_message_handler(
-        &mut self,
-        handler: impl Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>) + 'static,
-    ) {
-        self.message_handler = Box::new(handler);
     }
 
     /// Adds a transition to the end of the transition queue. It will be executed as soon as all transitions added beforehand have run their course.
@@ -312,7 +310,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Returns wether this elements cache is still valid. The cache may be invalidated manually or because the target_rect has changed.
     /// Any chache is considered invalid if there is currently an active transition that is actively changing the layout
     /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
-    pub(crate) fn cache_valid(&self, target: Rect) -> bool {
+    fn cache_valid(&self, target: Rect) -> bool {
         self.content.get_children().unwrap_or(&[]).iter().fold(
             match self.draw_cache {
                 DrawCache::Invalid => false,
@@ -409,23 +407,14 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                     canvas,
                     param
                         .target(Rect::new(
-                            mouse_pos.x + 10.,
-                            mouse_pos.y - 10.,
+                            mouse_pos.x,
+                            mouse_pos.y,
                             screen_size.width as f32 - mouse_pos.x,
                             screen_size.height as f32 - mouse_pos.y,
                         ))
                         .z_level(1),
                 );
             }
-        }
-    }
-
-    /// Sets this elements tooltip to the specified UiContent (or disables any tooltip by passing None).
-    /// Tooltips are displayed when hovering over an element with the mouse cursor.
-    pub fn set_tooltip(&mut self, tooltip: Option<UiElement<T>>) {
-        match tooltip {
-            Some(tt) => self.tooltip = Some(Box::new(tt)),
-            None => self.tooltip = None,
         }
     }
 
@@ -447,23 +436,23 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 }
 
 pub trait UiContent<T: Copy + Eq + Hash> {
-    /// Wraps the content into a UiElement and returns the element.
-    ///  Use of ID 0 is discouraged, as 0 is used for IDs of some default elements.
-    fn to_element(self, id: u32) -> UiElement<T>
+
+    /// Wraps the content into a [UiElementBuilder] and returns the build.
+    /// Use ID 0 iff you do not want this element to send any messages by itself.
+    /// Overwrite this if your element should use special defaults.
+    /// Context may be passed in if some elements (image element, text element) need to use context to measure themselves.
+    fn to_element_builder(self, id: u32, _ctx: &Context) -> UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
-        UiElement::new(id, self)
+        UiElementBuilder::new(id, self)
     }
 
-    /// Wraps the content into a UiElement and returns the element.
-    ///  Use of ID 0 is discouraged, as 0 is used for IDs of some default elements.
-    /// Drawables may use the context to measure themselves and choose fitting layout bounds based on that measurement.
-    fn to_element_measured(self, id: u32, _ctx: &Context) -> UiElement<T>
-    where
-        Self: Sized + 'static,
+    /// A shorthand for creating an element builder an immediately building an element. Useful only if you do not want to diverge from any default layouts/visuals.
+    fn to_element(self, id: u32, ctx: &Context) -> UiElement<T>
+    where Self: Sized + 'static
     {
-        self.to_element(id)
+        self.to_element_builder(id, ctx).build()
     }
 
     /// Returns any dynamic width restrictions induced by the content, not the layout. Usually, this refers to the layout of child elements of containers.
