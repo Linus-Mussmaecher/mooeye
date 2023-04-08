@@ -90,15 +90,15 @@ impl event::EventHandler<GameError> for SceneManager {
     }
 }
 
-/// A SceneSwitch. An element of this type is returned from every scene every frame to check if the scene wants to switch to another scene
+/// A SceneSwitch. An element of this type is returned from every scene every frame to check if the scene wants to switch to another scene.
 pub enum SceneSwitch {
-    /// No scene switch. The current scene stays the top scene and continues running. This should be the default return value of [Scene::check_for_scene_switch]
+    /// No scene switch. The current scene stays the top scene and continues running. This should be the default return value of [Scene::update]
     None,
     /// Removes the specified number of scenes from the top of the scene stack (especially the current scene, ending it).
     Pop(u32),
     /// Pushes a new Scene on top of the scene stack, thus temporarily halting running of the current scene. Current scene will resume as soon as this scene above is popped of the stack.
     Push(Box<dyn Scene>),
-    /// Pops a specified numer of scenes (as with Pop(u32)) of the stack and pushes a new one in the same action.
+    /// Pops a specified numer of scenes (as with [SceneSwitch::Pop]) of the stack and pushes a new one in the same action.
     Replace(u32, Box<dyn Scene>),
 }
 

@@ -3,8 +3,10 @@ name = "mooeye"
 version = "0.2.0"
 edition = "2021"
 authors = ["Linus Mußmächer linus.mussmaecher@gmail.com"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+description = "A small UI library designed on top of the ggez game library. WORK IN PROGRESS"
+readme = "README.md"
+repository = "https://github.com/Linus-Mussmaecher/mooeye"
 
 [dependencies]
 ggez = "0.9.0-rc0"

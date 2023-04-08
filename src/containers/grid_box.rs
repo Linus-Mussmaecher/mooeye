@@ -42,6 +42,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
 
     /// Adds an element to the specified position in the grid, overwriting any element previously there.
     /// If the index is out of bounds, this function will return an error.
+    /// Keep in mind that the basic [crate::UiContent::add] function will not work on a [GridBox].
     pub fn add(&mut self, element: UiElement<T>, x: usize, y: usize) -> GameResult {
         if x >= self.cols || y >= self.rows {
             Err(ggez::GameError::CustomError(
@@ -280,7 +281,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
     }
 
     fn add(&mut self, _element: UiElement<T>) -> bool {
-        true
+        false
     }
 
     fn draw_content(

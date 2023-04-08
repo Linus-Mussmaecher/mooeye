@@ -1,5 +1,11 @@
 
-//TODOmaybe: Debug impls
+
+//TODO for version 0.3.0
+//TODO: Doc tests
+//TODO: Debug impls
+//TODO: Custom errors and better error system
+
+
 //TODOmaybe: wrappin in hori/verti box
 
 pub mod ui_element;
@@ -12,4 +18,3 @@ pub mod containers;
 
 pub mod scene_manager;
 pub mod sprite;
-pub use sprite::Sprite;
