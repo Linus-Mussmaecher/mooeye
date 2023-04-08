@@ -102,7 +102,28 @@ pub enum SceneSwitch {
     Replace(u32, Box<dyn Scene>),
 }
 
+impl SceneSwitch {
 
+    /// Creates an instance of [SceneSwitch::None].
+    pub fn none() -> Self{
+        Self::None
+    }
+
+    /// Creates an instance of [SceneSwitch::Push], handling the boxing for you.
+    pub fn push(scene: impl Scene + 'static) -> Self{
+        Self::Push(Box::new(scene))
+    }
+
+    /// Creates an instance of [SceneSwitch::Pop].
+    pub fn pop(pop_amount: u32) -> Self{
+        Self::Pop(pop_amount)
+    }
+
+    /// Creates an instance of [SceneSwitch::Replace], handling the boxing for you.
+    pub fn replace(scene: impl Scene + 'static, pop_amount: u32) -> Self{
+        Self::Replace(pop_amount, Box::new(scene))
+    }
+}
 
 /// A scene in your game. This is basically a version of the EventHandler usually used with ggez that also returns a possible scene switch in its update function.
 pub trait Scene {
