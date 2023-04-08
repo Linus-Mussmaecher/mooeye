@@ -14,21 +14,24 @@ impl UiDrawParam{
     }
 
     pub fn target(self, target: Rect) -> Self{
-        let mut other_self = self;
-        other_self.target = target;
-        other_self
+        Self{
+            target: target,
+            ..self
+        }
     }
 
     pub fn mouse_listen(self, mouse_listen: bool) -> Self{
-        let mut other_self = self;
-        other_self.mouse_listen = mouse_listen;
-        other_self
+        Self{
+            mouse_listen: mouse_listen,
+            ..self
+        }
     }
 
     pub fn z_level(self, z_level: i32) -> Self{
-        let mut other_self = self;
-        other_self.param = other_self.param.z(z_level);
-        other_self
+        Self{
+            param: self.param.z(z_level),
+            ..self
+        }
     }
 }
 
