@@ -1,6 +1,7 @@
 
 //TODOmaybe: Debug impls
 //TODOmaybe: wrappin in hori/verti box
+//TODO: better with_ for element to do builder-like stuff for layout. Or explicit builder.
 
 pub mod ui_element;
 pub use ui_element::UiContent;

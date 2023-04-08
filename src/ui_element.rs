@@ -255,7 +255,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Otherwise, the function uses ```content_min```, the ```layout``` and the currently active ```Transition``` to generate a valid draw cache
     /// If no valid draw chache can be generated, the draw_cache wil be reset to default value.
     /// The function will only change ```draw_cache::valid``` to ```true``` if the generated rectangles fit within the target ```rect```.
-    fn update_draw_cache(&mut self, ctx: &Context, target: Rect) {
+    fn update_draw_cache(&mut self, _ctx: &Context, target: Rect) {
         // check wether draw cache needs to be updated at all (or a transition is going on)
         if !self.cache_valid(target) {
             // first calculate the target of this element if it were on its own
@@ -293,11 +293,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 || outer.h > target.h + 0.01
                 || outer.x < 0.
                 || outer.y < 0.
-                || outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
-                || outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
+                //|| outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
+                //|| outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
             {
-                println!("Skipped Element. Outer: {:?}, Rect: {:?}", outer, target);
-                self.draw_cache = DrawCache::default();
+                println!("Skipped Element due to bounds violation. Outer: {:?}, Target: {:?}", outer, target);
+                self.draw_cache = DrawCache::Invalid;
                 return;
             } else {
                 self.draw_cache = DrawCache::Valid {
