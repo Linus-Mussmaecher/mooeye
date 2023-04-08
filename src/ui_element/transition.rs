@@ -84,7 +84,7 @@ impl<T: Copy + Eq + Hash> Transition<T> {
         self.progressed_duration >= self.total_duration
     }
 
-    /// Returns a float in [0;1] describung how much of this transitions total duration has elapsed already.
+    /// Returns a float in between 0. and 1. describung how much of this transitions total duration has elapsed already.
     pub fn get_progress_ratio(&self) -> f32 {
         self.progressed_duration.as_secs_f32() / self.total_duration.as_secs_f32()
     }

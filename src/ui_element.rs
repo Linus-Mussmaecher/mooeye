@@ -468,7 +468,8 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     }
 
     /// Takes in a rectangle target, a canvas, a context and draws the contents (not the border etc.) to that rectangle within that canvas using that context.
-    /// Normally, this will only be called from within the [UiElement::draw_to_rectangle] function, when the cache has been modified appropiately and only use the inner rectangle of the draw cache as content_bounds. Do not call otherwise.
+    /// Normally, this will only be called from within private functions, when the cache has been modified appropiately and only use the inner rectangle of the draw cache as content_bounds.
+    /// Do not call otherwise.
     fn draw_content(&mut self, ctx: &mut Context, canvas: &mut Canvas, param: UiDrawParam);
 
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.

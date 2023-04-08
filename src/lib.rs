@@ -1,4 +1,7 @@
 
+//! # Mooeye
+//! A simple static UI library for the ggez game library. WORK IN PROGRESS.
+
 
 //TODO for version 0.3.0
 //TODO: Doc tests

@@ -7,6 +7,8 @@ license = "MIT"
 description = "A small UI library designed on top of the ggez game library. WORK IN PROGRESS"
 readme = "README.md"
 repository = "https://github.com/Linus-Mussmaecher/mooeye"
+homepage = "https://github.com/Linus-Mussmaecher/mooeye"
+keywords = ["UI", "ggez", "game-development", "static UI", "game"]
 
 [dependencies]
 ggez = "0.9.0-rc0"
