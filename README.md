@@ -36,7 +36,7 @@ When using MooEye, your game state struct contains an ```gui: UiElement<T>```. I
 
 Every frame, you want to call [```gui.draw_to_screen()```](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.UiElement.html#method.draw_to_screen) to draw the Ui within your draw function to draw the UI. ```T``` is the type of your extern messages. Collect every change in your game state that you want to represent in the UI and pass them on to the UI in the update step of your game loop using [```gui.manage_messages()```](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.UiElement.html#method.manage_messages). Your message handlers will then receive these messages and change the UI appropriately (for larger changes, you may also completely rebuild the UI rather than writing enormous handlers). [```gui.manage_messages()```](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.UiElement.html#method.manage_messages) will return a set of internal messages informing you of buttons the user has clicked. This way, your game state can conversely react to interaction with the UI.
 
-For more extensive explanation and examples see the [docs](https://docs.rs/mooeye) or the examples in the [tests folder](/tests/).
+For more extensive explanation and examples see the [docs](https://docs.rs/mooeye) or the examples in the [examples folder](/examples/).
 
 ### Dynamic sizing rules
 
@@ -63,7 +63,7 @@ Elements with the ``preserve_ratio`` flag of their ``layout`` set to true will o
 
 Creating and using a [scene manager](https://docs.rs/mooeye/latest/mooeye/scene_manager/struct.SceneManager.html) is as simple as having your scenes implement [Scene](https://docs.rs/mooeye/latest/mooeye/scene_manager/trait.Scene.html) instead of [Event Handler](https://docs.rs/ggez/latest/ggez/event/trait.EventHandler.html) and starting your game via [SceneManager::new_and_run](https://docs.rs/mooeye/latest/mooeye/scene_manager/struct.SceneManager.html#method.new_and_run) instead of [event::run](https://docs.rs/ggez/latest/ggez/event/fn.run.html).
 
-See also the examples in the [tests folder](/tests/) for usage of the SceneManager.
+See also the examples in the [examples folder](/examples/) for usage of the SceneManager.
 
 ### Sprites
  
@@ -71,7 +71,7 @@ Sprites can be created with a path just like any ggez-Image, but can display ani
 
 The source image file needs to contain the different frames of each animation cycle aligned horizontally, with the different states forming the rows.
 
-See also the relevant examples in the [tests folder](/tests/) for usage of Sprite.
+See also the relevant examples in the [examples folder](/examples/) for usage of Sprite.
 
 ## License
 
