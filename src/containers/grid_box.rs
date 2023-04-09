@@ -46,9 +46,10 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     /// Keep in mind that the basic [crate::UiContent::add] function will not work on a [GridBox].
     pub fn add(&mut self, element: UiElement<T>, x: usize, y: usize) -> GameResult {
         if x >= self.cols || y >= self.rows {
-            Err(ggez::GameError::CustomError(
-                "Index Out Of Bounds".to_owned(),
-            ))
+            Err(ggez::GameError::CustomError(format!(
+                "Index out of bounds: ({}, {}) does not fit in ({}, {}).",
+                x, y, self.cols, self.rows
+            )))
         } else {
             self.children[x + self.cols * y] = element;
             Ok(())
@@ -281,8 +282,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         Some(&self.children)
     }
 
-    fn add(&mut self, _element: UiElement<T>) -> bool {
-        false
+    fn add(&mut self, _element: UiElement<T>) -> GameResult {
+        Err(ggez::GameError::CustomError("This is a GridBox. Use add(element, x, y) for adding.".to_owned()))
     }
 
     fn draw_content(

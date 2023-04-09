@@ -44,9 +44,9 @@ fn main() -> GameResult {
 
     // create Start Scene
     
-    let start_scene = scene_1::Scene1::new(&ctx);
+    let start_scene = scene_1::Scene1::new(&ctx)?;
 
     //create Scene Manager
 
-    SceneManager::new_and_run(event_loop, ctx, start_scene);
+    SceneManager::new_and_run(event_loop, ctx, start_scene)
 }

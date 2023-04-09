@@ -21,7 +21,7 @@ pub struct Scene1 {
 }
 
 impl Scene1 {
-    pub fn new(ctx: &Context) -> Self {
+    pub fn new(ctx: &Context) -> Result<Self, GameError> {
         let mut gui_box = containers::VerticalBox::new();
 
         let title = Text::new("Pideo Game")
@@ -97,8 +97,8 @@ impl Scene1 {
 
         let mut stack = StackBox::new();
         let playlayout = play.get_layout();
-        stack.add(play);
-        stack.add_top(minipi);
+        stack.add(play)?;
+        stack.add_top(minipi)?;
         let stack = UiElementBuilder::new(0, stack)
             .with_wrapper_layout(playlayout)
             .build();
@@ -122,11 +122,11 @@ impl Scene1 {
             ))
             .build();
 
-        gui_box.add(title);
-        gui_box.add(pi_img);
-        sub_box.add(stack);
-        sub_box.add(quit);
-        gui_box.add(sub_box.to_element(0, ctx));
+        gui_box.add(title)?;
+        gui_box.add(pi_img)?;
+        sub_box.add(stack)?;
+        sub_box.add(quit)?;
+        gui_box.add(sub_box.to_element(0, ctx))?;
 
         let gui_box = gui_box
             .to_element_builder(0, ctx)
@@ -138,7 +138,7 @@ impl Scene1 {
             ))
             .build();
 
-        Self { gui: gui_box }
+        Ok(Self { gui: gui_box })
     }
 }
 
@@ -156,9 +156,9 @@ impl Scene for Scene1 {
             .manage_messages(ctx, &HashSet::new())
             .contains(&UiMessage::Clicked(3))
         {
-            return Ok(SceneSwitch::Push(Box::new(crate::scene_2::Scene2::new(
+            return Ok(SceneSwitch::push(crate::scene_2::Scene2::new(
                 ctx, 35,
-            ))));
+            )?));
         }
         Ok(SceneSwitch::None)
     }

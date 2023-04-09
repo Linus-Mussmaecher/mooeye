@@ -307,10 +307,12 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             //|| outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
             //|| outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
             {
-                println!(
-                    "Skipped Element due to bounds violation. Outer: {:?}, Target: {:?}",
-                    outer, target
-                );
+                if cfg!(test) {
+                    println!(
+                        "Skipped Element due to bounds violation. Outer: {:?}, Target: {:?}",
+                        outer, target
+                    );
+                }
                 self.draw_cache = DrawCache::Invalid;
                 return;
             } else {
@@ -508,7 +510,9 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     /// Attempts to add a UiElement to this elements children.
     /// Returns true if the operation succeeds.
     /// Returns false if this is a leaf node that cannot have any children.
-    fn add(&mut self, _element: UiElement<T>) -> bool {
-        false
+    fn add(&mut self, _element: UiElement<T>) -> GameResult {
+        Err(ggez::GameError::CustomError(
+            "This element does not support children.".to_owned(),
+        ))
     }
 }

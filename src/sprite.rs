@@ -93,16 +93,16 @@ impl Sprite {
             .rev()
             .collect::<Vec<&str>>();
 
-        let w = *width_height.get(0).ok_or(GameError::CustomError("Filename formatted incorretly - not ending in _width_height.extension. (first element missign)".to_owned()))?;
-        let h = *width_height.get(1).ok_or(GameError::CustomError("Filename formatted incorretly - not ending in _width_height.extension. (second element missing)".to_owned()))?;
+        let w = *width_height.get(0).ok_or(GameError::CustomError(format!("Filename formatted incorretly - not ending in _width_height.extension. Filename: {}", pathstring)))?; 
+        let h = *width_height.get(1).ok_or(GameError::CustomError(format!("Filename formatted incorretly - not ending in _width_height.extension. Filename: {}", pathstring)))?; 
         let w = w.parse::<u32>().map_err(|_| {
             GameError::CustomError(
-                "Filename formatted correctly, but width numbers could not be parsed.".to_owned(),
+                format!("Filename formatted correctly, but width numbers could not be parsed. Width number: {}", w),
             )
         })?;
         let h = h.parse::<u32>().map_err(|_| {
             GameError::CustomError(
-                "Filename formatted correctly, but height numbers could not be parsed.".to_owned(),
+                format!("Filename formatted correctly, but height numbers could not be parsed. Height number: {}", h),
             )
         })?;
 
@@ -117,9 +117,14 @@ impl Sprite {
         })
     }
 
-    /// Sets the variant this sprite currently displays. Numbers that are too large to represent a valid variant will wrap around.
+    /// Sets the variant this sprite is currently displaying. Numbers that are too large to represent a valid variant will wrap around.
     pub fn set_variant(&mut self, variant: u32) {
         self.current_variant = variant % self.spritesheet.height() / self.h;
+    }
+
+    /// Returns the variant this sprite is currently displaying.
+    pub fn get_variant(&self) -> u32{
+        self.current_variant
     }
 
     /// Draws this sprite as given by the paramters, advancing the displayed frame as needed.

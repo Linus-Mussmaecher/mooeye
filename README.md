@@ -28,6 +28,8 @@ I am maintaining this project mostly for my own purposes. You may not actually w
 
 ## How to use
 
+Probably don't. But if you want, read on.
+
 ### UI 
 
 When using MooEye, your game state struct contains an ```gui: UiElement<T>```. Initialize this value with any container and create a tree of [```UIElement```s](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.UiElement.html#) representing the state of your UI. In this step, you also define the Interaction of the UI with both user and game state via [message handlers](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.UiElementBuilder.html#method.with_message_handler) and [transitions](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.Transition.html).
@@ -59,7 +61,9 @@ Elements with the ``preserve_ratio`` flag of their ``layout`` set to true will o
 
 ### Scene Manager
 
-Creating and using a scene manager is as simple as having your scenes implement [Scene](https://docs.rs/mooeye/latest/mooeye/scene_manager/trait.Scene.html) instead of [Event Handler](https://docs.rs/ggez/latest/ggez/event/trait.EventHandler.html) and starting your game via [SceneManager::new_and_run](https://docs.rs/mooeye/latest/mooeye/scene_manager/struct.SceneManager.html#method.new_and_run) instead of [event::run](https://docs.rs/ggez/latest/ggez/event/fn.run.html).
+Creating and using a [scene manager](https://docs.rs/mooeye/latest/mooeye/scene_manager/struct.SceneManager.html) is as simple as having your scenes implement [Scene](https://docs.rs/mooeye/latest/mooeye/scene_manager/trait.Scene.html) instead of [Event Handler](https://docs.rs/ggez/latest/ggez/event/trait.EventHandler.html) and starting your game via [SceneManager::new_and_run](https://docs.rs/mooeye/latest/mooeye/scene_manager/struct.SceneManager.html#method.new_and_run) instead of [event::run](https://docs.rs/ggez/latest/ggez/event/fn.run.html).
+
+See also the examples in the [tests folder](/tests/) for usage of the SceneManager.
 
 ### Sprites
  

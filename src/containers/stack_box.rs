@@ -1,4 +1,6 @@
 
+use ggez::GameResult;
+
 use crate::{UiElement, UiContent, ui_element::Size};
 use std::hash::Hash;
 
@@ -20,9 +22,9 @@ impl<T: Copy + Eq + Hash> StackBox<T> {
     }
 
     /// Adds a UiElement to the top of this stack box (unlike the normal add function, which adds to the bottom).
-    pub fn add_top(&mut self, element: UiElement<T>) -> bool {
+    pub fn add_top(&mut self, element: UiElement<T>) -> GameResult {
         self.children.insert(0, element);
-        true
+        Ok(())
     }
 }
 
@@ -79,9 +81,9 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
         Some(&mut self.children)
     }
 
-    fn add(&mut self, element: UiElement<T>) -> bool {
+    fn add(&mut self, element: UiElement<T>) -> GameResult {
         self.children.push(element);
-        true
+        Ok(())
     }
 
     fn draw_content(

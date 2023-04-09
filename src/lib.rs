@@ -1,16 +1,10 @@
-#![warn(clippy::missing_docs_in_private_items)]
-
 //! # Mooeye
 //! A simple static UI library for the ggez game library. WORK IN PROGRESS.
 
 
 //TODO for version 0.3.0
-//TODO: Doc tests
-//TODO: Debug impls
-//TODO: Custom errors and better error system
-
-
-//TODOmaybe: wrappin in hori/verti box
+// * Examples/Tests
+// * Debug impls
 
 /// Contains the main UI element struct as well as related structures such as content, transitions, UI draw parameters etc..
 pub mod ui_element;

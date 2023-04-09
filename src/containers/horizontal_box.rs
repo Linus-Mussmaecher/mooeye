@@ -1,4 +1,4 @@
-use ggez::graphics::Rect;
+use ggez::{graphics::Rect, GameResult};
 use std::hash::Hash;
 
 use crate::{ui_element::Size, UiContent, UiElement};
@@ -65,9 +65,9 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
         Some(&mut self.children)
     }
 
-    fn add(&mut self, element: UiElement<T>) -> bool {
+    fn add(&mut self, element: UiElement<T>) -> GameResult {
         self.children.push(element);
-        true
+        Ok(())
     }
 
     fn draw_content(

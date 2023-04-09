@@ -22,7 +22,7 @@ pub struct Scene2 {
 }
 
 impl Scene2 {
-    pub fn new(ctx: &Context, score: i32) -> Self {
+    pub fn new(ctx: &Context, score: i32) -> GameResult<Self> {
         let mut gui_box = containers::VerticalBox::new();
 
         let pi_img = graphics::Image::from_path(ctx, "/pi.png")
@@ -74,8 +74,7 @@ impl Scene2 {
             .with_visuals(vis) 
             .build();
         grid_box
-            .add(vert_up, 0, 0)
-            .expect("Index Out Of Bounds, probably.");
+            .add(vert_up, 0, 0)?;
         let vert_ce = Text::new(" . ")
             .set_font("Alagard")
             .to_owned()
@@ -95,16 +94,14 @@ impl Scene2 {
             )
             .build();
         grid_box
-            .add(vert_ce, 0, 1)
-            .expect("Index Out Of Bounds, probably.");
+            .add(vert_ce, 0, 1)?;
         let vert_do = Text::new(" v ")
             .set_font("Alagard")
             .to_owned().to_element_builder(13, ctx)
             .with_visuals(vis)
             .build();
         grid_box
-            .add(vert_do, 0, 2)
-            .expect("Index Out Of Bounds, probably.");
+            .add(vert_do, 0, 2)?;
 
         //let mut hor_box = VerticalBox::new();
         let hor_up = Text::new(" < ")
@@ -113,24 +110,21 @@ impl Scene2 {
             .with_visuals(vis)
             .build();
         grid_box
-            .add(hor_up, 1, 0)
-            .expect("Index Out Of Bounds, probably.");
+            .add(hor_up, 1, 0)?;
         let hor_ce = Text::new(" . ")
             .set_font("Alagard")
             .to_owned().to_element_builder(22, ctx)
             .with_visuals(vis)
             .build();
         grid_box
-            .add(hor_ce, 1, 1)
-            .expect("Index Out Of Bounds, probably.");
+            .add(hor_ce, 1, 1)?;
         let hor_do = Text::new(" > ")
             .set_font("Alagard")
             .to_owned().to_element_builder(23, ctx)
             .with_visuals(vis)
             .build();
         grid_box
-            .add(hor_do, 1, 2)
-            .expect("Index Out Of Bounds, probably.");
+            .add(hor_do, 1, 2)?;
 
         let back = Text::new("Back")
             .set_font("Alagard")
@@ -140,10 +134,10 @@ impl Scene2 {
             .as_fill()
             .build();
 
-        gui_box.add(title);
-        gui_box.add(pi_img);
-        gui_box.add(grid_box.to_element(30,ctx));
-        gui_box.add(back);
+        gui_box.add(title)?;
+        gui_box.add(pi_img)?;
+        gui_box.add(grid_box.to_element(30,ctx))?;
+        gui_box.add(back)?;
 
         let gui_box = gui_box.to_element_builder(0, ctx)
         .with_size(ui_element::Size::Shrink(128., f32::INFINITY), ui_element::Size::Shrink(0., f32::INFINITY))
@@ -192,7 +186,7 @@ impl Scene2 {
         })
         .build();
 
-        Self { gui: gui_box }
+        Ok(Self { gui: gui_box })
     }
 }
 
