@@ -7,6 +7,7 @@ use ggez::*;
 /// A SceneManager instance. When using a game with multiple scenes, the scene_handler replaces you usual game manager.
 /// SceneManager implements EventHandler as a usual gamestate would and can thus interact with ggez without problems.
 pub struct SceneManager {
+    /// The stack of scenes managed by this struct. Scenes are added to and popped from the back and draw front to back. Only the last element runs [Scene::update].
     scene_stack: VecDeque<Box<dyn Scene>>,
 }
 

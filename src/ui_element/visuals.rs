@@ -58,6 +58,8 @@ impl Visuals {
 
     }
 
+    /// Returns another visual that is the weighted (by ratio) average between ```self``` and ```other```.
+    /// ```ratio=0``` will return ```self```, ```ratio=1``` will return ```other```.
     pub fn average(&self, other: Self, ratio: f32) -> Self{
         Self {
             background: Color::from_rgba(

@@ -4,43 +4,43 @@ use ggez::{
 };
 
 #[derive(Copy, Clone)]
-/// An enum that describes the alignment behaviour of an element. 3 variants: MIN (top or left), CENTER, MAX (bottom or right).
+/// An enum that describes the alignment behaviour of an element.
 pub enum Alignment {
     /// Element aligns top or left
-    MIN,
+    Min,
     /// Element aligns centered
-    CENTER,
+    Center,
     /// Element aligns bottom or right
-    MAX,
+    Max,
 }
 
 #[derive(Copy, Clone, PartialEq)]
-/// An enum that describes the size and growth behaviour of an element. 3 variants: FIXED, FILL and SHRINK. When an element is drawn, any padding will be added _on top of_ these boundaries!
+/// An enum that describes the size and growth behaviour of an element.
 pub enum Size {
     /// Element will always have this size.
-    FIXED(f32),
-    /// Element tries to grow as big as possible within the given bounds, sharing space equally with other FILL elements.
-    FILL(f32, f32),
-    /// Element tries to shrink as small as possible within the given bounds, sharing space with other SHRINK elements equally only when no other FILL elements are present.
-    SHRINK(f32, f32),
+    Fixed(f32),
+    /// Element tries to grow as big as possible within the given bounds, sharing space equally with other [Size::Fill] elements.
+    Fill(f32, f32),
+    /// Element tries to shrink as small as possible within the given bounds, sharing space with other [Size::Shrink] elements equally only when no other FILL elements are present.
+    Shrink(f32, f32),
 }
 
 impl Size {
     /// Returns the minimum amount of space an element of this size requires.
     pub fn min(&self) -> f32 {
         match self {
-            Self::FIXED(s) => *s,
-            Self::FILL(min, _) => *min,
-            Self::SHRINK(min, _) => *min,
+            Self::Fixed(s) => *s,
+            Self::Fill(min, _) => *min,
+            Self::Shrink(min, _) => *min,
         }
     }
 
-    /// Returns the maximum amount of space an element of this size will grow to.
+    /// Returns the maximum amount of space an element of this size can grow to.
     pub fn max(&self) -> f32 {
         match self {
-            Self::FIXED(s) => *s,
-            Self::FILL(_, max) => *max,
-            Self::SHRINK(_, max) => *max,
+            Self::Fixed(s) => *s,
+            Self::Fill(_, max) => *max,
+            Self::Shrink(_, max) => *max,
         }
     }
 
@@ -49,41 +49,45 @@ impl Size {
     /// Thus, FIXED elements will always just return their own size.
     pub(crate) fn pref(&self, min: f32, max: f32) -> f32 {
         match self {
-            Self::FIXED(s) => *s,
-            Self::FILL(fmin, fmax) => max.max(min).clamp(*fmin, *fmax), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
-            Self::SHRINK(smin, smax) => min.min(max).clamp(*smin, *smax), //(*smin).min(max).min(*smax).max(min).max(*smin),
+            Self::Fixed(s) => *s,
+            Self::Fill(fmin, fmax) => max.max(min).clamp(*fmin, *fmax), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
+            Self::Shrink(smin, smax) => min.min(max).clamp(*smin, *smax), //(*smin).min(max).min(*smax).max(min).max(*smin),
         }
     }
 
+    /// Returns a new [Size] of the same variant, but with all boundaries scaled by the given factor.
     pub fn scale(&self, scale: f32) -> Self{
         match self {
-            Self::FIXED(s) => Self::FIXED(scale * s),
-            Self::FILL(fmin, fmax) => Self::FILL(fmin * scale, fmax * scale), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
-            Self::SHRINK(smin, smax) => Self::SHRINK(smin * scale, smax * scale) //(*smin).min(max).min(*smax).max(min).max(*smin),
+            Self::Fixed(s) => Self::Fixed(scale * s),
+            Self::Fill(fmin, fmax) => Self::Fill(fmin * scale, fmax * scale), //(*fmax).min(max).min(*fmax).max(min).max(*fmin),
+            Self::Shrink(smin, smax) => Self::Shrink(smin * scale, smax * scale) //(*smin).min(max).min(*smax).max(min).max(*smin),
         }
     }
 
+    /// Returns a new [Size] with the same boundaries, but variant changed to [Size::Shrink].
     pub fn to_shrink(self) -> Self{
         match self {
-            Size::FIXED(s) => Self::SHRINK(s, f32::INFINITY),
-            Size::FILL(min, max) => Self::SHRINK(min, max),
-            Size::SHRINK(min, max) => Self::SHRINK(min, max),
+            Size::Fixed(s) => Self::Shrink(s, f32::INFINITY),
+            Size::Fill(min, max) => Self::Shrink(min, max),
+            Size::Shrink(min, max) => Self::Shrink(min, max),
         }
     }
 
+    /// Returns a new [Size] with the same boundaries, but variant changed to [Size::Fill].
     pub fn to_fill(self) -> Self{
         match self {
-            Size::FIXED(s) => Self::FILL(s, f32::INFINITY),
-            Size::FILL(min, max) => Self::FILL(min, max),
-            Size::SHRINK(min, max) => Self::FILL(min, max),
+            Size::Fixed(s) => Self::Fill(s, f32::INFINITY),
+            Size::Fill(min, max) => Self::Fill(min, max),
+            Size::Shrink(min, max) => Self::Fill(min, max),
         }
     }
 
+    /// Returns a new [Size] with the same boundaries, but variant changed to [Size::Fixed].
     pub fn to_fixed(self) -> Self{
         match self {
-            Size::FIXED(s) => Self::FIXED(s),
-            Size::FILL(min, _) => Self::FIXED(min),
-            Size::SHRINK(min, _) => Self::FIXED(min),
+            Size::Fixed(s) => Self::Fixed(s),
+            Size::Fill(min, _) => Self::Fixed(min),
+            Size::Shrink(min, _) => Self::Fixed(min),
         }
     }
 }
@@ -91,33 +95,33 @@ impl Size {
 #[derive(Clone, Copy)]
 /// A struct that contains information about the layout of an UI-Element: their alignment, size, offset and padding.
 pub struct Layout {
-    /// Wether this element aligns left, center or right. See mooeye::Alignment.
+    /// Wether this element aligns left, center or right. See [Alignment].
     pub x_alignment: Alignment,
-    /// Wether this element aligns top, center or bottom. See mooeye::Alignment.
+    /// Wether this element aligns top, center or bottom. See [Alignment].
     pub y_alignment: Alignment,
     /// How many pixels away from the most left- or rightmost position this element aligns. Should be positive. Does not work with Alignment::CENTER.
     pub x_offset: f32,
     /// How many pixels away from the most top- or bottommost position this element aligns. Should be positive. Does not work with Alignment::CENTER.
     pub y_offset: f32,
-    /// The size and growth behaviour of this element in the horizontal direction. See mooeye::Size.
+    /// The size and growth behaviour of this element in the horizontal direction. See [Size].
     pub x_size: Size,
-    /// The size and growth behaviour of this element in the vertical direction. See mooeye::Size.
+    /// The size and growth behaviour of this element in the vertical direction. See [Size].
     pub y_size: Size,
     /// Specifies the padding, extra space around the cental element(s), of a container in the order top, right, bottom, left.
     pub padding: (f32, f32, f32, f32),
-    /// Specifies wether this elements content will only receive draw rectangles in the size of their content min ratio
+    /// Specifies wether this elements content will only receive draw rectangles in the size of their content min ratio.
     pub preserve_ratio: bool,
 }
 
 impl Default for Layout {
     fn default() -> Self {
         Self {
-            x_alignment: Alignment::CENTER,
-            y_alignment: Alignment::CENTER,
+            x_alignment: Alignment::Center,
+            y_alignment: Alignment::Center,
             x_offset: Default::default(),
             y_offset: Default::default(),
-            x_size: Size::FILL(0., f32::INFINITY),
-            y_size: Size::FILL(0., f32::INFINITY),
+            x_size: Size::Fill(0., f32::INFINITY),
+            y_size: Size::Fill(0., f32::INFINITY),
             padding: (5., 5., 5., 5.),
             preserve_ratio: false,
         }
@@ -160,28 +164,28 @@ impl Layout {
         // calculate position of top left of outer box
 
         let x_out = match self.x_alignment {
-            Alignment::MIN => target.x,
-            Alignment::CENTER => target.x + target.w / 2. - w_out / 2.,
-            Alignment::MAX => target.x + target.w - w_out,
+            Alignment::Min => target.x,
+            Alignment::Center => target.x + target.w / 2. - w_out / 2.,
+            Alignment::Max => target.x + target.w - w_out,
         } + self.x_offset;
 
         let y_out = match self.y_alignment {
-            Alignment::MIN => target.y,
-            Alignment::CENTER => target.y + target.h / 2. - h_out / 2.,
-            Alignment::MAX => target.y + target.h - h_out,
+            Alignment::Min => target.y,
+            Alignment::Center => target.y + target.h / 2. - h_out / 2.,
+            Alignment::Max => target.y + target.h - h_out,
         } + self.y_offset;
 
         // calculate inner positions independently. Adding padding does not work, as w/h might have changed as a result of ration preservation
 
         let x = x_out + match self.x_alignment {
-            Alignment::MIN => self.padding.1,
-            Alignment::CENTER => (w_out + self.padding.1 - self.padding.1 - w)/2.,
-            Alignment::MAX => w_out - w - self.padding.1,
+            Alignment::Min => self.padding.1,
+            Alignment::Center => (w_out + self.padding.1 - self.padding.1 - w)/2.,
+            Alignment::Max => w_out - w - self.padding.1,
         };
         let y = y_out + match self.y_alignment {
-            Alignment::MIN => self.padding.1,
-            Alignment::CENTER => (h_out + self.padding.1 - self.padding.3 - h)/2.,
-            Alignment::MAX => h_out - h - self.padding.3,
+            Alignment::Min => self.padding.1,
+            Alignment::Center => (h_out + self.padding.1 - self.padding.3 - h)/2.,
+            Alignment::Max => h_out - h - self.padding.3,
         };
 
         (Rect::new(x_out, y_out, w_out, h_out), Rect::new(x, y, w, h))

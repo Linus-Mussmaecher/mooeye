@@ -7,29 +7,38 @@ use ggez::{
     Context, GameResult,
 };
 
+/// Structs and functions to manage how a UI element positions and sizes itself.
 mod layout;
 pub use layout::Alignment;
 pub use layout::Layout;
 pub use layout::Size;
 
+/// The [Visuals] structs as well as associated functions that control how an element looks.
 mod visuals;
 pub use visuals::Visuals;
 
+/// The [Transition] struct and associated functions to control an element dynamically changing layout, visuals, content, etc.
 mod transition;
 pub use transition::Transition;
 
+/// The [DrawCache] struct to remember where an element was drawn in the last frame and (if possible) simply redraw it without recalculating its position.
 mod draw_cache;
 use draw_cache::DrawCache;
 
+/// The [UiMessage] struct to facilitate communcation between elements and between elements an the game state.
 mod message;
 pub use message::UiMessage;
 
+/// The [UiElementBuilder] struct for simple construction of UiElements using a basic builder pattern.
 mod ui_element_builder;
 pub use ui_element_builder::UiElementBuilder;
 
+/// The [UiDrawParam] struct is an extension of the [ggez::graphics::DrawParam] struct and contains some additonal information specific to UiElements.
 mod ui_draw_param;
 pub use ui_draw_param::UiDrawParam;
 
+/// A UI element. The entire UI tree of mooeye is built out of these elements.
+/// This wrapper struct contains all information about look, layout, tooltip, message handling, etc. of the element, while also containing one [UiContent] field that contains the actual content.
 pub struct UiElement<T: Copy + Eq + Hash> {
     /// The elements layout.
     layout: Layout,
@@ -104,29 +113,32 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         intern_messages
     }
 
+    /// Iterates over this element and all successors and collects all internal messages (clicks) sent during the last frame.
     fn collect_messages(&self, ctx: &Context) -> HashSet<UiMessage<T>> {
         let mut res: HashSet<UiMessage<T>> = HashSet::new();
 
-        if let DrawCache::Valid {
-            outer,
-            inner: _,
-            target: _,
-        } = self.draw_cache
+        if self.id != 0
+            && match self.draw_cache {
+                DrawCache::Invalid => false,
+                DrawCache::Valid {
+                    outer,
+                    inner: _,
+                    target: _,
+                } => outer.contains(ctx.mouse.position()),
+            }
         {
-            if outer.contains(ctx.mouse.position()) {
-                if ctx
-                    .mouse
-                    .button_just_pressed(ggez::event::MouseButton::Left)
-                {
-                    res.insert(UiMessage::Clicked(self.id));
-                }
+            if ctx
+                .mouse
+                .button_just_pressed(ggez::event::MouseButton::Left)
+            {
+                res.insert(UiMessage::Clicked(self.id));
+            }
 
-                if ctx
-                    .mouse
-                    .button_just_pressed(ggez::event::MouseButton::Right)
-                {
-                    res.insert(UiMessage::ClickedRight(self.id));
-                }
+            if ctx
+                .mouse
+                .button_just_pressed(ggez::event::MouseButton::Right)
+            {
+                res.insert(UiMessage::ClickedRight(self.id));
             }
         }
 
@@ -139,6 +151,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         res
     }
 
+    /// Distributes the passed set of [UiMessage]s to this element and all its successors, letting their message handlers react to the messages.
     fn distribute_messages(
         &mut self,
         ctx: &Context,
@@ -291,10 +304,13 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 || outer.h > target.h + 0.01
                 || outer.x < 0.
                 || outer.y < 0.
-                //|| outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
-                //|| outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
+            //|| outer.x + outer.w > ctx.gfx.window().inner_size().width as f32 + 0.01
+            //|| outer.y + outer.h > ctx.gfx.window().inner_size().height as f32 + 0.01
             {
-                println!("Skipped Element due to bounds violation. Outer: {:?}, Target: {:?}", outer, target);
+                println!(
+                    "Skipped Element due to bounds violation. Outer: {:?}, Target: {:?}",
+                    outer, target
+                );
                 self.draw_cache = DrawCache::Invalid;
                 return;
             } else {
@@ -435,9 +451,15 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     }
 }
 
+/// A trait that marks any struct that can be the content of a UI element. Should not be used directly, only when wrapped in such an element.
+/// ### Basic elements
+/// For basic elements, most default implementations will suffice, and only [UiContent::draw_content] needs to be implemented.
+/// If your element has special default layout requirements, you can overwrite the [UiContent::to_element_builder] constructor function.
+/// ### Containers
+/// For elements that contain other elements, you additionaly need to provide access to all children with the [UiContent::get_children] and [UiContent::get_children_mut] methods.
+/// Overriding the [UiContent::content_width_range] and [UiContent::content_height_range] functions is neccessary for your container to respect the layout bounds of its children.
 pub trait UiContent<T: Copy + Eq + Hash> {
-
-    /// Wraps the content into a [UiElementBuilder] and returns the build.
+    /// Wraps the content into a [UiElementBuilder] and returns the builder.
     /// Use ID 0 iff you do not want this element to send any messages by itself.
     /// Overwrite this if your element should use special defaults.
     /// Context may be passed in if some elements (image element, text element) need to use context to measure themselves.
@@ -448,9 +470,10 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         UiElementBuilder::new(id, self)
     }
 
-    /// A shorthand for creating an element builder an immediately building an element. Useful only if you do not want to diverge from any default layouts/visuals.
+    /// A shorthand for creating an element builder and immediately building an element. Useful only if you do not want to diverge from any default layouts/visuals.
     fn to_element(self, id: u32, ctx: &Context) -> UiElement<T>
-    where Self: Sized + 'static
+    where
+        Self: Sized + 'static,
     {
         self.to_element_builder(id, ctx).build()
     }
@@ -488,19 +511,4 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     fn add(&mut self, _element: UiElement<T>) -> bool {
         false
     }
-}
-
-/// Sets the elements visuals to the provided visuals and sets its alignment to MIN/MIN and its size to SHRINK/SHRINK, as is usually the most pretty way to layout tooltips.
-pub fn make_tooltip<T: Copy + Eq + Hash>(
-    mut element: UiElement<T>,
-    visuals: Visuals,
-) -> UiElement<T> {
-    element.visuals = visuals;
-
-    element.layout.x_alignment = Alignment::MIN;
-    element.layout.y_alignment = Alignment::MIN;
-    element.layout.x_size = element.layout.x_size.to_shrink();
-    element.layout.y_size = element.layout.y_size.to_shrink();
-
-    element
 }

@@ -2,6 +2,7 @@ use ggez::{graphics::Rect, GameResult};
 use std::hash::Hash;
 use tinyvec::TinyVec;
 
+/// The default size for tinyvecs in this module.
 const VECSIZE: usize = 32;
 
 use crate::{
@@ -77,7 +78,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index % self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.get_layout().x_size, Size::FILL(_, _))
+                            hs || matches!(element.get_layout().x_size, Size::Fill(_, _))
                         })
                 })
                 .collect(),
@@ -96,7 +97,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index % self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.get_layout().x_size, Size::SHRINK(_, _))
+                            hs || matches!(element.get_layout().x_size, Size::Shrink(_, _))
                         })
                 })
                 .collect(),
@@ -128,7 +129,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index / self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.get_layout().y_size, Size::FILL(_, _))
+                            hs || matches!(element.get_layout().y_size, Size::Fill(_, _))
                         })
                 })
                 .collect(),
@@ -147,7 +148,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index / self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.get_layout().y_size, Size::SHRINK(_, _))
+                            hs || matches!(element.get_layout().y_size, Size::Shrink(_, _))
                         })
                 })
                 .collect(),
@@ -251,8 +252,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         Self: Sized + 'static,
     {
         UiElementBuilder::new(id, self).with_size(
-            Size::SHRINK(0., f32::INFINITY),
-            Size::SHRINK(0., f32::INFINITY),
+            Size::Shrink(0., f32::INFINITY),
+            Size::Shrink(0., f32::INFINITY),
         )
     }
 

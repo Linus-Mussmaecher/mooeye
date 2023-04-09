@@ -168,8 +168,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
         let (w, h) = (self.w, self.h);
         UiElementBuilder::new(id, self)
             .with_size(
-                Size::FILL(w as f32, f32::INFINITY),
-                Size::FILL(h as f32, f32::INFINITY),
+                Size::Fill(w as f32, f32::INFINITY),
+                Size::Fill(h as f32, f32::INFINITY),
             )
             .with_preserve_ratio(true)
     }

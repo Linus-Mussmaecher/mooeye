@@ -21,8 +21,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Text {
 
         crate::ui_element::UiElementBuilder::new(id, self)
             .with_size(
-                Size::FILL(size.w, f32::INFINITY),
-                Size::FILL(size.h, f32::INFINITY),
+                Size::Fill(size.w, f32::INFINITY),
+                Size::Fill(size.h, f32::INFINITY),
             )
             .with_preserve_ratio(true)
     }

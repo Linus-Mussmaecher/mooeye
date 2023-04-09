@@ -3,8 +3,13 @@ use crate::{UiElement, UiContent, ui_element::Size};
 use std::hash::Hash;
 
 
+/// A stack box that will display elements stacked on top of one another.
+/// Stores elements in a vector that determines order of elements within the box.
+/// Elements will adhere to their own x and y alignment within the rectangle provided to them by this box.
+/// Every child element will receive the same rectangle.
 pub struct StackBox<T: Copy + Eq + Hash>{
-    pub children: Vec<UiElement<T>>,
+    /// Contains the UiElements within this box in the right order (front to back).
+    children: Vec<UiElement<T>>,
 }
 
 impl<T: Copy + Eq + Hash> StackBox<T> {
@@ -33,8 +38,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
         Self: Sized + 'static,
     {
         crate::ui_element::UiElementBuilder::new(id, self).with_size(
-            Size::SHRINK(0., f32::INFINITY),
-            Size::SHRINK(0., f32::INFINITY),
+            Size::Shrink(0., f32::INFINITY),
+            Size::Shrink(0., f32::INFINITY),
         )
     }
 

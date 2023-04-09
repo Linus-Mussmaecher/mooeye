@@ -90,7 +90,7 @@ impl Scene1 {
         let minipi = graphics::Image::from_path(ctx, "/pi.png")
             .expect("Something went wrong loading /pi.png")
             .to_element_builder(3, ctx)
-            .with_alignment(Alignment::MIN, Alignment::MIN)
+            .with_alignment(Alignment::Min, Alignment::Min)
             .as_shrink()
             .with_offset(-10., -10.)
             .build();

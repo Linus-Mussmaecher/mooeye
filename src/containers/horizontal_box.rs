@@ -4,11 +4,11 @@ use std::hash::Hash;
 use crate::{ui_element::Size, UiContent, UiElement};
 
 /// A horizontal box that will group elements from left to right. Stores elements in a vector that determines order of elements within the box.
-/// Elements will adhere to their own x and y alignment within the box provided to them
+/// Elements will adhere to their own x and y alignment within the rectangle provided to them by this box.
 pub struct HorizontalBox<T: Copy + Eq + Hash> {
-    /// contains the UiElements within this box in the right order
-    pub children: Vec<UiElement<T>>,
-    /// the amount of spacing between two neighboring elements
+    /// Contains the UiElements within this box in the right order (left to right).
+    children: Vec<UiElement<T>>,
+    /// The amount of spacing between two neighboring elements.
     pub spacing: f32,
 }
 
@@ -22,8 +22,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
         Self: Sized + 'static,
     {
         crate::ui_element::UiElementBuilder::new(id, self).with_size(
-            Size::SHRINK(0., f32::INFINITY),
-            Size::SHRINK(0., f32::INFINITY),
+            Size::Shrink(0., f32::INFINITY),
+            Size::Shrink(0., f32::INFINITY),
         )
     }
 
@@ -122,12 +122,12 @@ impl<T: Copy + Eq + Hash> HorizontalBox<T> {
 
         // first distribute as much height as possible to elements with the FILL size
         self.distribute_width_to_fitting(&mut leftover, &mut res, |ele| {
-            matches!(ele.get_layout().x_size, Size::FILL(_, _))
+            matches!(ele.get_layout().x_size, Size::Fill(_, _))
         });
 
         // distribute remaining height to elements with the SHRINK size
         self.distribute_width_to_fitting(&mut leftover, &mut res, |ele| {
-            matches!(ele.get_layout().x_size, Size::SHRINK(_, _))
+            matches!(ele.get_layout().x_size, Size::Shrink(_, _))
         });
 
         res

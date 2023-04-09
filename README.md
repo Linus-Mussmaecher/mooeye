@@ -65,6 +65,8 @@ Creating and using a scene manager is as simple as having your scenes implement 
  
 Sprites can be created with a path just like any ggez-Image, but can display animation and multiple states of an object. See the respective documentation in the [sprite documentation](https://docs.rs/mooeye/latest/mooeye/sprite/struct.Sprite.html).
 
+The source image file needs to contain the different frames of each animation cycle aligned horizontally, with the different states forming the rows.
+
 ## License
 
 MIT License

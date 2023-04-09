@@ -21,7 +21,9 @@ pub struct Transition<T: Copy + Eq + Hash> {
     /// The tooltip transitioned to.
     pub(crate) new_tooltip: Option<Option<Box<UiElement<T>>>>,
 
+    /// The total duration this transition will take.
     total_duration: Duration,
+    /// The duration that has already passed with this transition active.
     progressed_duration: Duration,
 }
 

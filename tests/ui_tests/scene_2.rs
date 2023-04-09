@@ -27,7 +27,7 @@ impl Scene2 {
 
         let pi_img = graphics::Image::from_path(ctx, "/pi.png")
             .expect("Something went wrong loading /pi.png")
-            .to_element_builder(2, ctx).with_size(ui_element::Size::FIXED(96.), ui_element::Size::FIXED(96.)).build();
+            .to_element_builder(2, ctx).with_size(ui_element::Size::Fixed(96.), ui_element::Size::Fixed(96.)).build();
 
         let title = Text::new(format!(
             "Move this element with the buttons.\nHere is a number: {}.",
@@ -146,7 +146,7 @@ impl Scene2 {
         gui_box.add(back);
 
         let gui_box = gui_box.to_element_builder(0, ctx)
-        .with_size(ui_element::Size::SHRINK(128., f32::INFINITY), ui_element::Size::SHRINK(0., f32::INFINITY))
+        .with_size(ui_element::Size::Shrink(128., f32::INFINITY), ui_element::Size::Shrink(0., f32::INFINITY))
         .with_visuals(ui_element::Visuals::new(
             Color::from_rgb(120, 170, 200),
             Color::from_rgb(55, 67, 87),
@@ -158,14 +158,14 @@ impl Scene2 {
                 return;
             }
             let vert_map = HashMap::from([
-                (11, ui_element::Alignment::MIN),
-                (12, ui_element::Alignment::CENTER),
-                (13, ui_element::Alignment::MAX),
+                (11, ui_element::Alignment::Min),
+                (12, ui_element::Alignment::Center),
+                (13, ui_element::Alignment::Max),
             ]);
             let hor_map = HashMap::from([
-                (21, ui_element::Alignment::MIN),
-                (22, ui_element::Alignment::CENTER),
-                (23, ui_element::Alignment::MAX),
+                (21, ui_element::Alignment::Min),
+                (22, ui_element::Alignment::Center),
+                (23, ui_element::Alignment::Max),
             ]);
             for (key, val) in vert_map {
                 if messages.contains(&UiMessage::Clicked(key)) {

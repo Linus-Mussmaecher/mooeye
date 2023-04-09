@@ -167,7 +167,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
     /// Changes the elements layout by changing the alignment to top left, sizes to shrink and offsetting it slightly to right/up.
     /// This should be what you want for most tooltips.
     pub fn with_tooltip_layout(self) -> Self {
-        self.with_alignment(super::Alignment::MIN, super::Alignment::MIN)
+        self.with_alignment(super::Alignment::Min, super::Alignment::Min)
             .as_shrink()
             .with_offset(10., -10.)
     }
@@ -176,11 +176,11 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
     /// Sets size to fill, taking boundaries from teh passed layout + padding, and own padding to 0.
     pub fn with_wrapper_layout(self, wrapped_layout: Layout) -> Self {
         self.with_size(
-            super::Size::FILL(
+            super::Size::Fill(
                 wrapped_layout.x_size.min() + wrapped_layout.padding.1 + wrapped_layout.padding.3,
                 f32::INFINITY,
             ),
-            super::Size::FILL(
+            super::Size::Fill(
                 wrapped_layout.y_size.min() + wrapped_layout.padding.0 + wrapped_layout.padding.2,
                 f32::INFINITY,
             ),
