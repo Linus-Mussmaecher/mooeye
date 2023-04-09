@@ -3,7 +3,7 @@ use ggez::{
     graphics::Rect,
 };
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 /// An enum that describes the alignment behaviour of an element.
 pub enum Alignment {
     /// Element aligns top or left
@@ -14,7 +14,7 @@ pub enum Alignment {
     Max,
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 /// An enum that describes the size and growth behaviour of an element.
 pub enum Size {
     /// Element will always have this size.
@@ -92,7 +92,7 @@ impl Size {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 /// A struct that contains information about the layout of an UI-Element: their alignment, size, offset and padding.
 pub struct Layout {
     /// Wether this element aligns left, center or right. See [Alignment].
