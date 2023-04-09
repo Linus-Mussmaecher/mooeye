@@ -71,6 +71,8 @@ Sprites can be created with a path just like any ggez-Image, but can display ani
 
 The source image file needs to contain the different frames of each animation cycle aligned horizontally, with the different states forming the rows.
 
+See also the relevant examples in the [tests folder](/tests/) for usage of Sprite.
+
 ## License
 
 MIT License

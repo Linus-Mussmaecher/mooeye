@@ -96,17 +96,20 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         self.layout
     }
 
-    /// Receives a data structure containing all messages triggered by your game_state this frame.
+    /// Receives a data structure containing all messages triggered by your game_state this frame (or None if there were no messages).
     /// It then collects all messages sent by this element and its children and redistributes all of those messages to this element and all children.
     /// Returns all internal messages to act on them
     pub fn manage_messages(
         &mut self,
         ctx: &ggez::Context,
-        extern_messages: &HashSet<UiMessage<T>>,
+        extern_messages: impl Into<Option<HashSet<UiMessage<T>>>>,
     ) -> HashSet<UiMessage<T>> {
         let intern_messages = self.collect_messages(ctx);
 
-        let all_messages = intern_messages.union(extern_messages).copied().collect();
+        let all_messages = match extern_messages.into(){
+            None => intern_messages.clone(),
+            Some(extern_messages) => intern_messages.union(&extern_messages).copied().collect(), 
+        } ;
 
         self.distribute_messages(ctx, &all_messages).expect("Something went wrong delivering or executing messages. Probably you wrote a bad handler function.");
 

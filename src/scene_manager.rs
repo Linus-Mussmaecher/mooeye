@@ -129,10 +129,10 @@ impl SceneSwitch {
 /// A scene in your game. This is basically a version of the EventHandler usually used with ggez that also returns a possible scene switch in its update function.
 pub trait Scene {
     /// A function that fulfils the same purpose as [ggez::event::EventHandler::update] but also returns if the scene is to be switched.
-    fn update(&mut self, _ctx: &mut Context) -> Result<SceneSwitch, GameError>;
+    fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError>;
 
     /// A function that fulfils the same purposes of [ggez::event::EventHandler::draw], but can take an additional parameter that manages wether or not the scene reacts to the mouse (as in, tooltips show and visuals may show on hover).
     /// In general, you should NOT clear the background when drawing your scene, as it may be on top of other scenes that also need to be drawn.
     /// If you want those scenes to remain hidden, clear the background.
-    fn draw(&mut self, _ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError>;
+    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError>;
 }
