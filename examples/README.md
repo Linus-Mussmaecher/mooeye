@@ -26,17 +26,13 @@ Teaches about ```UiElement```, ```UiElementBuilder```, basic messaging and how t
 
 In this example, we learn about the 4 main types of containers provided with mooeye and use them to create a UI containing multiple elements.
 
-## E: Basic Elements
+## E: Sprites
 
-Not yet implemented.
+This example explains how to create & draw sprites both in the UI as well as in-game.
 
-## F: Messages
+## F: Messages & Transitions
 
-Not yet implemented.
-
-## G: Transitions
-
-This example introduces transitions that allow you to change the layout, look and content of your UI on the fly. It creates a UI that can be moved around the screen with its buttons and informs the user of pressed buttons via text.
+This example introduces messages that can be used for communication between different UI elements (and the game state) as well as transitions that allow you to change the layout, look and content of your UI based on received messages. It creates a UI that can be moved around the screen with its buttons and informs the user of pressed buttons via text.
 
 ## I: Selection Screen
 
