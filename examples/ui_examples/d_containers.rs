@@ -14,6 +14,9 @@ impl DScene {
 
     
     pub fn new(ctx: &Context) -> Result<Self, GameError>{
+
+        // Predefine some visuals so we don't have to do it for every element.
+
         let vis = ui_element::Visuals{
             background: Color::from_rgb(180, 120, 60),
             border: Color::from_rgb(18, 12, 6),
@@ -46,7 +49,7 @@ impl DScene {
         for i in 0..8 {
             // Create an element.
             let element = graphics::Text::new(format!("{}", i))
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .set_scale(28.)
             .to_owned()
             .to_element_builder(0, ctx)
@@ -68,7 +71,7 @@ impl DScene {
         for i in 0..4{
             // Create an element.
             let element = graphics::Text::new(format!("{}", i))
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .set_scale(28.)
             .to_owned()
             .to_element_builder(0, ctx)
@@ -84,7 +87,7 @@ impl DScene {
         // We'll also create our usual back button and put it into the top right of the grid.
 
         let back = graphics::Text::new("Back!")
-        .set_font("Alagard")
+        .set_font("Bahnschrift")
         .set_scale(28.)
         .to_owned()
         .to_element_builder(1, ctx)
@@ -97,7 +100,7 @@ impl DScene {
         let mut stack = StackBox::new();
         stack.add(back)?;
         // The add_top function adds something to the top of a stack box. Creating and adding an element can be done inline.
-        stack.add_top(graphics::Image::from_path(ctx, "/pi.png")?
+        stack.add_top(graphics::Image::from_path(ctx, "/moo.png")?
         .to_element_builder(0, ctx)
         // We'll align the icon to the top right
         .with_alignment(ui_element::Alignment::Min,ui_element::Alignment::Min)
@@ -135,12 +138,12 @@ impl DScene {
 impl  Scene for DScene {
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         // Nothing much to do here, except implement the back button functionality.
-        if self
-            .gui
-            .manage_messages(ctx, None)
-            .contains(&UiMessage::Clicked(1))
-        {
-            return Ok(scene_manager::SceneSwitch::Pop(1));
+
+        let messages = self.gui.manage_messages(ctx, None);
+
+        if messages.contains(&UiMessage::Clicked(1)){
+            // If it is, we end the current scene (and return to the previous one) by popping it off the stack.
+            return Ok(scene_manager::SceneSwitch::pop(1));
         }
 
         Ok(scene_manager::SceneSwitch::None)

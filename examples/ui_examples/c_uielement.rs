@@ -21,7 +21,7 @@ impl CScene {
         // First, we create anything implementing UiContent. ggez Image and Text do that, so we'll use a Text.
         // You can format that text as you can in ggez, so let's use our custom font and set a larger size.
         graphics::Text::new("Take me back!") 
-        .set_font("Alagard")
+        .set_font("Bahnschrift")
         .set_scale(32.)
         // Then we'll convert that content to an UiElementBuilder. We have to give it an ID.
         // ID 0 is reserved for elements not sending messages, but since we want to use the Text as a button, we'll use 1.

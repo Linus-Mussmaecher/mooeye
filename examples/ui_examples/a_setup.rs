@@ -38,8 +38,8 @@ pub fn setup_and_run() -> GameResult{
     // Add fonts from the resource folder.
 
     ctx.gfx.add_font(
-        "Alagard",
-        graphics::FontData::from_path(&ctx, "/alagard.ttf")?,
+        "Bahnschrift",
+        graphics::FontData::from_path(&ctx, "/bahnschrift.ttf")?,
     );
 
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,7 +49,7 @@ pub fn setup_and_run() -> GameResult{
 
     // Create StartScene.
     
-    let start_scene = super::i_selector_scene::SelectorScene::new(&ctx)?;
+    let start_scene = super::g_selector_scene::SelectorScene::new(&ctx)?;
 
     // Create Scene Manager and run it immediately.
 

@@ -17,11 +17,11 @@ use ggez::{
 };
 use mooeye::{containers, UiContent, UiElement};
 
-pub struct GScene {
+pub struct EScene {
     gui: UiElement<()>,
 }
 
-impl GScene {
+impl EScene {
     pub fn new(ctx: &Context) -> GameResult<Self> {
 
         // At first, we create a general VBox to contain our UI
@@ -30,7 +30,7 @@ impl GScene {
         // This title will change based on transitions whenever certain buttons are clicked.
         let title = Text::new("Move this element with the buttons.\nYou have not yet clicked a button.")
         // First, we style the title.
-        .set_font("Alagard")
+        .set_font("Bahnschrift")
         .set_scale(28.)
         .to_owned()
         .to_element_builder(0, ctx)
@@ -55,7 +55,7 @@ impl GScene {
                                 "Move this element with the buttons.\nYou clicked a button with id {}.",
                                 id
                             ))
-                            .set_font("Alagard")
+                            .set_font("Bahnschrift")
                             .set_scale(24.)
                             .to_owned())
                         )
@@ -79,7 +79,7 @@ impl GScene {
 
         // Now, we create 6 buttons to move the element to all possible vertical and horizontal alignments and add them to the grid.
         let vert_up = Text::new(" ^ ")
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .to_owned()
             .to_element_builder(11, ctx)
             .with_visuals(vis) 
@@ -88,7 +88,7 @@ impl GScene {
             .add(vert_up, 0, 0)?;
 
         let vert_ce = Text::new(" . ")
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .to_owned()
             .to_element_builder(12, ctx)
             .with_visuals(vis)
@@ -97,7 +97,7 @@ impl GScene {
             .add(vert_ce, 0, 1)?;
 
         let vert_do = Text::new(" v ")
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .to_owned().to_element_builder(13, ctx)
             .with_visuals(vis)
             .build();
@@ -105,7 +105,7 @@ impl GScene {
             .add(vert_do, 0, 2)?;
 
         let hor_up = Text::new(" < ")
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .to_owned().to_element_builder(21, ctx)
             .with_visuals(vis)
             .build();
@@ -113,7 +113,7 @@ impl GScene {
             .add(hor_up, 1, 0)?;
 
         let hor_ce = Text::new(" . ")
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .to_owned().to_element_builder(22, ctx)
             .with_visuals(vis)
             .build();
@@ -121,7 +121,7 @@ impl GScene {
             .add(hor_ce, 1, 1)?;
 
         let hor_do = Text::new(" > ")
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .to_owned().to_element_builder(23, ctx)
             .with_visuals(vis)
             .build();
@@ -130,9 +130,9 @@ impl GScene {
 
         // The well-known back button will take us back to scene select.
         let back = Text::new("Back")
-            .set_font("Alagard")
+            .set_font("Bahnschrift")
             .to_owned()
-            .to_element_builder(31, ctx)
+            .to_element_builder(1, ctx)
             .with_visuals(vis)
             .as_fill()
             .build();
@@ -203,19 +203,18 @@ impl GScene {
 }
 
 
-impl Scene for GScene {
+impl Scene for EScene {
     fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError> {
         // Nothing much to do here, except implement the back button functionality.
-        // Note that the manage_messages functions will automatically exchange messages between the grid buttons and the title/box where they are handled by our message handlers.
-        if self
-            .gui
-            .manage_messages(ctx, None)
-            .contains(&UiMessage::Clicked(31))
-        {
-            return Ok(SceneSwitch::Pop(1));
+
+        let messages = self.gui.manage_messages(ctx, None);
+
+        if messages.contains(&UiMessage::Clicked(1)){
+            // If it is, we end the current scene (and return to the previous one) by popping it off the stack.
+            return Ok(scene_manager::SceneSwitch::pop(1));
         }
 
-        Ok(SceneSwitch::None)
+        Ok(scene_manager::SceneSwitch::None)
     
     }
 
