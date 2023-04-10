@@ -4,9 +4,16 @@ use ggez::{
 };
 use std::hash::Hash;
 
-use crate::UiContent;
+use crate::{UiContent, ui_element::UiElementBuilder};
 
 impl<T: Copy + Eq + Hash> UiContent<T> for () {
+    fn to_element_builder(self, id: u32, _ctx: &Context) -> crate::ui_element::UiElementBuilder<T>
+        where
+            Self: Sized + 'static, {
+        UiElementBuilder::new(id, self)
+        .as_shrink()
+    }
+
     fn draw_content(
         &mut self,
         _ctx: &mut Context,

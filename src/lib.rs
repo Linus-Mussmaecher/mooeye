@@ -8,6 +8,8 @@
 
 // Other TODO:
 // * Delayed scene switch
+// * with_children
+// * multidirectional borders
 
 /// Contains the main UI element struct as well as related structures such as content, transitions, UI draw parameters etc..
 pub mod ui_element;

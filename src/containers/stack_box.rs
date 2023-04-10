@@ -1,7 +1,7 @@
 
 use ggez::GameResult;
 
-use crate::{UiElement, UiContent, ui_element::Size};
+use crate::{UiElement, UiContent};
 use std::hash::Hash;
 
 
@@ -39,10 +39,9 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
     where
         Self: Sized + 'static,
     {
-        crate::ui_element::UiElementBuilder::new(id, self).with_size(
-            Size::Shrink(0., f32::INFINITY),
-            Size::Shrink(0., f32::INFINITY),
-        )
+        crate::ui_element::UiElementBuilder::new(id, self)
+        .as_shrink()
+        .with_padding((0., 0., 0., 0.))
     }
 
     fn content_width_range(&self) -> (f32, f32) {

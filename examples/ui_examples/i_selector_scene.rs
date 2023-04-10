@@ -1,7 +1,7 @@
 use ggez::{*, graphics::Color};
 use mooeye::{*, scene_manager::Scene};
 
-use crate::{b_scene::BScene, c_uielement::CScene, g_transitions::GScene};
+use crate::{b_scene::BScene, c_uielement::CScene, g_transitions::GScene, d_containers::DScene};
 
 pub struct SelectorScene{
     gui: UiElement<()>,
@@ -69,6 +69,10 @@ impl Scene for SelectorScene{
         
         if messages.contains(&UiMessage::Clicked(2)){
             return Ok(scene_manager::SceneSwitch::push(CScene::new(ctx)));
+        }
+
+        if messages.contains(&UiMessage::Clicked(3)){
+            return Ok(scene_manager::SceneSwitch::push(DScene::new(ctx)?));
         }
 
         

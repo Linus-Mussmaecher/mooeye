@@ -24,7 +24,7 @@ Teaches about ```UiElement```, ```UiElementBuilder```, basic messaging and how t
 
 ## D: Containers
 
-Not yet implemented.
+In this example, we learn about the 4 main types of containers provided with mooeye and use them to create a UI containing multiple elements.
 
 ## E: Basic Elements
 

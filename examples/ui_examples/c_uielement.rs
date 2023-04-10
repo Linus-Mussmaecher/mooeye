@@ -75,6 +75,8 @@ impl Scene for CScene{
         // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
         let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);        
         canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
+        
+        // Here, you would draw your gamestate.
 
         // Drawing a gui is as easy as calling draw_to_screen on the root element.
         // If you are using a scene, you can simply pass on the mouse_listen parameter. It will be managed by the scene manager.
