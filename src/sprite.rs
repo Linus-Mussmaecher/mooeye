@@ -42,7 +42,7 @@ impl Sprite {
         }
     }
 
-    /// Create a new sprite using from the file found at the passed path and set the duration after which a frame change occurs.
+    /// Create a new sprite from the file found at the passed path and set the duration after which a frame change occurs.
     /// The values for the width and height of a single image within the sheet have to be passed manually.
     /// May fail if the image cannot be loaded, because f.e. the path is wrong. Passing 'wrong' size values will yield unexpected behaviour but not panic.
     pub fn from_path(
@@ -126,6 +126,18 @@ impl Sprite {
     /// Returns the variant this sprite is currently displaying.
     pub fn get_variant(&self) -> u32{
         self.current_variant
+    }
+
+    pub fn get_dimensions(&self) -> (f32, f32){
+        (self.w as f32, self.h as f32)
+    }
+
+    pub fn get_frame_time(&self) -> Duration{
+        self.frame_time
+    }
+
+    pub fn get_cycle_time(&self) -> Duration{
+        self.frame_time * self.spritesheet.width() / self.w
     }
 
     /// Draws this sprite as given by the paramters, advancing the displayed frame as needed.
