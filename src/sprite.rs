@@ -14,7 +14,7 @@ use std::hash::Hash;
 /// A Sprite is an advanced version of an image element, displaying an animated picture that can have multiple states (e.g. a walking, attacking, etc. version of a player character)
 /// The sprite is initalized using an image file that contains multiple rows of images (each row representing a variant), where each row contains the same number of animation frames for each variant.
 /// Drawing the sprite repeatedly draws every frame of the selected variant in order and then repeats from the beginning.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sprite {
     frame_time: Duration,
     w: u32,

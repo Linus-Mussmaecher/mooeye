@@ -102,7 +102,7 @@ impl Scene for FScene {
             self.sprite.set_variant(self.sprite.get_variant() + 1);
         }
 
-        // MOve the sprite.
+        // Move the sprite.
         self.pos += self.v;
 
         // Make the sprite bounce off the screen edges.
