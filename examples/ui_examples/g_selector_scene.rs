@@ -1,8 +1,6 @@
 use ggez::{*, graphics::Color};
 use mooeye::{*, scene_manager::Scene};
 
-use crate::{b_scene::BScene, c_uielement::CScene, g_transitions::GScene, d_containers::DScene};
-
 pub struct SelectorScene{
     gui: UiElement<()>,
 }
@@ -25,9 +23,9 @@ impl SelectorScene {
 
         let mut grid = containers::GridBox::new(3, 2);
 
-        let contents = ["Scene", "UiElement", "Container", "Basic", "Messages", "Transition"];
+        let contents = ["Scene", "UiElement", "Container", "Messages", "Sprites",];
 
-        for i in 0..6{
+        for i in 0..5{
             grid.add(
                 graphics::Text::new(contents[i])
                 .set_scale(32.)
@@ -50,6 +48,15 @@ impl SelectorScene {
                 , i % 3, i / 3)?;
         }
 
+        grid.add(graphics::Text::new("Quit")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(6, ctx)
+        .with_visuals(vis)
+        .with_hover_visuals(hover_vis)
+        .build()
+        , 2, 1)?;
+
 
 
         let grid = grid.to_element_builder(0, ctx)
@@ -64,20 +71,27 @@ impl Scene for SelectorScene{
         let messages = self.gui.manage_messages(ctx, None);
 
         if messages.contains(&UiMessage::Clicked(1)){
-            return Ok(scene_manager::SceneSwitch::push(BScene::new(ctx)));
+            return Ok(scene_manager::SceneSwitch::push(crate::b_scene::BScene::new(ctx)));
         }
         
         if messages.contains(&UiMessage::Clicked(2)){
-            return Ok(scene_manager::SceneSwitch::push(CScene::new(ctx)));
+            return Ok(scene_manager::SceneSwitch::push(crate::c_uielement::CScene::new(ctx)));
         }
 
         if messages.contains(&UiMessage::Clicked(3)){
-            return Ok(scene_manager::SceneSwitch::push(DScene::new(ctx)?));
+            return Ok(scene_manager::SceneSwitch::push(crate::d_containers::DScene::new(ctx)?));
+        }
+        
+        if messages.contains(&UiMessage::Clicked(4)){
+            return Ok(scene_manager::SceneSwitch::push(crate::e_messages::EScene::new(ctx)?));
         }
 
-        
+        if messages.contains(&UiMessage::Clicked(5)){
+            return Ok(scene_manager::SceneSwitch::push(crate::f_sprites::FScene::new(ctx)?));
+        }
+
         if messages.contains(&UiMessage::Clicked(6)){
-            return Ok(scene_manager::SceneSwitch::push(GScene::new(ctx)?));
+            return Ok(scene_manager::SceneSwitch::pop(1));
         }
 
         Ok(scene_manager::SceneSwitch::None)

@@ -120,7 +120,7 @@ impl Sprite {
 
     /// Sets the variant this sprite is currently displaying. Numbers that are too large to represent a valid variant will wrap around.
     pub fn set_variant(&mut self, variant: u32) {
-        self.current_variant = variant % self.spritesheet.height() / self.h;
+        self.current_variant = variant % (self.spritesheet.height() / self.h);
     }
 
     /// Returns the variant this sprite is currently displaying.
