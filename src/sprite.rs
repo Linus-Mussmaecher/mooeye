@@ -14,15 +14,22 @@ use std::hash::Hash;
 /// A Sprite is an advanced version of an image element, displaying an animated picture that can have multiple states (e.g. a walking, attacking, etc. version of a player character)
 /// The sprite is initalized using an image file that contains multiple rows of images (each row representing a variant), where each row contains the same number of animation frames for each variant.
 /// Drawing the sprite repeatedly draws every frame of the selected variant in order and then repeats from the beginning.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sprite {
-    frame_time: Duration,
+    /// Width of one sprite in the underlying sprite sheet.
     w: u32,
+    /// Height of one sprite in the underlying sprite sheet.
     h: u32,
+    /// The underlying sprite sheet.
     spritesheet: Image,
-
+    
+    /// The target time to spend each frame.
+    frame_time: Duration,
+    /// Time spent in the current frame.
     current_frame_time: Duration,
+    /// The current frame.
     current_frame: u32,
+    /// The current variant.
     current_variant: u32,
 }
 
@@ -121,6 +128,8 @@ impl Sprite {
     /// Sets the variant this sprite is currently displaying. Numbers that are too large to represent a valid variant will wrap around.
     pub fn set_variant(&mut self, variant: u32) {
         self.current_variant = variant % (self.spritesheet.height() / self.h);
+        self.current_frame_time = Duration::ZERO;
+        self.current_frame = 0;
     }
 
     /// Returns the variant this sprite is currently displaying.
