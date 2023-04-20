@@ -1,8 +1,8 @@
-use std::{ffi::OsStr, path::Path, time::Duration};
+use std::{collections::HashMap, ffi::OsStr, path::Path, time::Duration};
 
 use ggez::{
-    graphics::{self, DrawParam, Drawable, Image, Rect},
-    Context, GameError,
+    graphics::{Drawable, Image, Rect},
+    *,
 };
 
 use crate::{
@@ -10,6 +10,8 @@ use crate::{
     UiContent,
 };
 use std::hash::Hash;
+
+use regex;
 
 /// A Sprite is an advanced version of an image element, displaying an animated picture that can have multiple states (e.g. a walking, attacking, etc. version of a player character)
 /// The sprite is initalized using an image file that contains multiple rows of images (each row representing a variant), where each row contains the same number of animation frames for each variant.
@@ -22,7 +24,7 @@ pub struct Sprite {
     h: u32,
     /// The underlying sprite sheet.
     spritesheet: Image,
-    
+
     /// The target time to spend each frame.
     frame_time: Duration,
     /// Time spent in the current frame.
@@ -101,8 +103,14 @@ impl Sprite {
             .rev()
             .collect::<Vec<&str>>();
 
-        let w = *width_height.get(0).ok_or(GameError::CustomError(format!("Filename formatted incorretly - not ending in _width_height.extension. Filename: {}", pathstring)))?; 
-        let h = *width_height.get(1).ok_or(GameError::CustomError(format!("Filename formatted incorretly - not ending in _width_height.extension. Filename: {}", pathstring)))?; 
+        let w = *width_height.get(0).ok_or(GameError::CustomError(format!(
+            "Filename formatted incorretly - not ending in _width_height.extension. Filename: {}",
+            pathstring
+        )))?;
+        let h = *width_height.get(1).ok_or(GameError::CustomError(format!(
+            "Filename formatted incorretly - not ending in _width_height.extension. Filename: {}",
+            pathstring
+        )))?;
         let w = w.parse::<u32>().map_err(|_| {
             GameError::CustomError(
                 format!("Filename formatted correctly, but width numbers could not be parsed. Width number: {}", w),
@@ -133,19 +141,19 @@ impl Sprite {
     }
 
     /// Returns the variant this sprite is currently displaying.
-    pub fn get_variant(&self) -> u32{
+    pub fn get_variant(&self) -> u32 {
         self.current_variant
     }
 
-    pub fn get_dimensions(&self) -> (f32, f32){
+    pub fn get_dimensions(&self) -> (f32, f32) {
         (self.w as f32, self.h as f32)
     }
 
-    pub fn get_frame_time(&self) -> Duration{
+    pub fn get_frame_time(&self) -> Duration {
         self.frame_time
     }
 
-    pub fn get_cycle_time(&self) -> Duration{
+    pub fn get_cycle_time(&self) -> Duration {
         self.frame_time * self.spritesheet.width() / self.w
     }
 
@@ -170,7 +178,7 @@ impl Drawable for Sprite {
     fn draw(&self, canvas: &mut graphics::Canvas, param: impl Into<graphics::DrawParam>) {
         self.spritesheet.draw(
             canvas,
-            (param.into() as DrawParam).src(Rect::new(
+            (param.into() as graphics::DrawParam).src(Rect::new(
                 (self.w * self.current_frame) as f32 / self.spritesheet.width() as f32,
                 (self.h * self.current_variant) as f32 / self.spritesheet.height() as f32,
                 self.w as f32 / self.spritesheet.width() as f32,
@@ -217,5 +225,116 @@ impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
                 param.target.h / self.h as f32,
             )),
         );
+    }
+}
+
+/// A pool that contains a number of initialized [sprite::Sprite]s at once and can be passed around and allows initialization of sprites using the prototype pattern and without having to re-access the file system or pass around a loading context.
+/// Provides functions for quickly initalizing folders of sprites and access methods similar to those of [graphics::Image] and [mooeye::sprite::Sprite].
+/// ### File format and access
+/// File names must be formatted as ```NAME_WIDTH_HEIGHT.EXTENSION```.
+/// Access keys into the pool are the full path to the image file (relative to the resource directory), followed by only NAME, width, height and extension are stripped.
+/// This allows easy replacement of sprites with different formats.
+/// ### Example
+/// A file named ```mage_16_16.png``` in a subfolder ```/sprites/player``` of the resource folder will be accessible with the key ```/sprites/player/mage```.
+pub struct SpritePool {
+    sprites: HashMap<String, Sprite>,
+}
+
+impl SpritePool {
+    /// Creates a new (empty) [SpritePool] instance.
+    pub fn new() -> Self {
+        Self {
+            sprites: HashMap::new(),
+        }
+    }
+
+    /// Loads all sprites within the given folder (relative to the ggez resource directory, see [ggez::context::ContextBuilder]) into the sprite pool.
+    /// Can also search all subfolders.
+    /// See [SpritePool] for required name formatting in order to load sprites correctly.
+    pub fn with_folder(
+        mut self,
+        ctx: &Context,
+        path: impl AsRef<Path>,
+        search_subfolders: bool,
+    ) -> Self {
+        let paths = ctx
+            .fs
+            .read_dir(path.as_ref())
+            .expect("Could not find specified path.");
+
+        let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
+
+        for sub_path in paths {
+            let path_string = sub_path.to_string_lossy().to_string();
+            if sprite_match.is_match(&path_string) {
+                if let Ok(sprite) =
+                    Sprite::from_path_fmt(sub_path.clone(), ctx, Duration::from_secs_f32(0.25))
+                {
+                    self.sprites.insert(
+                        sprite_match
+                            .captures(&path_string)
+                            .map(|c| c.get(1).map(|m| m.as_str()))
+                            .unwrap_or_default()
+                            .unwrap_or_default()
+                            .replace(r"\", "/"),
+                        sprite,
+                    );
+                }
+            } else if search_subfolders {
+                self = self.with_folder(ctx, sub_path, search_subfolders);
+            }
+        }
+        println!("Now containing {} files.", self.sprites.len());
+        self
+    }
+
+    /// Initialies a sprite from the sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// See [graphics::Image] and [sprite::Sprite].
+    /// If the sprite (path) is not yet contained in the pool, an error is returned.
+    /// For lazy initalization, use [init_sprite_lazy] instead.
+    /// See [SpritePool] for rules related to key assignment.
+    pub fn init_sprite(
+        &self,
+        path: impl AsRef<Path>,
+        frame_time: Duration,
+    ) -> Result<Sprite, GameError> {
+        let sprite = self
+            .sprites
+            .get(&path.as_ref().to_string_lossy().to_string())
+            .ok_or_else(|| GameError::CustomError("Could not find sprite.".to_owned()))?;
+        Ok(Sprite {
+            frame_time,
+            ..sprite.clone()
+        })
+    }
+
+    /// Initialies a sprite from the sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// See [graphics::Image] and [sprite::Sprite].
+    /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
+    /// If this also fails, an error is returned.
+    /// See [SpritePool] for rules related to key assignment.
+    pub fn init_sprite_lazy(
+        &mut self,
+        ctx: &Context,
+        path: impl AsRef<Path>,
+        frame_time: Duration,
+    ) -> Result<Sprite, GameError> {
+        let key = &path.as_ref().to_string_lossy().to_string();
+        if !self.sprites.contains_key(key) {
+            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, Duration::ZERO)?;
+            self.sprites.insert((*key).clone(), sprite);
+        }
+        self.init_sprite(path, frame_time)
+    }
+
+    /// Prints all currently registered keys of this sprite pool. Useful if you are debugging key-issues.
+    pub fn print_keys(&self) {
+        println!("Currently registered keys");
+        for (key, _) in self.sprites.iter() {
+            println!(" | {}", &key);
+        }
+        println!("-+----------------")
     }
 }
