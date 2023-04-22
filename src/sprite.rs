@@ -284,7 +284,7 @@ impl SpritePool {
                 self = self.with_folder(ctx, sub_path, search_subfolders);
             }
         }
-        println!("Now containing {} files.", self.sprites.len());
+        //println!("Now containing {} files.", self.sprites.len());
         self
     }
 
