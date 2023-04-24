@@ -139,7 +139,7 @@ impl EScene {
 
         // We put the title, grid and back button together in a box.
         gui_box.add(title)?;
-        gui_box.add(grid_box.to_element(30,ctx))?;
+        gui_box.add(grid_box.to_element(30, ctx))?;
         gui_box.add(back)?;
 
         // Now we build the gui_box (note the technique of shadowing the variable)

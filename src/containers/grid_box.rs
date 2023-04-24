@@ -282,6 +282,10 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         Some(&self.children)
     }
 
+    fn get_children_mut(&mut self) -> Option<&mut [UiElement<T>]> {
+        Some(&mut self.children)
+    }
+
     fn add(&mut self, _element: UiElement<T>) -> GameResult {
         Err(ggez::GameError::CustomError("This is a GridBox. Use add(element, x, y) for adding.".to_owned()))
     }
