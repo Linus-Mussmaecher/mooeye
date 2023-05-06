@@ -7,6 +7,10 @@ pub enum UiMessage<T: Copy + Eq + Hash + Hash> {
     Extern(T),
     /// A struct that is sent by an element when it is clicked (using the left mouse button), containing its ID. Elements with ID 0 will not send such messages.
     Clicked(u32),
-    /// A struct that is sent by an element when it is clicked using the left mouse button, containing its ID. Elements with ID 0 will not send such messages.
+    /// A struct that is sent by an element when it is clicked using the right mouse button, containing its ID. Elements with ID 0 will not send such messages.
     ClickedRight(u32),
+    /// A struct that is sent by an element when one of its registered keys are pressed, containing its ID. Elements with ID 0 will not send such messages.
+    PressedKey(u32),
+    /// A struct that is sent if an element is 'triggered' in any way (key press or click) in addition to the specific event as above
+    Triggered(u32),
 }

@@ -1,6 +1,7 @@
 use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 
+use ggez::winit::event::VirtualKeyCode;
 use ggez::{
     glam::Vec2,
     graphics::{Canvas, Rect},
@@ -15,6 +16,7 @@ pub use layout::Size;
 
 /// The [Visuals] structs as well as associated functions that control how an element looks.
 mod visuals;
+use tinyvec::TinyVec;
 pub use visuals::Visuals;
 
 /// The [Transition] struct and associated functions to control an element dynamically changing layout, visuals, content, etc.
@@ -62,6 +64,9 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     /// The transition queue
     transitions: VecDeque<Transition<T>>,
 
+    /// The keyboard key triggering events on this element.
+    keys: TinyVec<[Option<VirtualKeyCode>; 2]>,
+
     /// The message handler. This function is called on every frame to handle received message.
     // The message handler lambda receives each frame a hash set consisting of all internal and external messages received by this element.
     /// It also receives a function pointer. Calling this pointer with a transition pushes that transition to this elements transition queue.
@@ -82,6 +87,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             content: Box::new(content),
             tooltip: None,
             transitions: VecDeque::new(),
+            keys: TinyVec::new(),
             message_handler: Box::new(|_messages, _layout, _transition_queue| {}),
         }
     }
@@ -106,10 +112,10 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     ) -> HashSet<UiMessage<T>> {
         let intern_messages = self.collect_messages(ctx);
 
-        let all_messages = match extern_messages.into(){
+        let all_messages = match extern_messages.into() {
             None => intern_messages.clone(),
-            Some(extern_messages) => intern_messages.union(&extern_messages).copied().collect(), 
-        } ;
+            Some(extern_messages) => intern_messages.union(&extern_messages).copied().collect(),
+        };
 
         self.distribute_messages(ctx, &all_messages).expect("Something went wrong delivering or executing messages. Probably you wrote a bad handler function.");
 
@@ -135,6 +141,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 .button_just_pressed(ggez::event::MouseButton::Left)
             {
                 res.insert(UiMessage::Clicked(self.id));
+                res.insert(UiMessage::Triggered(self.id));
             }
 
             if ctx
@@ -143,6 +150,17 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             {
                 res.insert(UiMessage::ClickedRight(self.id));
             }
+        }
+
+        if self.id != 0 && self.keys.iter().any(|key_opt| {
+            if let Some(key) = key_opt {
+                ctx.keyboard.is_key_just_pressed(*key)
+            } else {
+                false
+            }
+        }){
+            res.insert(UiMessage::PressedKey(self.id));
+            res.insert(UiMessage::Triggered(self.id));
         }
 
         if let Some(children) = self.content.get_children() {

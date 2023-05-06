@@ -1,3 +1,5 @@
+use ggez::winit::event::VirtualKeyCode;
+
 use crate::{UiContent, UiElement};
 use std::hash::Hash;
 
@@ -97,6 +99,12 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
             Some(alignment) => self.element.layout.y_alignment = alignment,
         };
 
+        self
+    }
+
+    /// Attaches a key code to this element. Pressing this key will send the same trigger event as clicking the element.
+    pub fn with_trigger_key(mut self, key: VirtualKeyCode) -> Self{
+        self.element.keys.push(Some(key));
         self
     }
 

@@ -171,7 +171,7 @@ impl EScene {
             ]);
             // Check if any vertical buttons were clicked.
             for (key, val) in vert_map {
-                if messages.contains(&UiMessage::Clicked(key)) {
+                if messages.contains(&UiMessage::Triggered(key)) {
                     transitions.push_back(
                         // If yes, add a transition.
                         Transition::new(Duration::from_secs_f32(1.5))
@@ -186,7 +186,7 @@ impl EScene {
             }
             // Repeat for horizontal keys.
             for (key, val) in hor_map {
-                if messages.contains(&UiMessage::Clicked(key)) {
+                if messages.contains(&UiMessage::Triggered(key)) {
                     transitions.push_back(
                         Transition::new(Duration::from_secs_f32(1.5)).with_new_layout(ui_element::Layout{
                             x_alignment: val,
@@ -209,7 +209,7 @@ impl Scene for EScene {
 
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&UiMessage::Clicked(1)){
+        if messages.contains(&UiMessage::Triggered(1)){
             // If it is, we end the current scene (and return to the previous one) by popping it off the stack.
             return Ok(scene_manager::SceneSwitch::pop(1));
         }

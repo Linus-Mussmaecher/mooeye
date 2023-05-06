@@ -70,27 +70,27 @@ impl Scene for SelectorScene{
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&UiMessage::Clicked(1)){
+        if messages.contains(&UiMessage::Triggered(1)){
             return Ok(scene_manager::SceneSwitch::push(crate::b_scene::BScene::new(ctx)));
         }
         
-        if messages.contains(&UiMessage::Clicked(2)){
+        if messages.contains(&UiMessage::Triggered(2)){
             return Ok(scene_manager::SceneSwitch::push(crate::c_uielement::CScene::new(ctx)));
         }
 
-        if messages.contains(&UiMessage::Clicked(3)){
+        if messages.contains(&UiMessage::Triggered(3)){
             return Ok(scene_manager::SceneSwitch::push(crate::d_containers::DScene::new(ctx)?));
         }
         
-        if messages.contains(&UiMessage::Clicked(4)){
+        if messages.contains(&UiMessage::Triggered(4)){
             return Ok(scene_manager::SceneSwitch::push(crate::e_messages::EScene::new(ctx)?));
         }
 
-        if messages.contains(&UiMessage::Clicked(5)){
+        if messages.contains(&UiMessage::Triggered(5)){
             return Ok(scene_manager::SceneSwitch::push(crate::f_sprites::FScene::new(ctx)?));
         }
 
-        if messages.contains(&UiMessage::Clicked(6)){
+        if messages.contains(&UiMessage::Triggered(6)){
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
 

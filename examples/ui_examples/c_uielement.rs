@@ -34,6 +34,8 @@ impl CScene {
             border: Color::from_rgb(250, 246, 230),
             border_width: 4., rounded_corners: 8. 
         })
+        // Additionally, you can add keycodes that make your element respond to key presses as it would respond to clicks
+        .with_trigger_key(winit::event::VirtualKeyCode::A)
         // We can also set the alignment within the window...
         .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Center)
         // ... offset the element (note that we can pass None into most of these functions to leave the presets for one dimension untouched) ...
@@ -62,7 +64,7 @@ impl Scene for CScene{
         let messages = self.gui.manage_messages(ctx, None);
 
         // We then check if our button has been clicked by creating a Clicked event with the correct ID and checking if it is contained in the messages set.
-        if messages.contains(&UiMessage::Clicked(1)){
+        if messages.contains(&UiMessage::Triggered(1)){
             // If it is, we end the current scene (and return to the previous one) by popping it off the stack.
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
