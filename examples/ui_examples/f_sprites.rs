@@ -70,7 +70,6 @@ impl FScene {
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(cont_vis)
-                .with_tooltip_layout()
                 .build(),
         )
         .as_shrink()

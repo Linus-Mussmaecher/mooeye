@@ -34,10 +34,15 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
 
     /// Sets the elements tooltip to the specified UiContent (or disables any tooltip by passing None).
     /// Tooltips are displayed when hovering over an element with the mouse cursor.
+    /// Most specific alignment and sizes of tooltips will be ignored. Tooltips will always be shrink in both dimensions and align as close to the cursor as possible.
     pub fn with_tooltip(mut self, tooltip: impl Into<Option<UiElement<T>>>) -> Self {
         match tooltip.into() {
             None => self.element.tooltip = None,
-            Some(tt) => self.element.tooltip = Some(Box::new(tt)),
+            Some(mut tt) => {
+                tt.layout.x_size = tt.layout.x_size.to_shrink();
+                tt.layout.y_size = tt.layout.y_size.to_shrink();
+                self.element.tooltip = Some(Box::new(tt))
+            },
         }
         self
     }
@@ -170,14 +175,6 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
         };
 
         self
-    }
-
-    /// Changes the elements layout by changing the alignment to top left, sizes to shrink and offsetting it slightly to right/up.
-    /// This should be what you want for most tooltips.
-    pub fn with_tooltip_layout(self) -> Self {
-        self.with_alignment(super::Alignment::Min, super::Alignment::Min)
-            .as_shrink()
-            .with_offset(10., -10.)
     }
 
     /// Takes in a layout and sets the elements layout to be as you would want for a container wrapping the passed layout.

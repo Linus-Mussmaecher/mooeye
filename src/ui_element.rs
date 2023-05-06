@@ -441,15 +441,28 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             if let Some(tt) = &mut self.tooltip {
                 let mouse_pos = ctx.mouse.position();
                 let screen_size = ctx.gfx.window().inner_size();
+                let tt_size = (tt.width_range().0, tt.height_range().0);
+                let x = if 2. * inner.x + inner.w > screen_size.width as f32 {
+                    mouse_pos.x - tt_size.0 - 10.
+                } else {
+                    mouse_pos.x + 10.
+                }.clamp(0., screen_size.width as f32 - tt_size.0);
+                let y = (if 2. * inner.y + inner.h > screen_size.height as f32{
+                    mouse_pos.y - tt_size.1
+                } else {
+                    mouse_pos.y
+                } - 10.).max(0.);
+
+
                 tt.draw_to_rectangle(
                     ctx,
                     canvas,
                     param
                         .target(Rect::new(
-                            mouse_pos.x,
-                            mouse_pos.y,
-                            screen_size.width as f32 - mouse_pos.x,
-                            screen_size.height as f32 - mouse_pos.y,
+                            x,
+                            y,
+                            tt_size.0,
+                            tt_size.1,
                         ))
                         .z_level(1),
                 );

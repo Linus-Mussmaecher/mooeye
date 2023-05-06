@@ -41,7 +41,6 @@ impl SelectorScene {
                     .to_owned()
                     .to_element_builder(0, ctx)
                     .with_visuals(hover_vis)
-                    .with_tooltip_layout()
                     .build()
                 )
                 .build()
