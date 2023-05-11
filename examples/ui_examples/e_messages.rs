@@ -214,6 +214,10 @@ impl Scene for EScene {
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
 
+        if messages.contains(&UiMessage::Clicked(13)){
+            return Ok(SceneSwitch::push(DecoScene::new(ctx)));
+        }
+
         Ok(scene_manager::SceneSwitch::None)
     
     }
@@ -230,5 +234,69 @@ impl Scene for EScene {
         canvas.finish(ctx)?;
 
         Ok(())
+    }
+}
+
+
+struct DecoScene{
+    dur: Duration,
+    gui: UiElement<()>,
+}
+
+
+impl DecoScene{
+    pub fn new(ctx: &Context) -> Self{
+        // We re-use the scene constructor from C with a different text.
+
+        let text_element = 
+        graphics::Text::new("I'm decorating this scene.\nYou can still click the buttons.") 
+        .set_font("Bahnschrift")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(0, ctx) 
+        .with_visuals(ui_element::Visuals {
+            background: Color::from_rgb(49, 53, 69),
+            border: Color::from_rgb(250, 246, 230),
+            border_width: 4., rounded_corners: 8. 
+        })
+        .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Center)
+        .with_offset(25., None)
+        .with_padding((5., 10., 5., 10.))
+        .as_shrink()
+        .build();
+
+        Self{
+            dur: Duration::from_secs(3),
+            gui: text_element
+        }
+    }
+}
+
+impl Scene for DecoScene {
+    fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError> {
+        // Decorators call their update method every frame, but whatever scene switches they return are ignored.
+
+        self.dur = self.dur.saturating_sub(ctx.time.delta());
+
+        Ok(SceneSwitch::None)
+    }
+
+    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
+        // Standard drawing function
+        let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);        
+        canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
+        
+        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
+
+        canvas.finish(ctx)?;
+
+        Ok(())
+    }
+
+    fn decorates(&self) -> bool {
+        // the decorate function makes sure our element is registered as a decorator in the beginning and discarded once the duration reaches zero.
+        // Setting such a duration is the standard for any decorator, but you can choose more elaborate discard options or even leave the decorator permanently.
+        // (but remember that all decorators are discarded if the current top scene is popped of the stack)
+        !self.dur.is_zero()
     }
 }

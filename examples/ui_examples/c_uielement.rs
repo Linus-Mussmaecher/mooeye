@@ -89,8 +89,4 @@ impl Scene for CScene{
 
         Ok(())
     }
-
-    fn decorates(&self) -> bool {
-        true
-    }
 }
