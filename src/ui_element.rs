@@ -439,21 +439,26 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         // draw tooltip
         if param.mouse_listen && outer.contains(ctx.mouse.position()) {
             if let Some(tt) = &mut self.tooltip {
+                // get relevant positions
                 let mouse_pos = ctx.mouse.position();
                 let screen_size = ctx.gfx.window().inner_size();
                 let tt_size = (tt.width_range().0, tt.height_range().0);
+                
+                // check if element center is left or right on the screen
                 let x = if 2. * inner.x + inner.w > screen_size.width as f32 {
                     mouse_pos.x - tt_size.0 - 10.
                 } else {
                     mouse_pos.x + 10.
                 }.clamp(0., screen_size.width as f32 - tt_size.0);
+
+                // check if element is on the top or bottom of the screen
                 let y = (if 2. * inner.y + inner.h > screen_size.height as f32{
                     mouse_pos.y - tt_size.1
                 } else {
                     mouse_pos.y
                 } - 10.).max(0.);
 
-
+                // draw the tooltip
                 tt.draw_to_rectangle(
                     ctx,
                     canvas,
