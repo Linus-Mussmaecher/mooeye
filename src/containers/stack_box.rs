@@ -85,6 +85,11 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
         Ok(())
     }
 
+    fn remove_expired(&mut self) -> GameResult {
+        self.children.retain(|child| !child.expired());
+        Ok(())
+    }
+
     fn draw_content(
         &mut self,
         ctx: &mut ggez::Context,

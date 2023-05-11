@@ -290,6 +290,15 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         Err(ggez::GameError::CustomError("This is a GridBox. Use add(element, x, y) for adding.".to_owned()))
     }
 
+    fn remove_expired(&mut self) -> GameResult {
+        for i in 0..self.children.len(){
+            if self.children[i].expired() {
+                self.children[i] = UiElement::new(0, ());
+            }
+        }
+        Ok(())
+    }
+
     fn draw_content(
         &mut self,
         ctx: &mut ggez::Context,

@@ -198,7 +198,13 @@ impl EScene {
         })
         .build();
 
-        Ok(Self { gui: gui_box })
+        // wrap one big box around everything so we can also add 'decorators' later
+
+        let mut wrap_stack = containers::StackBox::new();
+        wrap_stack.add(gui_box)?;
+        let wrap_stack = wrap_stack.to_element_builder(100, ctx).as_fill().build();
+
+        Ok(Self { gui: wrap_stack })
     }
 }
 
@@ -214,8 +220,31 @@ impl Scene for EScene {
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
 
-        if messages.contains(&UiMessage::Clicked(13)){
-            return Ok(SceneSwitch::push(DecoScene::new(ctx)));
+        if messages.contains(&UiMessage::Triggered(13)){
+            // If a certain button is pressed, add a small text element to the gui.
+            self.gui.add_element(100,
+                // using a duration box as a wrapper will remove the element after a set amount of time
+                  containers::DurationBox::new(
+                    Duration::from_secs_f32(1.5),
+                     graphics::Text::new("Just a small reminder that you pressed button 13.")
+                     .set_font("Bahnschrift")
+                     .set_wrap(true)
+                     .set_bounds(glam::Vec2::new(200., 500.))
+                     .set_scale(28.)
+                     .to_owned()
+                     .to_element_builder(0, ctx)
+                     .with_visuals(ui_element::Visuals::new(
+                        Color::from_rgb(77, 109, 191),
+                        Color::from_rgb(55, 67, 87),
+                        2.,
+                        4.,
+                    ))
+                     .build()
+                    ).to_element_builder(0, ctx)
+                    .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
+                    .with_offset(0., 25.)
+                    .build()
+                    );
         }
 
         Ok(scene_manager::SceneSwitch::None)
@@ -234,69 +263,5 @@ impl Scene for EScene {
         canvas.finish(ctx)?;
 
         Ok(())
-    }
-}
-
-
-struct DecoScene{
-    dur: Duration,
-    gui: UiElement<()>,
-}
-
-
-impl DecoScene{
-    pub fn new(ctx: &Context) -> Self{
-        // We re-use the scene constructor from C with a different text.
-
-        let text_element = 
-        graphics::Text::new("I'm decorating this scene.\nYou can still click the buttons.") 
-        .set_font("Bahnschrift")
-        .set_scale(32.)
-        .to_owned()
-        .to_element_builder(0, ctx) 
-        .with_visuals(ui_element::Visuals {
-            background: Color::from_rgb(49, 53, 69),
-            border: Color::from_rgb(250, 246, 230),
-            border_width: 4., rounded_corners: 8. 
-        })
-        .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Center)
-        .with_offset(25., None)
-        .with_padding((5., 10., 5., 10.))
-        .as_shrink()
-        .build();
-
-        Self{
-            dur: Duration::from_secs(3),
-            gui: text_element
-        }
-    }
-}
-
-impl Scene for DecoScene {
-    fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError> {
-        // Decorators call their update method every frame, but whatever scene switches they return are ignored.
-
-        self.dur = self.dur.saturating_sub(ctx.time.delta());
-
-        Ok(SceneSwitch::None)
-    }
-
-    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Standard drawing function
-        let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);        
-        canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
-        
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        canvas.finish(ctx)?;
-
-        Ok(())
-    }
-
-    fn decorates(&self) -> bool {
-        // the decorate function makes sure our element is registered as a decorator in the beginning and discarded once the duration reaches zero.
-        // Setting such a duration is the standard for any decorator, but you can choose more elaborate discard options or even leave the decorator permanently.
-        // (but remember that all decorators are discarded if the current top scene is popped of the stack)
-        !self.dur.is_zero()
     }
 }

@@ -6,8 +6,11 @@ pub mod horizontal_box;
 pub mod stack_box;
 /// Contains the [GridBox] struct.
 pub mod grid_box;
+/// Contains the [DurationBox] struct.
+pub mod duration_box;
 
 pub use vertical_box::VerticalBox;
 pub use horizontal_box::HorizontalBox;
 pub use stack_box::StackBox;
 pub use grid_box::GridBox;
+pub use duration_box::DurationBox;

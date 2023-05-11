@@ -92,6 +92,36 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
     }
 
+    /// Adds an element to this element (or its children), recursively searching until an element with a fitting ID is found.
+    /// The element is discarded there is no container (as in: an elements whose [UiContent<T>::get_children]-function returns Some) child with fitting ID.
+    pub fn add_element(&mut self, id: u32, element: UiElement<T>) -> Option<UiElement<T>> {
+        // early return of recursion: check if id is correct
+        if self.id == id && self.content.get_children().is_some() {
+            // if yes, attempt to add. On failure, print message in test/debug modes.
+            if self.content.add(element).is_err() && (cfg!(test) || cfg!(debug)){
+                println!("Attempting to add element to non-container element.")
+            };
+            return None;
+        }
+
+        // recursivly search children
+        let mut element_option = Some(element);
+        if let Some(children) = self.content.get_children_mut() {
+            for child in children{
+                // check if element is still there
+                if let Some(element) = element_option{
+                    // yes: try children
+                    element_option = child.add_element(id, element);
+                } else {
+                    // no: an element with correct id has been found in this child, propagate none up the chain
+                    break;
+                }
+            }
+        }
+
+        element_option
+    }
+
     /// Returns this elements (not neccessarily unique) ID within this UI. This ID is used to indentify the source of intern messages.
     pub fn get_id(&self) -> u32 {
         self.id
@@ -104,12 +134,24 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
     /// Receives a data structure containing all messages triggered by your game_state this frame (or None if there were no messages).
     /// It then collects all messages sent by this element and its children and redistributes all of those messages to this element and all children.
-    /// Returns all internal messages to act on them
-    pub fn manage_messages(
+    /// Returns all internal messages to act on them.
+    /// In addition, if this element has children, all children whose [UiContent<T>::removeable] function returns true are removed from the container.
+    pub fn update(
         &mut self,
         ctx: &ggez::Context,
         extern_messages: impl Into<Option<HashSet<UiMessage<T>>>>,
     ) -> HashSet<UiMessage<T>> {
+
+        // Remove 
+
+        if self.content.get_children().is_some(){
+            if self.content.remove_expired().is_err() && (cfg!(test) || cfg!(debug)){
+                println!("Tried to remove elements from content without children.");
+            };
+        }
+
+        // Message handling
+
         let intern_messages = self.collect_messages(ctx);
 
         let all_messages = match extern_messages.into() {
@@ -120,6 +162,19 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         self.distribute_messages(ctx, &all_messages).expect("Something went wrong delivering or executing messages. Probably you wrote a bad handler function.");
 
         intern_messages
+    }
+
+    pub(crate) fn expired(&self) -> bool{
+        self.content.expired()
+    }
+
+    /// Deprecated version of [update].
+    pub fn manage_messages(
+        &mut self,
+        ctx: &ggez::Context,
+        extern_messages: impl Into<Option<HashSet<UiMessage<T>>>>,
+    ) -> HashSet<UiMessage<T>> {
+        self.update(ctx, extern_messages)
     }
 
     /// Iterates over this element and all successors and collects all internal messages (clicks) sent during the last frame.
@@ -152,13 +207,15 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             }
         }
 
-        if self.id != 0 && self.keys.iter().any(|key_opt| {
-            if let Some(key) = key_opt {
-                ctx.keyboard.is_key_just_pressed(*key)
-            } else {
-                false
-            }
-        }){
+        if self.id != 0
+            && self.keys.iter().any(|key_opt| {
+                if let Some(key) = key_opt {
+                    ctx.keyboard.is_key_just_pressed(*key)
+                } else {
+                    false
+                }
+            })
+        {
             res.insert(UiMessage::PressedKey(self.id));
             res.insert(UiMessage::Triggered(self.id));
         }
@@ -443,32 +500,29 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 let mouse_pos = ctx.mouse.position();
                 let screen_size = ctx.gfx.window().inner_size();
                 let tt_size = (tt.width_range().0, tt.height_range().0);
-                
+
                 // check if element center is left or right on the screen
                 let x = if 2. * inner.x + inner.w > screen_size.width as f32 {
                     mouse_pos.x - tt_size.0 - 10.
                 } else {
                     mouse_pos.x + 10.
-                }.clamp(0., screen_size.width as f32 - tt_size.0);
+                }
+                .clamp(0., screen_size.width as f32 - tt_size.0);
 
                 // check if element is on the top or bottom of the screen
-                let y = (if 2. * inner.y + inner.h > screen_size.height as f32{
+                let y = (if 2. * inner.y + inner.h > screen_size.height as f32 {
                     mouse_pos.y - tt_size.1
                 } else {
                     mouse_pos.y
-                } - 10.).max(0.);
+                } - 10.)
+                    .max(0.);
 
                 // draw the tooltip
                 tt.draw_to_rectangle(
                     ctx,
                     canvas,
                     param
-                        .target(Rect::new(
-                            x,
-                            y,
-                            tt_size.0,
-                            tt_size.1,
-                        ))
+                        .target(Rect::new(x, y, tt_size.0, tt_size.1))
                         .z_level(1),
                 );
             }
@@ -547,11 +601,24 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     }
 
     /// Attempts to add a UiElement to this elements children.
-    /// Returns true if the operation succeeds.
-    /// Returns false if this is a leaf node that cannot have any children.
+    /// Returns Ok if the operation succeeds.
+    /// Returns an error if this is a leaf node that cannot have any children.
     fn add(&mut self, _element: UiElement<T>) -> GameResult {
         Err(ggez::GameError::CustomError(
             "This element does not support children.".to_owned(),
         ))
+    }
+
+    /// Removes all elements from this container whose [UiContent<T>::expired]-function returns true.
+    /// Returns an error if this is a leaf node that cannot have any children.
+    fn remove_expired(&mut self) -> GameResult {
+        Err(ggez::GameError::CustomError(
+            "This element does not support children.".to_owned(),
+        ))
+    }
+
+    /// Returns a bool value. Returning true indicates to any container this element is a child of that this element wishes to be removed from the container (and discarded).
+    fn expired(&self) -> bool{
+        false
     }
 }
