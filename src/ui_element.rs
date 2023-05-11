@@ -142,14 +142,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         extern_messages: impl Into<Option<HashSet<UiMessage<T>>>>,
     ) -> HashSet<UiMessage<T>> {
 
-        // Remove 
-
-        if self.content.get_children().is_some(){
-            if self.content.remove_expired().is_err() && (cfg!(test) || cfg!(debug)){
-                println!("Tried to remove elements from content without children.");
-            };
-        }
-
         // Message handling
 
         let intern_messages = self.collect_messages(ctx);
@@ -235,12 +227,18 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         ctx: &Context,
         messages: &HashSet<UiMessage<T>>,
     ) -> GameResult {
+
         (self.message_handler)(messages, self.layout, &mut self.transitions);
 
         if let Some(children) = self.content.get_children_mut() {
+            // actual distribution
             for child in children.iter_mut() {
                 child.distribute_messages(ctx, messages)?;
             }
+            // remove expired children
+            if self.content.remove_expired().is_err() && (cfg!(test) || cfg!(debug)){
+                println!("Tried to remove elements from content without children.");
+            };
         }
 
         Ok(())
