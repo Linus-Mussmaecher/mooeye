@@ -41,25 +41,21 @@ impl SceneManager {
 impl event::EventHandler<GameError> for SceneManager {
     fn update(&mut self, ctx: &mut Context) -> Result<(), GameError> {
         // run decorators
-        for scene in self.decorator_stack.iter_mut(){
+        for scene in self.decorator_stack.iter_mut() {
             scene.update(ctx)?;
         }
         // retain only decorators that are still decorating
-        self.decorator_stack.retain(|scene_box| scene_box.decorates());
+        self.decorator_stack
+            .retain(|scene_box| scene_box.decorates());
 
         // Get current top scene of the stack
 
-        // Clear decorators if a removal is happening
+        if let Some(scene) = self.scene_stack.back_mut() {
+            // Run update method
 
-        if matches!(switch, SceneSwitch::Pop(amount) if amount > 0)
-            || matches!(switch, SceneSwitch::Multi(amount,_ ) if amount > 0)
-        {
-            while self.scene_stack.back().map(|scene| scene.decorates() ).unwrap_or(false) {
-                self.scene_stack.pop_back();
-            }
-        }
+            let switch = scene.update(ctx)?;
 
-        // Resolve scene switch
+            // Resolve scene switch
 
             match switch {
                 SceneSwitch::None => {}
@@ -102,7 +98,6 @@ impl event::EventHandler<GameError> for SceneManager {
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
         // Clear the background (scenes should in general not clear the background, as they may be on top of other scenes)
         let canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(0, 0, 0));
-        let canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(0, 0, 0));
         canvas.finish(ctx)?;
 
         // iterate over all elements, only the last (=top) element may listen to the mouse position for hover-related visual changes
@@ -129,24 +124,21 @@ pub enum SceneSwitch {
     /// Pushes a new Scene on top of the scene stack, thus temporarily halting running of the current scene. Current scene will resume as soon as this scene above is popped of the stack.
     Push(Box<dyn Scene>),
     /// Pops a specified numer of scenes (as with [SceneSwitch::Pop]) of the stack and pushes a new one in the same action.
-    Multi(u32, Vec<Box<dyn Scene>>),
+    Replace(u32, Box<dyn Scene>),
 }
 
 impl SceneSwitch {
     /// Creates an instance of [SceneSwitch::None].
-    pub fn none() -> Self {
     pub fn none() -> Self {
         Self::None
     }
 
     /// Creates an instance of [SceneSwitch::Push], handling the boxing for you.
     pub fn push(scene: impl Scene + 'static) -> Self {
-    pub fn push(scene: impl Scene + 'static) -> Self {
         Self::Push(Box::new(scene))
     }
 
     /// Creates an instance of [SceneSwitch::Pop].
-    pub fn pop(pop_amount: u32) -> Self {
     pub fn pop(pop_amount: u32) -> Self {
         Self::Pop(pop_amount)
     }
