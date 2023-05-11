@@ -1,14 +1,17 @@
-use std::collections::VecDeque;
-
 use ggez::event::{self, EventLoop};
 use ggez::graphics::Color;
 use ggez::*;
+use std::collections::VecDeque;
 
 /// A SceneManager instance. When using a game with multiple scenes, the scene_handler replaces you usual game manager.
 /// SceneManager implements EventHandler as a usual gamestate would and can thus interact with ggez without problems.
 pub struct SceneManager {
     /// The stack of scenes managed by this struct. Scenes are added to and popped from the back and draw front to back. Only the last element runs [Scene::update].
     scene_stack: VecDeque<Box<dyn Scene>>,
+    /// The stack of scenes managed by this struct that are only decorative, being displayed on top of all other elements.
+    /// Scenes are added to and popped from the back and draw front to back. All elements run [Scene::update].
+    /// Can only add and remove from decorator stack
+    decorator_stack: VecDeque<Box<dyn Scene>>,
 }
 
 impl SceneManager {
@@ -16,6 +19,7 @@ impl SceneManager {
     pub fn new<T: Scene + 'static>(initial_scene: T) -> Self {
         let mut sm = SceneManager {
             scene_stack: VecDeque::new(),
+            decorator_stack: VecDeque::new(),
         };
         sm.scene_stack.push_back(Box::new(initial_scene));
         sm
@@ -36,14 +40,22 @@ impl SceneManager {
 
 impl event::EventHandler<GameError> for SceneManager {
     fn update(&mut self, ctx: &mut Context) -> Result<(), GameError> {
+        // run decorators
+        for scene in self.decorator_stack.iter_mut() {
+            scene.update(ctx)?;
+        }
+        // retain only decorators that are still decorating
+        self.decorator_stack
+            .retain(|scene_box| scene_box.decorates());
+
         // Get current top scene of the stack
 
-        if let Some(back) = self.scene_stack.back_mut() {
-            // Run update function
+        if let Some(scene) = self.scene_stack.back_mut() {
+            // Run update method
 
-            let switch = back.update(ctx)?;
+            let switch = scene.update(ctx)?;
 
-            // Check if a scene switch has occured and resolve it
+            // Resolve scene switch
 
             match switch {
                 SceneSwitch::None => {}
@@ -56,13 +68,23 @@ impl event::EventHandler<GameError> for SceneManager {
                     for _ in 0..n {
                         self.scene_stack.pop_back();
                     }
-                    self.scene_stack.push_back(scene_box.into());
+                    if (*scene_box).decorates() {
+                        self.decorator_stack.push_back(scene_box.into());
+                    } else {
+                        self.scene_stack.push_back(scene_box.into());
+                    }
                 }
                 SceneSwitch::Push(scene_box) => {
-                    self.scene_stack.push_back(scene_box.into());
+                    if (*scene_box).decorates() {
+                        self.decorator_stack.push_back(scene_box.into());
+                    } else {
+                        self.scene_stack.push_back(scene_box.into());
+                    }
                 }
             }
         }
+
+        // Get current top scene of the stack
 
         // The game ends as soon as the stack is emptied
 
@@ -75,15 +97,17 @@ impl event::EventHandler<GameError> for SceneManager {
 
     fn draw(&mut self, ctx: &mut Context) -> Result<(), GameError> {
         // Clear the background (scenes should in general not clear the background, as they may be on top of other scenes)
-        let canvas = graphics::Canvas::from_frame(
-            ctx, 
-            Color::from_rgb(0, 0, 0)
-        );
+        let canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(0, 0, 0));
         canvas.finish(ctx)?;
 
         // iterate over all elements, only the last (=top) element may listen to the mouse position for hover-related visual changes
-        let mut it = self.scene_stack.iter_mut().peekable();
-        while let Some(scenebox) =  it.next(){
+        let mut it = self
+            .scene_stack
+            .iter_mut()
+            .chain(self.decorator_stack.iter_mut())
+            .peekable();
+
+        while let Some(scenebox) = it.next() {
             scenebox.draw(ctx, it.peek().is_none())?;
         }
 
@@ -104,24 +128,23 @@ pub enum SceneSwitch {
 }
 
 impl SceneSwitch {
-
     /// Creates an instance of [SceneSwitch::None].
-    pub fn none() -> Self{
+    pub fn none() -> Self {
         Self::None
     }
 
     /// Creates an instance of [SceneSwitch::Push], handling the boxing for you.
-    pub fn push(scene: impl Scene + 'static) -> Self{
+    pub fn push(scene: impl Scene + 'static) -> Self {
         Self::Push(Box::new(scene))
     }
 
     /// Creates an instance of [SceneSwitch::Pop].
-    pub fn pop(pop_amount: u32) -> Self{
+    pub fn pop(pop_amount: u32) -> Self {
         Self::Pop(pop_amount)
     }
 
     /// Creates an instance of [SceneSwitch::Replace], handling the boxing for you.
-    pub fn replace(scene: impl Scene + 'static, pop_amount: u32) -> Self{
+    pub fn replace(scene: impl Scene + 'static, pop_amount: u32) -> Self {
         Self::Replace(pop_amount, Box::new(scene))
     }
 }
@@ -135,4 +158,12 @@ pub trait Scene {
     /// In general, you should NOT clear the background when drawing your scene, as it may be on top of other scenes that also need to be drawn.
     /// If you want those scenes to remain hidden, clear the background.
     fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError>;
+
+    /// Returning 'true' marks this scene as a decorating scene.
+    /// Decorating scenes are kept in a different stack, always all run their update methods but returned scene_switches are ignored.
+    /// Decorates are retained in their stack until decorates returns false.
+    /// Later returning true on a scene that was not marked as decorator on initialization (and was as such sorted into the normal scene stack) does not have any effect.
+    fn decorates(&self) -> bool {
+        false
+    }
 }
