@@ -153,6 +153,10 @@ impl Sprite {
         self.frame_time
     }
 
+    pub fn set_frame_time(&mut self, frame_time: Duration){
+        self.frame_time = frame_time;
+    }
+
     pub fn get_cycle_time(&self) -> Duration {
         self.frame_time * self.spritesheet.width() / self.w
     }
@@ -165,7 +169,7 @@ impl Sprite {
         param: impl Into<graphics::DrawParam>,
     ) {
         self.current_frame_time += ctx.time.delta();
-        while self.current_frame_time >= self.frame_time {
+        while self.current_frame_time >= self.frame_time && !self.frame_time.is_zero() {
             self.current_frame_time -= self.frame_time;
             self.current_frame = (self.current_frame + 1) % (self.spritesheet.width() / self.w);
         }
