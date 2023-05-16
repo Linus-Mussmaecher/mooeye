@@ -17,26 +17,35 @@ impl DScene {
 
         // Predefine some visuals so we don't have to do it for every element.
 
-        let vis = ui_element::Visuals{
-            background: Color::from_rgb(180, 120, 60),
-            border: Color::from_rgb(18, 12, 6),
-            border_width: 1.,
-            rounded_corners: 0.,
-        };
+        let vis = ui_element::Visuals::new(
+            Color::from_rgb(180, 120, 60),
+            Color::from_rgb(18, 12, 6),
+            1.,
+            0.,
+        );
 
-        let hover_vis = ui_element::Visuals{
-            background: Color::from_rgb(160, 100, 40),
-            border: Color::from_rgb(18, 12, 6),
-            border_width: 3.,
-            rounded_corners: 0.,
-        };
+        // You can also create 'custom' visuals that allow you to set the thickness of each border & radius of each corner separately.
 
-        let cont_vis = ui_element::Visuals{
-            background: Color::from_rgb(60, 120, 180),
-            border: Color::from_rgb(180, 180, 190),
-            border_width: 1.,
-            rounded_corners: 0.,
-        };
+        let vis2 = ui_element::Visuals::new_custom(
+            Color::from_rgb(180, 120, 60),
+            Color::from_rgb(18, 12, 6),
+            [4., 1., 4., 1. ],
+            [2., 2., 2., 2.],
+        );
+
+        let hover_vis = ui_element::Visuals::new(
+            Color::from_rgb(160, 100, 40),
+            Color::from_rgb(18, 12, 6),
+            3.,
+            0.,
+        );
+
+        let cont_vis = ui_element::Visuals::new_custom(
+            Color::from_rgb(60, 120, 180),
+            Color::from_rgb(180, 180, 190),
+            [16., 8., 8., 8. ],
+            [12., 2., 2., 12.],
+        );
         
         // Note that the constructor now returns a Result. This is neccessary as the 'add' function used to add UI elements to containers can fail, thus failing the constructor.
 
@@ -53,7 +62,7 @@ impl DScene {
             .set_scale(28.)
             .to_owned()
             .to_element_builder(0, ctx)
-            .with_visuals(vis)
+            .with_visuals(vis2)
             .build();
             // Add the element to the box. This can fail, if ver_box were not an actual container 
             // or a container that requires a special method for adding, like e.g. GridBox.
@@ -63,6 +72,8 @@ impl DScene {
         let ver_box = ver_box
         .to_element_builder(0, ctx)
         .with_visuals(cont_vis)
+        // Using larger padding to accomodate our thick borders.
+        .with_padding((24., 16., 16., 16.))
         .build();
 
         // Another container we can use is GridBox. A GridBox needs to be initialized with a set height and width and cannot be extended.
@@ -121,6 +132,7 @@ impl DScene {
         let grid = grid
         .to_element_builder(0, ctx)
         .with_visuals(cont_vis)
+        .with_padding((24., 16., 16., 16.))
         .build();
 
 
@@ -153,7 +165,8 @@ impl  Scene for DScene {
         // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
 
         let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);        
-        canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
+        // Since we don't set the sampler to 'nearest', our corners will look more round, but the pixel-cow will look blurry.
+        //canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
 
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
         

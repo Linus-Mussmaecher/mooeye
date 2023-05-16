@@ -28,26 +28,27 @@ impl FScene {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Reusing the visuals from E.
 
-        let vis = ui_element::Visuals {
-            background: Color::from_rgb(180, 120, 60),
-            border: Color::from_rgb(18, 12, 6),
-            border_width: 1.,
-            rounded_corners: 0.,
-        };
+        
+        let vis = ui_element::Visuals::new(
+            Color::from_rgb(180, 120, 60),
+            Color::from_rgb(18, 12, 6),
+            1.,
+            0.,
+        );
 
-        let hover_vis = ui_element::Visuals {
-            background: Color::from_rgb(160, 100, 40),
-            border: Color::from_rgb(18, 12, 6),
-            border_width: 3.,
-            rounded_corners: 0.,
-        };
+        let hover_vis = ui_element::Visuals::new(
+            Color::from_rgb(160, 100, 40),
+            Color::from_rgb(18, 12, 6),
+            3.,
+            0.,
+        );
 
-        let cont_vis = ui_element::Visuals {
-            background: Color::from_rgb(60, 120, 180),
-            border: Color::from_rgb(180, 180, 190),
-            border_width: 1.,
-            rounded_corners: 0.,
-        };
+        let cont_vis = ui_element::Visuals::new(
+            Color::from_rgb(60, 120, 180),
+            Color::from_rgb(180, 180, 190),
+            1.,
+            0.,
+        );
 
         // A sprite can be loaded by specifying a path, just like an Image.
         // Additionaly, you need to inform the sprite of the grid size of its sheet and the duration each frame is displayed.

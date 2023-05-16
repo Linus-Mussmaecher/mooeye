@@ -29,11 +29,11 @@ impl CScene {
         .to_element_builder(1, ctx) 
         // We can now use the functions of UiElementBuilder to style and position our element.
         // First, we'll set the visuals using a Visuals struct.
-        .with_visuals(ui_element::Visuals {
-            background: Color::from_rgb(49, 53, 69),
-            border: Color::from_rgb(250, 246, 230),
-            border_width: 4., rounded_corners: 8. 
-        })
+        .with_visuals(ui_element::Visuals::new(
+            Color::from_rgb(49, 53, 69),
+            Color::from_rgb(250, 246, 230),
+            4.,8. 
+        ))
         // Additionally, you can add keycodes that make your element respond to key presses as it would respond to clicks
         .with_trigger_key(winit::event::VirtualKeyCode::A)
         // We can also set the alignment within the window...

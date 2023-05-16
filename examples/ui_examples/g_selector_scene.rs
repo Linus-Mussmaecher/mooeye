@@ -9,17 +9,20 @@ impl SelectorScene {
 
     pub fn new(ctx: &Context) -> Result<Self, GameError>{
 
-        let vis = ui_element::Visuals {
-            background: Color::from_rgb(49, 53, 69),
-            border: Color::from_rgb(250, 246, 230),
-            border_width: 2., rounded_corners: 4. 
-        };
+        
+        let vis = ui_element::Visuals::new(
+            Color::from_rgb(180, 120, 60),
+            Color::from_rgb(18, 12, 6),
+            1.,
+            0.,
+        );
 
-        let hover_vis = ui_element::Visuals {
-            background: Color::from_rgb(83, 96, 150),
-            border: Color::from_rgb(250, 246, 230),
-            border_width: 2., rounded_corners: 4. 
-        };
+        let hover_vis = ui_element::Visuals::new(
+            Color::from_rgb(160, 100, 40),
+            Color::from_rgb(18, 12, 6),
+            3.,
+            0.,
+        );
 
         let mut grid = containers::GridBox::new(3, 2);
 
