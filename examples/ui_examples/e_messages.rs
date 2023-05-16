@@ -6,7 +6,7 @@ use std::{
 use mooeye::{
     containers::grid_box::GridBox,
     scene_manager::{Scene, SceneSwitch},
-    ui_element::Transition,
+    ui_element::{Transition, UiContainer},
     UiMessage, *,
 };
 
@@ -138,9 +138,9 @@ impl EScene {
             .build();
 
         // We put the title, grid and back button together in a box.
-        gui_box.add(title)?;
-        gui_box.add(grid_box.to_element(30, ctx))?;
-        gui_box.add(back)?;
+        gui_box.add(title);
+        gui_box.add(grid_box.to_element(30, ctx));
+        gui_box.add(back);
 
         // Now we build the gui_box (note the technique of shadowing the variable)
         let gui_box = gui_box.to_element_builder(0, ctx)
@@ -201,7 +201,7 @@ impl EScene {
         // wrap one big box around everything so we can also add 'decorators' later
 
         let mut wrap_stack = containers::StackBox::new();
-        wrap_stack.add(gui_box)?;
+        wrap_stack.add(gui_box);
         let wrap_stack = wrap_stack.to_element_builder(100, ctx).as_fill().build();
 
         Ok(Self { gui: wrap_stack })

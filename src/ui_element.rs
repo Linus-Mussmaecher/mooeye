@@ -75,7 +75,9 @@ pub struct UiElement<T: Copy + Eq + Hash> {
 }
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
-    /// Creates a new UiElement containig the specified content and the specified ID. ID should be as unique as you require it.
+    /// Creates a new UiElement containig the specified content and the specified ID.
+    /// The element will be treated as a leaf node, even if its implements [UiContainer<T>].
+    /// ID should be as unique as you require it.
     /// Layout and visuals will be set to default values, hover_visuals is initialized as None.
     pub fn new<E: UiContent<T> + 'static>(id: u32, content: E) -> Self {
         Self {
@@ -95,31 +97,43 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Adds an element to this element (or its children), recursively searching until an element with a fitting ID is found.
     /// The element is discarded there is no container (as in: an elements whose [UiContent<T>::get_children]-function returns Some) child with fitting ID.
     pub fn add_element(&mut self, id: u32, element: UiElement<T>) -> Option<UiElement<T>> {
-        // early return of recursion: check if id is correct
-        if self.id == id && self.content.get_children().is_some() {
-            // if yes, attempt to add. On failure, print message in test/debug modes.
-            if self.content.add(element).is_err() && (cfg!(test) || cfg!(debug)){
-                println!("Attempting to add element to non-container element.")
-            };
-            return None;
-        }
+        match self.content.container_mut() {
+            Some(cont) => {
+                if self.id == id {
+                    cont.add(element);
+                    return None;
+                };
 
-        // recursivly search children
-        let mut element_option = Some(element);
-        if let Some(children) = self.content.get_children_mut() {
-            for child in children{
-                // check if element is still there
-                if let Some(element) = element_option{
-                    // yes: try children
-                    element_option = child.add_element(id, element);
-                } else {
-                    // no: an element with correct id has been found in this child, propagate none up the chain
-                    break;
+                let mut element_option = Some(element);
+
+                for child in cont.get_children_mut().iter_mut() {
+                    // check if element is still there
+                    if let Some(element) = element_option {
+                        // yes: try children
+                        element_option = child.add_element(id, element);
+                    } else {
+                        // no: an element with correct id has been found in this child, propagate none up the chain
+                        break;
+                    }
                 }
-            }
-        }
 
-        element_option
+                element_option
+            }
+            None => Some(element),
+        }
+    }
+
+    /// Removes all elements with the given ID from this element and (recursively) all its children.
+    pub fn remove_elements(&mut self, id: u32){
+        match self.content.container_mut() {
+            Some(cont) => {
+                cont.remove_id(id);
+                for child in cont.get_children_mut(){
+                    child.remove_elements(id);
+                }
+            },
+            None => {},
+        }
     }
 
     /// Returns this elements (not neccessarily unique) ID within this UI. This ID is used to indentify the source of intern messages.
@@ -141,7 +155,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         ctx: &ggez::Context,
         extern_messages: impl Into<Option<HashSet<UiMessage<T>>>>,
     ) -> HashSet<UiMessage<T>> {
-
         // Message handling
 
         let intern_messages = self.collect_messages(ctx);
@@ -156,7 +169,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         intern_messages
     }
 
-    pub(crate) fn expired(&self) -> bool{
+    pub(crate) fn expired(&self) -> bool {
         self.content.expired()
     }
 
@@ -212,8 +225,8 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             res.insert(UiMessage::Triggered(self.id));
         }
 
-        if let Some(children) = self.content.get_children() {
-            for child in children {
+        if let Some(cont) = self.content.container() {
+            for child in cont.get_children() {
                 res.extend(child.collect_messages(ctx));
             }
         }
@@ -227,18 +240,15 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         ctx: &Context,
         messages: &HashSet<UiMessage<T>>,
     ) -> GameResult {
-
         (self.message_handler)(messages, self.layout, &mut self.transitions);
 
-        if let Some(children) = self.content.get_children_mut() {
+        if let Some(cont) = self.content.container_mut() {
             // actual distribution
-            for child in children.iter_mut() {
+            for child in cont.get_children_mut() {
                 child.distribute_messages(ctx, messages)?;
             }
             // remove expired children
-            if self.content.remove_expired().is_err() && (cfg!(test) || cfg!(debug)){
-                println!("Tried to remove elements from content without children.");
-            };
+            cont.remove_expired();
         }
 
         Ok(())
@@ -405,17 +415,22 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Any chache is considered invalid if there is currently an active transition that is actively changing the layout
     /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
     fn cache_valid(&self, target: Rect) -> bool {
-        self.content.get_children().unwrap_or(&[]).iter().fold(
-            match self.draw_cache {
-                DrawCache::Invalid => false,
-                DrawCache::Valid {
-                    outer: _,
-                    inner: _,
-                    target: cache_target,
-                } => cache_target == target,
-            } && (self.transitions.is_empty() || matches!(self.transitions[0].new_layout, None)),
-            |valid, child| valid && child.cache_valid(target),
-        )
+        let init = match self.draw_cache {
+            DrawCache::Invalid => false,
+            DrawCache::Valid {
+                outer: _,
+                inner: _,
+                target: cache_target,
+            } => cache_target == target,
+        } && (self.transitions.is_empty()
+            || matches!(self.transitions[0].new_layout, None));
+        match self.content.container() {
+            Some(cont) => cont
+                .get_children()
+                .iter()
+                .fold(init, |valid, child| valid && child.cache_valid(target)),
+            None => init,
+        }
     }
 
     /// Returns the minimum and maximum width this element this element can have. Calculated from adding left and right padding to the size-data.
@@ -424,7 +439,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         (
             // get min width by taking minimum of inner min width, clamping it within the bounds given by the layout and adding padding
             self.content
-                .content_width_range()
+                .container()
+                .map(|cont| cont.content_width_range())
+                .unwrap_or((0., f32::INFINITY))
                 .0
                 .clamp(layout.x_size.min(), layout.x_size.max())
                 + layout.padding.1
@@ -440,7 +457,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         (
             // get min width by taking minimum of inner min width, clamping it within the bounds given by the layout and adding padding
             self.content
-                .content_height_range()
+                .container()
+                .map(|cont| cont.content_height_range())
+                .unwrap_or((0., f32::INFINITY))
                 .0
                 .clamp(layout.y_size.min(), layout.y_size.max())
                 + layout.padding.0
@@ -453,8 +472,8 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Returns the minimum size required by the content of this element.
     fn content_min(&self) -> Vec2 {
         Vec2 {
-            x: self.content.content_width_range().0,
-            y: self.content.content_height_range().0,
+            x: self.content.container().map(|cont| cont.content_width_range().0).unwrap_or_default(),
+            y: self.content.container().map(|cont| cont.content_height_range().0).unwrap_or_default(),
         }
     }
 
@@ -548,9 +567,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 /// ### Basic elements
 /// For basic elements, most default implementations will suffice, and only [UiContent::draw_content] needs to be implemented.
 /// If your element has special default layout requirements, you can overwrite the [UiContent::to_element_builder] constructor function.
-/// ### Containers
-/// For elements that contain other elements, you additionaly need to provide access to all children with the [UiContent::get_children] and [UiContent::get_children_mut] methods.
-/// Overriding the [UiContent::content_width_range] and [UiContent::content_height_range] functions is neccessary for your container to respect the layout bounds of its children.
 pub trait UiContent<T: Copy + Eq + Hash> {
     /// Wraps the content into a [UiElementBuilder] and returns the builder.
     /// Use ID 0 iff you do not want this element to send any messages by itself.
@@ -571,6 +587,30 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         self.to_element_builder(id, ctx).build()
     }
 
+    /// Takes in a rectangle target, a canvas, a context and draws the contents (not the border etc.) to that rectangle within that canvas using that context.
+    /// Normally, this will only be called from within private functions, when the cache has been modified appropiately and only use the inner rectangle of the draw cache as content_bounds.
+    /// Do not call otherwise.
+    fn draw_content(&mut self, ctx: &mut Context, canvas: &mut Canvas, param: UiDrawParam);
+
+    /// Returns a bool value. Returning true indicates to any container this element is a child of that this element wishes to be removed from the container (and discarded).
+    fn expired(&self) -> bool {
+        false
+    }
+
+    /// Returns a reference to Self (cast to a container) if this element is also a container, None otherwise.
+    /// Should be overwritten by all containers.
+    fn container(&self) -> Option<&dyn UiContainer<T>> {
+        None
+    }
+
+    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>>{
+        None
+    }
+}
+
+/// This trait marks a special type of UiContent that contains other UiElements.
+/// Remember to overwrite the [UiContent<T>::container] function of [UiContent<T>].
+pub trait UiContainer<T: Copy + Eq + Hash>: UiContent<T> {
     /// Returns any dynamic width restrictions induced by the content, not the layout. Usually, this refers to the layout of child elements of containers.
     /// Default implementation returns (0., infinty) (no restrictions).
     fn content_width_range(&self) -> (f32, f32) {
@@ -583,40 +623,18 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         (0., f32::INFINITY)
     }
 
-    /// Takes in a rectangle target, a canvas, a context and draws the contents (not the border etc.) to that rectangle within that canvas using that context.
-    /// Normally, this will only be called from within private functions, when the cache has been modified appropiately and only use the inner rectangle of the draw cache as content_bounds.
-    /// Do not call otherwise.
-    fn draw_content(&mut self, ctx: &mut Context, canvas: &mut Canvas, param: UiDrawParam);
-
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.
-    fn get_children(&self) -> Option<&[UiElement<T>]> {
-        None
-    }
+    fn get_children(&self) -> &[UiElement<T>];
 
     /// Returns mutatble access to this elements children, if there are any. Returns None if this is a leaf node.
-    fn get_children_mut(&mut self) -> Option<&mut [UiElement<T>]> {
-        None
-    }
+    fn get_children_mut(&mut self) -> &mut [UiElement<T>];
 
     /// Attempts to add a UiElement to this elements children.
-    /// Returns Ok if the operation succeeds.
-    /// Returns an error if this is a leaf node that cannot have any children.
-    fn add(&mut self, _element: UiElement<T>) -> GameResult {
-        Err(ggez::GameError::CustomError(
-            "This element does not support children.".to_owned(),
-        ))
-    }
+    fn add(&mut self, _element: UiElement<T>);
 
-    /// Removes all elements from this container whose [UiContent<T>::expired]-function returns true.
-    /// Returns an error if this is a leaf node that cannot have any children.
-    fn remove_expired(&mut self) -> GameResult {
-        Err(ggez::GameError::CustomError(
-            "This element does not support children.".to_owned(),
-        ))
-    }
+    /// Removes all elements from this container (and its children) whose [UiContent<T>::expired]-function returns true.
+    fn remove_expired(&mut self);
 
-    /// Returns a bool value. Returning true indicates to any container this element is a child of that this element wishes to be removed from the container (and discarded).
-    fn expired(&self) -> bool{
-        false
-    }
+    // Removes all elements from this container (and its children) whose ids match.
+    fn remove_id(&mut self, id: u32);
 }

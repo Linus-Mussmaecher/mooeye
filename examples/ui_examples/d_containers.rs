@@ -1,5 +1,5 @@
 use ggez::{*, graphics::Color};
-use mooeye::{*, scene_manager::Scene, containers::StackBox};
+use mooeye::{*, scene_manager::Scene, containers::StackBox, ui_element::UiContainer};
 
 
 // # Containers
@@ -57,7 +57,7 @@ impl DScene {
             .build();
             // Add the element to the box. This can fail, if ver_box were not an actual container 
             // or a container that requires a special method for adding, like e.g. GridBox.
-            ver_box.add(element)?;
+            ver_box.add(element);
         }
         // After adding all children, we can convert to a UiElement and style the box like we would style an other element. The usual pattern here is to shadow the variable to avoid use-after-move.
         let ver_box = ver_box
@@ -98,7 +98,7 @@ impl DScene {
         // This time, we'll enhance our back button a bit by using an icon that is displayed over the top left corner.
         // To achieve this, we'll use a StackBox.
         let mut stack = StackBox::new();
-        stack.add(back)?;
+        stack.add(back);
         // The add_top function adds something to the top of a stack box. Creating and adding an element can be done inline.
         stack.add_top(graphics::Image::from_path(ctx, "/moo.png")?
         .to_element_builder(0, ctx)
@@ -127,8 +127,8 @@ impl DScene {
         // The horizontal box is exactly the same as the vertical box except for orientation.
         // We will use a horizontal box to contain the boxes created so far.
         let mut hor_box = containers::HorizontalBox::new();
-        hor_box.add(ver_box)?;
-        hor_box.add(grid)?;
+        hor_box.add(ver_box);
+        hor_box.add(grid);
         let hor_box = hor_box.to_element(0, ctx);
 
         Ok(Self{gui: hor_box})

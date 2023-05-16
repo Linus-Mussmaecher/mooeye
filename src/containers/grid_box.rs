@@ -6,7 +6,7 @@ use tinyvec::TinyVec;
 const VECSIZE: usize = 32;
 
 use crate::{
-    ui_element::{Size, UiElementBuilder},
+    ui_element::{Size, UiContainer, UiElementBuilder},
     UiContent, UiElement,
 };
 
@@ -241,6 +241,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
             })
             .collect()
     }
+
 }
 
 impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
@@ -256,47 +257,6 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
             Size::Shrink(0., f32::INFINITY),
             Size::Shrink(0., f32::INFINITY),
         )
-    }
-
-    fn content_width_range(&self) -> (f32, f32) {
-        self.get_column_ranges().iter().fold(
-            (
-                (0.max(self.cols - 1)) as f32 * self.horizontal_spacing,
-                (0.max(self.cols - 1)) as f32 * self.horizontal_spacing,
-            ),
-            |old, range| (old.0 + range.0, old.1 + range.1),
-        )
-    }
-
-    fn content_height_range(&self) -> (f32, f32) {
-        self.get_row_ranges().iter().fold(
-            (
-                (0.max(self.rows - 1)) as f32 * self.vertical_spacing,
-                (0.max(self.rows - 1)) as f32 * self.vertical_spacing,
-            ),
-            |old, range| (old.0 + range.0, old.1 + range.1),
-        )
-    }
-
-    fn get_children(&self) -> Option<&[UiElement<T>]> {
-        Some(&self.children)
-    }
-
-    fn get_children_mut(&mut self) -> Option<&mut [UiElement<T>]> {
-        Some(&mut self.children)
-    }
-
-    fn add(&mut self, _element: UiElement<T>) -> GameResult {
-        Err(ggez::GameError::CustomError("This is a GridBox. Use add(element, x, y) for adding.".to_owned()))
-    }
-
-    fn remove_expired(&mut self) -> GameResult {
-        for i in 0..self.children.len(){
-            if self.children[i].expired() {
-                self.children[i] = UiElement::new(0, ());
-            }
-        }
-        Ok(())
     }
 
     fn draw_content(
@@ -341,4 +301,64 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
             );
         }
     }
+    
+    fn container(&self) -> Option<&dyn UiContainer<T>> {
+        Some(self)
+    }
+
+    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
+        Some(self)
+    }
+}
+
+impl<T: Copy + Eq + Hash> UiContainer<T> for GridBox<T> {
+    fn content_width_range(&self) -> (f32, f32) {
+        self.get_column_ranges().iter().fold(
+            (
+                (0.max(self.cols - 1)) as f32 * self.horizontal_spacing,
+                (0.max(self.cols - 1)) as f32 * self.horizontal_spacing,
+            ),
+            |old, range| (old.0 + range.0, old.1 + range.1),
+        )
+    }
+
+    fn content_height_range(&self) -> (f32, f32) {
+        self.get_row_ranges().iter().fold(
+            (
+                (0.max(self.rows - 1)) as f32 * self.vertical_spacing,
+                (0.max(self.rows - 1)) as f32 * self.vertical_spacing,
+            ),
+            |old, range| (old.0 + range.0, old.1 + range.1),
+        )
+    }
+
+    fn get_children(&self) -> &[UiElement<T>] {
+        &self.children
+    }
+
+    fn get_children_mut(&mut self) -> &mut [UiElement<T>] {
+        &mut self.children
+    }
+
+    fn add(&mut self, _element: UiElement<T>){
+        panic!("You tried to add an element to a grid box without using an index. This may happen because you tried to use the add-to-id functionality from live adding. Don't do this with grid boxes.")
+    }
+
+    fn remove_expired(&mut self){
+        for i in 0..self.children.len() {
+            if self.children[i].expired() {
+                self.children[i] = UiElement::new(0, ());
+            }
+        }
+    }
+
+    fn remove_id(&mut self, id: u32) {
+        for i in 0..self.children.len() {
+            if self.children[i].get_id() == id {
+                self.children[i] = UiElement::new(0, ());
+            }
+        }
+    }
+
+    
 }

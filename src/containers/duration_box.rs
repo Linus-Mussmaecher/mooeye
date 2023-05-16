@@ -1,6 +1,4 @@
-use ggez::GameResult;
-
-use crate::{UiContent, UiElement};
+use crate::{UiContent, UiElement, ui_element::UiContainer};
 use std::{hash::Hash, time::Duration, slice};
 
 /// A ox that will display a single elements and serves as a wrapper to that element.
@@ -34,34 +32,6 @@ impl<T: Copy + Eq + Hash> UiContent<T> for DurationBox<T> {
             .with_padding((0., 0., 0., 0.))
     }
 
-    fn content_width_range(&self) -> (f32, f32) {
-        self.child.width_range()
-    }
-
-    fn content_height_range(&self) -> (f32, f32) {
-        self.child.height_range()
-    }
-
-    fn get_children(&self) -> Option<&[UiElement<T>]> {
-        Some(slice::from_ref(&self.child))
-    }
-
-    fn get_children_mut(&mut self) -> Option<&mut [UiElement<T>]> {
-        Some(slice::from_mut(&mut self.child))
-    }
-
-    fn add(&mut self, element: UiElement<T>) -> GameResult {
-        self.child = element;
-        Ok(())
-    }
-
-    fn remove_expired(&mut self) -> GameResult {
-        if self.child.expired() {
-            self.child = UiElement::new(0, ());
-        }
-        Ok(())
-    }
-
     fn draw_content(
         &mut self,
         ctx: &mut ggez::Context,
@@ -75,4 +45,47 @@ impl<T: Copy + Eq + Hash> UiContent<T> for DurationBox<T> {
     fn expired(&self) -> bool {
         self.duration.is_zero()
     }
+
+    fn container(&self) -> Option<&dyn UiContainer<T>> {
+        Some(self)
+    }
+
+    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
+        Some(self)
+    }
+}
+impl<T: Copy + Eq + Hash> UiContainer<T> for DurationBox<T>{
+    fn content_width_range(&self) -> (f32, f32) {
+        self.child.width_range()
+    }
+
+    fn content_height_range(&self) -> (f32, f32) {
+        self.child.height_range()
+    }
+
+    fn get_children(&self) -> &[UiElement<T>] {
+        slice::from_ref(&self.child)
+    }
+
+    fn get_children_mut(&mut self) -> &mut [UiElement<T>] {
+        slice::from_mut(&mut self.child)
+    }
+
+    fn add(&mut self, element: UiElement<T>){
+        self.child = element;
+    }
+
+    fn remove_expired(&mut self){
+        if self.child.expired() {
+            self.child = UiElement::new(0, ());
+        }
+    }
+
+    fn remove_id(&mut self, id: u32) {
+        if self.child.get_id() == id {
+            self.child = UiElement::new(0, ());
+        }
+    }
+
+    
 }

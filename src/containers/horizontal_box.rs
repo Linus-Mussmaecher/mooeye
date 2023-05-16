@@ -1,7 +1,10 @@
-use ggez::{graphics::Rect, GameResult};
+use ggez::{graphics::Rect};
 use std::hash::Hash;
 
-use crate::{ui_element::Size, UiContent, UiElement};
+use crate::{
+    ui_element::{Size, UiContainer},
+    UiContent, UiElement,
+};
 
 /// A horizontal box that will group elements from left to right. Stores elements in a vector that determines order of elements within the box.
 /// Elements will adhere to their own x and y alignment within the rectangle provided to them by this box.
@@ -12,97 +15,8 @@ pub struct HorizontalBox<T: Copy + Eq + Hash> {
     pub spacing: f32,
 }
 
-impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
-    fn to_element_builder(
-        self,
-        id: u32,
-        _ctx: &ggez::Context,
-    ) -> crate::ui_element::UiElementBuilder<T>
-    where
-        Self: Sized + 'static,
-    {
-        crate::ui_element::UiElementBuilder::new(id, self).with_size(
-            Size::Shrink(0., f32::INFINITY),
-            Size::Shrink(0., f32::INFINITY),
-        )
-    }
-
-    fn content_width_range(&self) -> (f32, f32) {
-        // sum of all min widths and sum of all max widths, as elements are stacked in y direction. Add spacing.
-
-        self.children.iter().fold(
-            (
-                (0.max(self.children.len() as i32 - 1)) as f32 * self.spacing,
-                (0.max(self.children.len() as i32 - 1)) as f32 * self.spacing,
-            ),
-            |last, element| {
-                (
-                    last.0 + element.width_range().0,
-                    last.1 + element.width_range().1,
-                )
-            },
-        )
-    }
-
-    fn content_height_range(&self) -> (f32, f32) {
-        // maximum of all min widths and minimum of all max widths, as all children are layed out in parallel x direction
-
-        self.children
-            .iter()
-            .fold((f32::EPSILON, f32::INFINITY), |last, element| {
-                (
-                    last.0.max(element.height_range().0),
-                    last.1.min(element.height_range().1),
-                )
-            })
-    }
-
-    fn get_children(&self) -> Option<&[UiElement<T>]> {
-        Some(&self.children)
-    }
-
-    fn get_children_mut(&mut self) -> Option<&mut [UiElement<T>]> {
-        Some(&mut self.children)
-    }
-
-    fn add(&mut self, element: UiElement<T>) -> GameResult {
-        self.children.push(element);
-        Ok(())
-    }
-
-    fn remove_expired(&mut self) -> GameResult {
-        self.children.retain(|child| !child.expired());
-        Ok(())
-    }
-
-    fn draw_content(
-        &mut self,
-        ctx: &mut ggez::Context,
-        canvas: &mut ggez::graphics::Canvas,
-        param: crate::ui_element::UiDrawParam,
-    ) {
-        // get calculate vector of dynamically allocated total heights for each element
-
-        let dyn_width = self.get_element_widths(param.target.w);
-        let mut x = param.target.x;
-        // draw subelements
-        for (element, ele_dyn_width) in self.children.iter_mut().zip(dyn_width) {
-            element.draw_to_rectangle(
-                ctx,
-                canvas,
-                param.target(Rect {
-                    x: x,
-                    y: param.target.y,
-                    w: ele_dyn_width,
-                    h: param.target.h,
-                }),
-            );
-            x += ele_dyn_width + self.spacing;
-        }
-    }
-}
-
 impl<T: Copy + Eq + Hash> HorizontalBox<T> {
+
     /// Returns a new HorizontalBox with a default spacing of 5 pixels.
     pub fn new() -> Self {
         Self {
@@ -183,3 +97,111 @@ impl<T: Copy + Eq + Hash> HorizontalBox<T> {
         }
     }
 }
+
+
+impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
+    fn to_element_builder(
+        self,
+        id: u32,
+        _ctx: &ggez::Context,
+    ) -> crate::ui_element::UiElementBuilder<T>
+    where
+        Self: Sized + 'static,
+    {
+        crate::ui_element::UiElementBuilder::new(id, self).with_size(
+            Size::Shrink(0., f32::INFINITY),
+            Size::Shrink(0., f32::INFINITY),
+        )
+    }
+
+    
+
+    fn draw_content(
+        &mut self,
+        ctx: &mut ggez::Context,
+        canvas: &mut ggez::graphics::Canvas,
+        param: crate::ui_element::UiDrawParam,
+    ) {
+        // get calculate vector of dynamically allocated total heights for each element
+
+        let dyn_width = self.get_element_widths(param.target.w);
+        let mut x = param.target.x;
+        // draw subelements
+        for (element, ele_dyn_width) in self.children.iter_mut().zip(dyn_width) {
+            element.draw_to_rectangle(
+                ctx,
+                canvas,
+                param.target(Rect {
+                    x: x,
+                    y: param.target.y,
+                    w: ele_dyn_width,
+                    h: param.target.h,
+                }),
+            );
+            x += ele_dyn_width + self.spacing;
+        }
+    }
+
+    fn container(&self) -> Option<&dyn UiContainer<T>> {
+        Some(self)
+    }
+
+    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
+        Some(self)
+    }
+}
+impl<T: Copy + Hash + Eq> UiContainer<T> for HorizontalBox<T> {
+
+    fn content_width_range(&self) -> (f32, f32) {
+        // sum of all min widths and sum of all max widths, as elements are stacked in y direction. Add spacing.
+
+        self.children.iter().fold(
+            (
+                (0.max(self.children.len() as i32 - 1)) as f32 * self.spacing,
+                (0.max(self.children.len() as i32 - 1)) as f32 * self.spacing,
+            ),
+            |last, element| {
+                (
+                    last.0 + element.width_range().0,
+                    last.1 + element.width_range().1,
+                )
+            },
+        )
+    }
+
+    fn content_height_range(&self) -> (f32, f32) {
+        // maximum of all min widths and minimum of all max widths, as all children are layed out in parallel x direction
+
+        self.children
+            .iter()
+            .fold((f32::EPSILON, f32::INFINITY), |last, element| {
+                (
+                    last.0.max(element.height_range().0),
+                    last.1.min(element.height_range().1),
+                )
+            })
+    }
+
+    fn get_children(&self) -> &[UiElement<T>] {
+        &self.children
+    }
+
+    fn get_children_mut(&mut self) -> &mut [UiElement<T>]{
+        &mut self.children
+    }
+
+    fn add(&mut self, element: UiElement<T>) {
+        self.children.push(element);
+    }
+
+    fn remove_expired(&mut self){
+        self.children.retain(|child| !child.expired());
+    }
+
+    fn remove_id(&mut self, id: u32) {
+        self.children.retain(|child| child.get_id() != id);
+    }
+
+    
+}
+

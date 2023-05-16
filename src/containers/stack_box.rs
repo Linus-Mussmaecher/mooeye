@@ -1,22 +1,20 @@
-
 use ggez::GameResult;
 
-use crate::{UiElement, UiContent};
+use crate::{ui_element::UiContainer, UiContent, UiElement};
 use std::hash::Hash;
-
 
 /// A stack box that will display elements stacked on top of one another.
 /// Stores elements in a vector that determines order of elements within the box.
 /// Elements will adhere to their own x and y alignment within the rectangle provided to them by this box.
 /// Every child element will receive the same rectangle.
-pub struct StackBox<T: Copy + Eq + Hash>{
+pub struct StackBox<T: Copy + Eq + Hash> {
     /// Contains the UiElements within this box in the right order (front to back).
     children: Vec<UiElement<T>>,
 }
 
 impl<T: Copy + Eq + Hash> StackBox<T> {
-    pub fn new() -> Self{
-        Self{
+    pub fn new() -> Self {
+        Self {
             children: Vec::new(),
         }
     }
@@ -29,8 +27,6 @@ impl<T: Copy + Eq + Hash> StackBox<T> {
 }
 
 impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
-    
-
     fn to_element_builder(
         self,
         id: u32,
@@ -40,12 +36,31 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
         Self: Sized + 'static,
     {
         crate::ui_element::UiElementBuilder::new(id, self)
-        .as_shrink()
-        .with_padding((0., 0., 0., 0.))
+            .as_shrink()
+            .with_padding((0., 0., 0., 0.))
+    }
+    fn draw_content(
+        &mut self,
+        ctx: &mut ggez::Context,
+        canvas: &mut ggez::graphics::Canvas,
+        param: crate::ui_element::UiDrawParam,
+    ) {
+        for child in self.children.iter_mut().rev() {
+            child.draw_to_rectangle(ctx, canvas, param);
+        }
     }
 
+    fn container(&self) -> Option<&dyn UiContainer<T>> {
+        Some(self)
+    }
+
+    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
+        Some(self)
+    }
+}
+
+impl<T: Copy + Eq + Hash> UiContainer<T> for StackBox<T> {
     fn content_width_range(&self) -> (f32, f32) {
-        
         // maximum of all min widths and minimum of all max widths, as all elements are layed out in parallel x direction
 
         self.children
@@ -59,7 +74,6 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
     }
 
     fn content_height_range(&self) -> (f32, f32) {
-        
         // maximum of all min heights and minimum of all max heights, as all elements are layed out in parallel y direction
 
         self.children
@@ -72,32 +86,26 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
             })
     }
 
-    fn get_children(&self) -> Option<&[UiElement<T>]> {
-        Some(&self.children)
+    fn get_children(&self) -> &[UiElement<T>] {
+        &self.children
     }
 
-    fn get_children_mut(&mut self) -> Option<&mut [UiElement<T>]> {
-        Some(&mut self.children)
+    fn get_children_mut(&mut self) -> &mut [UiElement<T>] {
+        &mut self.children
     }
 
-    fn add(&mut self, element: UiElement<T>) -> GameResult {
+    fn add(&mut self, element: UiElement<T>) {
         self.children.push(element);
-        Ok(())
     }
 
-    fn remove_expired(&mut self) -> GameResult {
+    fn remove_expired(&mut self) {
         self.children.retain(|child| !child.expired());
-        Ok(())
     }
 
-    fn draw_content(
-        &mut self,
-        ctx: &mut ggez::Context,
-        canvas: &mut ggez::graphics::Canvas,
-        param: crate::ui_element::UiDrawParam,
-    ) {
-        for child in self.children.iter_mut().rev() {
-            child.draw_to_rectangle(ctx, canvas, param);
-        }
+    
+    fn remove_id(&mut self, id: u32) {
+        self.children.retain(|child| child.get_id() != id);
     }
+
+    
 }
