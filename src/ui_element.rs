@@ -597,19 +597,23 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         false
     }
 
-    /// Returns a reference to Self (cast to a container) if this element is also a container, None otherwise.
-    /// Should be overwritten by all containers.
+    /// Returns an immutable reference to Self (cast to a container) if this element also implements [UiContainer<T>].
+    /// If it does not, returns None.
+    /// Remember to overwrite this function for all of your custom containers!
     fn container(&self) -> Option<&dyn UiContainer<T>> {
         None
     }
 
+    /// Returns a mutable reference to Self (cast to a container) if this element also implements [UiContainer<T>].
+    /// If it does not, returns None.
+    /// Remember to overwrite this function for all of your custom containers!
     fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>>{
         None
     }
 }
 
 /// This trait marks a special type of UiContent that contains other UiElements.
-/// Remember to overwrite the [UiContent<T>::container] function of [UiContent<T>].
+/// Remember to overwrite the [UiContent<T>::container] and [UiContent<T>::container_mut] functions of [UiContent<T>].
 pub trait UiContainer<T: Copy + Eq + Hash>: UiContent<T> {
     /// Returns any dynamic width restrictions induced by the content, not the layout. Usually, this refers to the layout of child elements of containers.
     /// Default implementation returns (0., infinty) (no restrictions).
@@ -632,9 +636,9 @@ pub trait UiContainer<T: Copy + Eq + Hash>: UiContent<T> {
     /// Attempts to add a UiElement to this elements children.
     fn add(&mut self, _element: UiElement<T>);
 
-    /// Removes all elements from this container (and its children) whose [UiContent<T>::expired]-function returns true.
+    /// Removes all elements from this container whose [UiContent<T>::expired]-function returns true.
     fn remove_expired(&mut self);
 
-    // Removes all elements from this container (and its children) whose ids match.
+    /// Removes all elements from this container whose ids match.
     fn remove_id(&mut self, id: u32);
 }
