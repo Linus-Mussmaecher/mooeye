@@ -324,15 +324,15 @@ impl SpritePool {
         &self,
         path: impl AsRef<Path>,
         frame_time: Duration,
-    ) -> Result<Sprite, GameError> {
+    ) -> Sprite {
         let sprite = self
             .sprites
             .get(&path.as_ref().to_string_lossy().to_string())
             .expect(&format!("[ERROR/Mooeye] Could not find sprite {}.", path.as_ref().to_string_lossy().to_string()));
-        Ok(Sprite {
+        Sprite {
             frame_time,
             ..sprite.clone()
-        })
+        }
     }
 
     /// Initialies a sprite from the sprite pool.
