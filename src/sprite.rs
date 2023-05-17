@@ -316,6 +316,28 @@ impl SpritePool {
     /// Initialies a sprite from the sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [sprite::Sprite].
+    /// If the sprite (path) is not yet contained in the pool, this panics.
+    /// If you want to return an error, use [init_sprite] instead.
+    /// For lazy initalization, use [init_sprite_lazy] instead.
+    /// See [SpritePool] for rules related to key assignment.
+    pub fn init_sprite_unchecked(
+        &self,
+        path: impl AsRef<Path>,
+        frame_time: Duration,
+    ) -> Result<Sprite, GameError> {
+        let sprite = self
+            .sprites
+            .get(&path.as_ref().to_string_lossy().to_string())
+            .expect(&format!("[ERROR/Mooeye] Could not find sprite {}.", path.as_ref().to_string_lossy().to_string()));
+        Ok(Sprite {
+            frame_time,
+            ..sprite.clone()
+        })
+    }
+
+    /// Initialies a sprite from the sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// See [graphics::Image] and [sprite::Sprite].
     /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
     /// If this also fails, an error is returned.
     /// See [SpritePool] for rules related to key assignment.
