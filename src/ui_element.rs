@@ -540,7 +540,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                     canvas,
                     param
                         .target(Rect::new(x, y, tt_size.0, tt_size.1))
-                        .z_level(1),
+                        .z_level(param.param.z + 1),
                 );
             }
         }
