@@ -178,14 +178,14 @@ impl Layout {
         // calculate inner positions independently. Adding padding does not work, as w/h might have changed as a result of ration preservation
 
         let x = x_out + match self.x_alignment {
-            Alignment::Min => self.padding.1,
-            Alignment::Center => (w_out + self.padding.1 - self.padding.1 - w)/2.,
+            Alignment::Min => self.padding.3,
+            Alignment::Center => (w_out + self.padding.3 - self.padding.1 - w)/2.,
             Alignment::Max => w_out - w - self.padding.1,
         };
         let y = y_out + match self.y_alignment {
-            Alignment::Min => self.padding.1,
-            Alignment::Center => (h_out + self.padding.1 - self.padding.3 - h)/2.,
-            Alignment::Max => h_out - h - self.padding.3,
+            Alignment::Min => self.padding.0,
+            Alignment::Center => (h_out + self.padding.0 - self.padding.2 - h)/2.,
+            Alignment::Max => h_out - h - self.padding.2,
         };
 
         (Rect::new(x_out, y_out, w_out, h_out), Rect::new(x, y, w, h))
