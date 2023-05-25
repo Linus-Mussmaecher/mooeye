@@ -25,6 +25,14 @@ impl<T: Copy + Eq + Hash> HorizontalBox<T> {
         }
     }
 
+    /// Returns a new HorizontalBox with the required spacing.
+    pub fn new_spaced(spacing: f32) -> Self{
+        Self{
+            children: Vec::new(),
+            spacing
+        }
+    }
+
     /// Requires an amount of height to _dynamically_ allocate, aka all height that is provided but not taken up by padding.
     /// Returns a vector of the same size as the number of elements in the box, containing the height of the rectangle that can be passed to each child element for drawing.
     /// Respects the size types of the child elements.
