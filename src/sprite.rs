@@ -22,8 +22,8 @@ pub struct Sprite {
     w: u32,
     /// Height of one sprite in the underlying sprite sheet.
     h: u32,
-    /// The underlying sprite sheet.
-    spritesheet: Image,
+    /// The underlying sprite sheet. Is an option to allow a default.
+    spritesheet: Option<Image>,
 
     /// The target time to spend each frame.
     frame_time: Duration,
@@ -44,7 +44,7 @@ impl Sprite {
             frame_time,
             w,
             h,
-            spritesheet,
+            spritesheet: Some(spritesheet),
             current_frame_time: Duration::ZERO,
             current_frame: 0,
             current_variant: 0,
@@ -65,7 +65,7 @@ impl Sprite {
             frame_time,
             w,
             h,
-            spritesheet: Image::from_path(ctx, path)?,
+            spritesheet: Some(Image::from_path(ctx, path)?),
             current_frame_time: Duration::ZERO,
             current_frame: 0,
             current_variant: 0,
@@ -126,7 +126,7 @@ impl Sprite {
             frame_time,
             w,
             h,
-            spritesheet: Image::from_path(ctx, path)?,
+            spritesheet: Some(Image::from_path(ctx, path)?),
             current_frame_time: Duration::ZERO,
             current_frame: 0,
             current_variant: 0,
@@ -135,7 +135,7 @@ impl Sprite {
 
     /// Sets the variant this sprite is currently displaying. Numbers that are too large to represent a valid variant will wrap around.
     pub fn set_variant(&mut self, variant: u32) {
-        self.current_variant = variant % (self.spritesheet.height() / self.h);
+        self.current_variant = variant % (self.spritesheet.as_ref().map(|img| img.height()).unwrap_or_default() / self.h);
         self.current_frame_time = Duration::ZERO;
         self.current_frame = 0;
     }
@@ -153,12 +153,12 @@ impl Sprite {
         self.frame_time
     }
 
-    pub fn set_frame_time(&mut self, frame_time: Duration){
+    pub fn set_frame_time(&mut self, frame_time: Duration) {
         self.frame_time = frame_time;
     }
 
     pub fn get_cycle_time(&self) -> Duration {
-        self.frame_time * self.spritesheet.width() / self.w
+        self.frame_time * self.spritesheet.as_ref().map(|img| img.width()).unwrap_or_default() / self.w
     }
 
     /// Draws this sprite as given by the paramters, advancing the displayed frame as needed.
@@ -171,7 +171,7 @@ impl Sprite {
         self.current_frame_time += ctx.time.delta();
         while self.current_frame_time >= self.frame_time && !self.frame_time.is_zero() {
             self.current_frame_time -= self.frame_time;
-            self.current_frame = (self.current_frame + 1) % (self.spritesheet.width() / self.w);
+            self.current_frame = (self.current_frame + 1) % (self.spritesheet.as_ref().map(|img| img.width()).unwrap_or_default() / self.w);
         }
 
         self.draw(canvas, param);
@@ -180,15 +180,17 @@ impl Sprite {
 
 impl Drawable for Sprite {
     fn draw(&self, canvas: &mut graphics::Canvas, param: impl Into<graphics::DrawParam>) {
-        self.spritesheet.draw(
+        if let Some(spritesheet) = &self.spritesheet{
+        spritesheet.draw(
             canvas,
             (param.into() as graphics::DrawParam).src(Rect::new(
-                (self.w * self.current_frame) as f32 / self.spritesheet.width() as f32,
-                (self.h * self.current_variant) as f32 / self.spritesheet.height() as f32,
-                self.w as f32 / self.spritesheet.width() as f32,
-                self.h as f32 / self.spritesheet.height() as f32,
+                (self.w * self.current_frame) as f32 / spritesheet.width() as f32,
+                (self.h * self.current_variant) as f32 / spritesheet.height() as f32,
+                self.w as f32 / spritesheet.width() as f32,
+                self.h as f32 / spritesheet.height() as f32,
             )),
         );
+    }
     }
 
     fn dimensions(
@@ -229,6 +231,20 @@ impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
                 param.target.h / self.h as f32,
             )),
         );
+    }
+}
+
+impl Default for Sprite {
+    fn default() -> Self {
+        Self {
+            w: 0,
+            h: 0,
+            spritesheet: None,
+            frame_time: Duration::ZERO,
+            current_frame_time: Duration::ZERO,
+            current_frame: 0,
+            current_variant: 0,
+        }
     }
 }
 
@@ -320,15 +336,14 @@ impl SpritePool {
     /// If you want to return an error, use [init_sprite] instead.
     /// For lazy initalization, use [init_sprite_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
-    pub fn init_sprite_unchecked(
-        &self,
-        path: impl AsRef<Path>,
-        frame_time: Duration,
-    ) -> Sprite {
+    pub fn init_sprite_unchecked(&self, path: impl AsRef<Path>, frame_time: Duration) -> Sprite {
         let sprite = self
             .sprites
             .get(&path.as_ref().to_string_lossy().to_string())
-            .expect(&format!("[ERROR/Mooeye] Could not find sprite {}.", path.as_ref().to_string_lossy().to_string()));
+            .expect(&format!(
+                "[ERROR/Mooeye] Could not find sprite {}.",
+                path.as_ref().to_string_lossy().to_string()
+            ));
         Sprite {
             frame_time,
             ..sprite.clone()
