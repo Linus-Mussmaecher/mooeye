@@ -270,7 +270,7 @@ impl SpritePool {
         }
     }
 
-    pub fn with_default_duration(&mut self, default_duration: Duration) -> &mut Self{
+    pub fn with_default_duration(mut self, default_duration: Duration) -> Self{
         self.default_duration = default_duration;
         self
     }
@@ -279,11 +279,11 @@ impl SpritePool {
     /// Can also search all subfolders.
     /// See [SpritePool] for required name formatting in order to load sprites correctly.
     pub fn with_folder(
-        &mut self,
+        mut self,
         ctx: &Context,
         path: impl AsRef<Path>,
         search_subfolders: bool,
-    ) -> &mut Self {
+    ) -> Self {
         let paths = ctx
             .fs
             .read_dir(path.as_ref())
@@ -308,7 +308,7 @@ impl SpritePool {
                     );
                 }
             } else if search_subfolders {
-                self.with_folder(ctx, sub_path, search_subfolders);
+                self = self.with_folder(ctx, sub_path, search_subfolders);
             }
         }
         //println!("Now containing {} files.", self.sprites.len());
