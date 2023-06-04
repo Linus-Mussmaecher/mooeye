@@ -258,6 +258,7 @@ impl Default for Sprite {
 /// A file named ```mage_16_16.png``` in a subfolder ```/sprites/player``` of the resource folder will be accessible with the key ```/sprites/player/mage```.
 pub struct SpritePool {
     sprites: HashMap<String, Sprite>,
+    default_duration: Duration,
 }
 
 impl SpritePool {
@@ -265,18 +266,24 @@ impl SpritePool {
     pub fn new() -> Self {
         Self {
             sprites: HashMap::new(),
+            default_duration: Duration::ZERO,
         }
+    }
+
+    pub fn with_default_duration(&mut self, default_duration: Duration) -> &mut Self{
+        self.default_duration = default_duration;
+        self
     }
 
     /// Loads all sprites within the given folder (relative to the ggez resource directory, see [ggez::context::ContextBuilder]) into the sprite pool.
     /// Can also search all subfolders.
     /// See [SpritePool] for required name formatting in order to load sprites correctly.
     pub fn with_folder(
-        mut self,
+        &mut self,
         ctx: &Context,
         path: impl AsRef<Path>,
         search_subfolders: bool,
-    ) -> Self {
+    ) -> &mut Self {
         let paths = ctx
             .fs
             .read_dir(path.as_ref())
@@ -288,7 +295,7 @@ impl SpritePool {
             let path_string = sub_path.to_string_lossy().to_string();
             if sprite_match.is_match(&path_string) {
                 if let Ok(sprite) =
-                    Sprite::from_path_fmt(sub_path.clone(), ctx, Duration::from_secs_f32(0.25))
+                    Sprite::from_path_fmt(sub_path.clone(), ctx, self.default_duration)
                 {
                     self.sprites.insert(
                         sprite_match
@@ -301,7 +308,7 @@ impl SpritePool {
                     );
                 }
             } else if search_subfolders {
-                self = self.with_folder(ctx, sub_path, search_subfolders);
+                self.with_folder(ctx, sub_path, search_subfolders);
             }
         }
         //println!("Now containing {} files.", self.sprites.len());
@@ -364,15 +371,49 @@ impl SpritePool {
     ) -> Result<Sprite, GameError> {
         let key = &path.as_ref().to_string_lossy().to_string();
         if !self.sprites.contains_key(key) {
-            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, Duration::ZERO)?;
+            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, self.default_duration)?;
             self.sprites.insert((*key).clone(), sprite);
         }
         self.init_sprite(path, frame_time)
     }
 
+
+    /// Returns a mutable reference to a sprite from the sprite pool.
+    /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
+    /// Instead, you can just store keys to this sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// See [graphics::Image] and [sprite::Sprite].
+    /// If the sprite (path) is not yet contained in the pool, an error is returned.
+    /// For lazy initalization, use [sprite_ref_lazy] instead.
+    /// See [SpritePool] for rules related to key assignment.
+    pub fn sprite_ref(&mut self, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError>{
+        let sprite = self
+            .sprites
+            .get_mut(&path.as_ref().to_string_lossy().to_string())
+            .ok_or_else(|| GameError::CustomError("Could not find sprite.".to_owned()))?;
+        Ok(sprite)
+    }
+
+    /// Returns a mutable reference to a sprite from the sprite pool.
+    /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
+    /// Instead, you can just store keys to this sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// See [graphics::Image] and [sprite::Sprite].
+    /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
+    /// If this also fails, an error is returned.
+    /// See [SpritePool] for rules related to key assignment.
+    pub fn sprite_ref_lazy(&mut self, ctx: &Context, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError>{
+        let key = &path.as_ref().to_string_lossy().to_string();
+        if !self.sprites.contains_key(key) {
+            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, self.default_duration)?;
+            self.sprites.insert((*key).clone(), sprite);
+        }
+        self.sprite_ref(path)
+    }
+
     /// Prints all currently registered keys of this sprite pool. Useful if you are debugging key-issues.
     pub fn print_keys(&self) {
-        println!("Currently registered keys");
+        println!("Currently registered keys:");
         for (key, _) in self.sprites.iter() {
             println!(" | {}", &key);
         }
