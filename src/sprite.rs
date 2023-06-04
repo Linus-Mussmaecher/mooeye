@@ -135,9 +135,19 @@ impl Sprite {
 
     /// Sets the variant this sprite is currently displaying. Numbers that are too large to represent a valid variant will wrap around.
     pub fn set_variant(&mut self, variant: u32) {
-        self.current_variant = variant % (self.spritesheet.as_ref().map(|img| img.height()).unwrap_or_default() / self.h);
-        self.current_frame_time = Duration::ZERO;
-        self.current_frame = 0;
+        if self.current_variant != variant {
+            self.current_variant = variant;
+            if self.h != 0 {
+                self.current_variant = self.current_variant % (self
+                    .spritesheet
+                    .as_ref()
+                    .map(|img| img.height())
+                    .unwrap_or_default()
+                    / self.h);
+            }                
+            self.current_frame_time = Duration::ZERO;
+            self.current_frame = 0;
+        }
     }
 
     /// Returns the variant this sprite is currently displaying.
@@ -158,7 +168,13 @@ impl Sprite {
     }
 
     pub fn get_cycle_time(&self) -> Duration {
-        self.frame_time * self.spritesheet.as_ref().map(|img| img.width()).unwrap_or_default() / self.w
+        self.frame_time
+            * self
+                .spritesheet
+                .as_ref()
+                .map(|img| img.width())
+                .unwrap_or_default()
+            / self.w
     }
 
     /// Draws this sprite as given by the paramters, advancing the displayed frame as needed.
@@ -171,7 +187,13 @@ impl Sprite {
         self.current_frame_time += ctx.time.delta();
         while self.current_frame_time >= self.frame_time && !self.frame_time.is_zero() {
             self.current_frame_time -= self.frame_time;
-            self.current_frame = (self.current_frame + 1) % (self.spritesheet.as_ref().map(|img| img.width()).unwrap_or_default() / self.w);
+            self.current_frame = (self.current_frame + 1)
+                % (self
+                    .spritesheet
+                    .as_ref()
+                    .map(|img| img.width())
+                    .unwrap_or_default()
+                    / self.w);
         }
 
         self.draw(canvas, param);
@@ -180,17 +202,17 @@ impl Sprite {
 
 impl Drawable for Sprite {
     fn draw(&self, canvas: &mut graphics::Canvas, param: impl Into<graphics::DrawParam>) {
-        if let Some(spritesheet) = &self.spritesheet{
-        spritesheet.draw(
-            canvas,
-            (param.into() as graphics::DrawParam).src(Rect::new(
-                (self.w * self.current_frame) as f32 / spritesheet.width() as f32,
-                (self.h * self.current_variant) as f32 / spritesheet.height() as f32,
-                self.w as f32 / spritesheet.width() as f32,
-                self.h as f32 / spritesheet.height() as f32,
-            )),
-        );
-    }
+        if let Some(spritesheet) = &self.spritesheet {
+            spritesheet.draw(
+                canvas,
+                (param.into() as graphics::DrawParam).src(Rect::new(
+                    (self.w * self.current_frame) as f32 / spritesheet.width() as f32,
+                    (self.h * self.current_variant) as f32 / spritesheet.height() as f32,
+                    self.w as f32 / spritesheet.width() as f32,
+                    self.h as f32 / spritesheet.height() as f32,
+                )),
+            );
+        }
     }
 
     fn dimensions(
@@ -270,7 +292,7 @@ impl SpritePool {
         }
     }
 
-    pub fn with_default_duration(mut self, default_duration: Duration) -> Self{
+    pub fn with_default_duration(mut self, default_duration: Duration) -> Self {
         self.default_duration = default_duration;
         self
     }
@@ -377,7 +399,6 @@ impl SpritePool {
         self.init_sprite(path, frame_time)
     }
 
-
     /// Returns a mutable reference to a sprite from the sprite pool.
     /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
     /// Instead, you can just store keys to this sprite pool.
@@ -386,7 +407,7 @@ impl SpritePool {
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
     /// For lazy initalization, use [sprite_ref_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
-    pub fn sprite_ref(&mut self, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError>{
+    pub fn sprite_ref(&mut self, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError> {
         let sprite = self
             .sprites
             .get_mut(&path.as_ref().to_string_lossy().to_string())
@@ -402,7 +423,11 @@ impl SpritePool {
     /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
     /// If this also fails, an error is returned.
     /// See [SpritePool] for rules related to key assignment.
-    pub fn sprite_ref_lazy(&mut self, ctx: &Context, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError>{
+    pub fn sprite_ref_lazy(
+        &mut self,
+        ctx: &Context,
+        path: impl AsRef<Path>,
+    ) -> Result<&mut Sprite, GameError> {
         let key = &path.as_ref().to_string_lossy().to_string();
         if !self.sprites.contains_key(key) {
             let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, self.default_duration)?;
