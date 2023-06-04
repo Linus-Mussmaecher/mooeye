@@ -231,7 +231,7 @@ impl Visuals {
         .rectangle(
             graphics::DrawMode::fill(),
             Rect::new(
-                target.x + self.border_widths[3] + inner_radius[3],
+                target.x + self.border_widths[3] + inner_radius[2],
                 target.y + target.h/2.,
                 target.w - self.border_widths[1] - self.border_widths[3] - inner_radius[1] - inner_radius[2],
                 target.h/2. - self.border_widths[2],

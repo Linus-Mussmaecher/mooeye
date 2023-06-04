@@ -41,6 +41,18 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
         }
     }
 
+    /// Returns a new GridBox with the required spacing.
+    pub fn new_spaced(columns: usize, rows: usize, horizontal_spacing: f32, vertical_spacing: f32) -> Self {
+        Self {
+            children: (0..columns * rows).map(|_| UiElement::new(0, ())).collect(),
+        vertical_spacing,
+            horizontal_spacing,
+            cols: columns,
+            rows,
+            //children_rects: vec![Rect::default(); rows * columns],
+        }
+    }
+
     /// Adds an element to the specified position in the grid, overwriting any element previously there.
     /// If the index is out of bounds, this function will return an error.
     /// Keep in mind that the basic [crate::UiContent::add] function will not work on a [GridBox].

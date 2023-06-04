@@ -634,7 +634,7 @@ pub trait UiContainer<T: Copy + Eq + Hash>: UiContent<T> {
     fn get_children_mut(&mut self) -> &mut [UiElement<T>];
 
     /// Attempts to add a UiElement to this elements children.
-    fn add(&mut self, _element: UiElement<T>);
+    fn add(&mut self, element: UiElement<T>);
 
     /// Removes all elements from this container whose [UiContent<T>::expired]-function returns true.
     fn remove_expired(&mut self);

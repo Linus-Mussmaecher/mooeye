@@ -20,6 +20,15 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
         }
     }
 
+    /// If the elements content is a container, the passed element is added to it.
+    /// Otherwise, the passed element is discarded.
+    pub fn with_child(mut self, element: UiElement<T>) -> Self{
+        if let Some(cont) = self.element.content.container_mut(){
+            cont.add(element);
+        }
+        self
+    }
+
     /// Sets the elements visuals.
     pub fn with_visuals(mut self, visuals: super::Visuals) -> Self {
         self.element.visuals = visuals;
@@ -178,7 +187,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
     }
 
     /// Takes in a layout and sets the elements layout to be as you would want for a container wrapping the passed layout.
-    /// Sets size to fill, taking boundaries from teh passed layout + padding, and own padding to 0.
+    /// Sets size to fill, taking boundaries from the passed layout + padding, and own padding to 0.
     pub fn with_wrapper_layout(self, wrapped_layout: Layout) -> Self {
         self.with_size(
             super::Size::Fill(
