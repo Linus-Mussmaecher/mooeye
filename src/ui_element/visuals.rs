@@ -13,7 +13,7 @@ pub struct Visuals {
     pub border: Color,
     /// The width of the borders.
     /// Layout:
-    /// ```
+    /// ```text
     ///         0
     ///     +------+
     ///   3 |      | 1
@@ -22,7 +22,7 @@ pub struct Visuals {
     pub border_widths: [f32; 4],
     /// The radius of the corners.
     /// Layout:
-    /// ```
+    /// ```text
     ///    3        0
     ///     +------+
     ///     |      |
