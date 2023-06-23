@@ -206,6 +206,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             {
                 res.insert(UiMessage::Clicked(self.id));
                 res.insert(UiMessage::Triggered(self.id));
+                if let Some(sound) = &self.trigger_sound{
+                    if sound.play_later().is_err() && cfg!(debug_assertions){
+                        println!("[ERROR] Failed to play sound.");
+                    }
+                }
             }
 
             if ctx
@@ -521,27 +526,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         // draw content
 
         self.content.draw_content(ctx, canvas, param.target(inner));
-
-        // play sound on click or key press
-        if self.keys.iter().any(|key_opt| {
-            if let Some(key) = key_opt {
-                ctx.keyboard.is_key_just_pressed(*key)
-            } else {
-                false
-            }
-        }) || (param.mouse_listen
-            && outer.contains(ctx.mouse.position())
-            && ctx
-                .mouse
-                .button_just_pressed(ggez::event::MouseButton::Left))
-        {
-            if let Some(sound) = &mut self.trigger_sound {
-                // atemmpt to play sound, if it errs just delete it
-                if sound.play_detached(ctx).is_err() {
-                    self.trigger_sound = None;
-                }
-            }
-        }
 
         // draw tooltip
         if param.mouse_listen && outer.contains(ctx.mouse.position()) {
