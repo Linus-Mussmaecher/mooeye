@@ -1,6 +1,7 @@
 use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 
+use ggez::audio::{SoundSource, Source};
 use ggez::winit::event::VirtualKeyCode;
 use ggez::{
     glam::Vec2,
@@ -48,6 +49,8 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     visuals: Visuals,
     /// The alternative visuals of this element, displayed while the user hovers the mouse cursor above it.
     hover_visuals: Option<Visuals>,
+    /// The sound that is played whenever the element is triggered via mouse or key press.
+    trigger_sound: Option<Source>,
 
     /// The elements ID. Not neccessarily guaranteed to be unique.
     id: u32,
@@ -84,6 +87,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             layout: Layout::default(),
             visuals: Visuals::default(),
             hover_visuals: None,
+            trigger_sound: None,
             id,
             draw_cache: DrawCache::default(),
             content: Box::new(content),
@@ -124,15 +128,15 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     }
 
     /// Removes all elements with the given ID from this element and (recursively) all its children.
-    pub fn remove_elements(&mut self, id: u32){
+    pub fn remove_elements(&mut self, id: u32) {
         match self.content.container_mut() {
             Some(cont) => {
                 cont.remove_id(id);
-                for child in cont.get_children_mut(){
+                for child in cont.get_children_mut() {
                     child.remove_elements(id);
                 }
-            },
-            None => {},
+            }
+            None => {}
         }
     }
 
@@ -472,8 +476,16 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Returns the minimum size required by the content of this element.
     fn content_min(&self) -> Vec2 {
         Vec2 {
-            x: self.content.container().map(|cont| cont.content_width_range().0).unwrap_or_default(),
-            y: self.content.container().map(|cont| cont.content_height_range().0).unwrap_or_default(),
+            x: self
+                .content
+                .container()
+                .map(|cont| cont.content_width_range().0)
+                .unwrap_or_default(),
+            y: self
+                .content
+                .container()
+                .map(|cont| cont.content_height_range().0)
+                .unwrap_or_default(),
         }
     }
 
@@ -509,6 +521,27 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         // draw content
 
         self.content.draw_content(ctx, canvas, param.target(inner));
+
+        // play sound on click or key press
+        if self.keys.iter().any(|key_opt| {
+            if let Some(key) = key_opt {
+                ctx.keyboard.is_key_just_pressed(*key)
+            } else {
+                false
+            }
+        }) || (param.mouse_listen
+            && outer.contains(ctx.mouse.position())
+            && ctx
+                .mouse
+                .button_just_pressed(ggez::event::MouseButton::Left))
+        {
+            if let Some(sound) = &mut self.trigger_sound {
+                // atemmpt to play sound, if it errs just delete it
+                if sound.play_detached(ctx).is_err() {
+                    self.trigger_sound = None;
+                }
+            }
+        }
 
         // draw tooltip
         if param.mouse_listen && outer.contains(ctx.mouse.position()) {
@@ -607,7 +640,7 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     /// Returns a mutable reference to Self (cast to a container) if this element also implements [UiContainer<T>].
     /// If it does not, returns None.
     /// Remember to overwrite this function for all of your custom containers!
-    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>>{
+    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
         None
     }
 }

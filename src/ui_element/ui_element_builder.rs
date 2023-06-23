@@ -1,4 +1,4 @@
-use ggez::winit::event::VirtualKeyCode;
+use ggez::{winit::event::VirtualKeyCode, audio::Source};
 
 use crate::{UiContent, UiElement};
 use std::hash::Hash;
@@ -38,6 +38,12 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
     /// Sets the elements hover_visuals. Pass in None to delete any existing hover_visuals.
     pub fn with_hover_visuals(mut self, hover_visuals: impl Into<Option<super::Visuals>>) -> Self {
         self.element.hover_visuals = hover_visuals.into();
+        self
+    }
+
+    /// Sets a sound to be played whenever this element is triggered via key press or mouse click.
+    pub fn with_trigger_sound(mut self, trigger_sound: impl Into<Option<Source>>) -> Self{
+        self.element.trigger_sound = trigger_sound.into();
         self
     }
 
