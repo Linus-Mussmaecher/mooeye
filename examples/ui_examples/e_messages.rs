@@ -6,7 +6,7 @@ use std::{
 use mooeye::{
     containers::grid_box::GridBox,
     scene_manager::{Scene, SceneSwitch},
-    ui_element::{Transition, UiContainer},
+    ui_element::{Transition},
     UiMessage, *,
 };
 
@@ -24,8 +24,6 @@ pub struct EScene {
 impl EScene {
     pub fn new(ctx: &Context) -> GameResult<Self> {
 
-        // At first, we create a general VBox to contain our UI
-        let mut gui_box = containers::VerticalBox::new();
 
         // This title will change based on transitions whenever certain buttons are clicked.
         let title = Text::new("Move this element with the buttons.\nYou have not yet clicked a button.")
@@ -137,13 +135,15 @@ impl EScene {
             .as_fill()
             .build();
 
+        
+        // We create a general VBox to contain our UI
+        // We can create Vertical and Horizontal Boxes with the 'spaced' constructor to set its spacing value.
+        let gui_box = containers::VerticalBox::new_spaced(6.)
+        .to_element_builder(0, ctx)
         // We put the title, grid and back button together in a box.
-        gui_box.add(title);
-        gui_box.add(grid_box.to_element(30, ctx));
-        gui_box.add(back);
-
-        // Now we build the gui_box (note the technique of shadowing the variable)
-        let gui_box = gui_box.to_element_builder(0, ctx)
+        .with_child(title)
+        .with_child(grid_box.to_element(30, ctx))
+        .with_child(back)
         .with_size(ui_element::Size::Shrink(128., f32::INFINITY), ui_element::Size::Shrink(0., f32::INFINITY))
         .with_visuals(ui_element::Visuals::new(
             Color::from_rgb(120, 170, 200),
@@ -198,13 +198,7 @@ impl EScene {
         })
         .build();
 
-        // wrap one big box around everything so we can also add 'decorators' later
-
-        let mut wrap_stack = containers::StackBox::new();
-        wrap_stack.add(gui_box);
-        let wrap_stack = wrap_stack.to_element_builder(100, ctx).as_fill().build();
-
-        Ok(Self { gui: wrap_stack })
+        Ok(Self { gui: gui_box })
     }
 }
 

@@ -1,4 +1,4 @@
-use std::{time::Duration};
+use std::time::Duration;
 
 use mooeye::{
     scene_manager::{Scene, SceneSwitch},
@@ -28,7 +28,6 @@ impl FScene {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Reusing the visuals from E.
 
-        
         let vis = ui_element::Visuals::new(
             Color::from_rgb(180, 120, 60),
             Color::from_rgb(18, 12, 6),
@@ -76,13 +75,16 @@ impl FScene {
         .as_shrink()
         .build();
 
-        // A sprite can also be loaded without specifying the size of a single image on the sheet, IF the filename contains that information in the right format.
-        // This is especially useful if loading every sheet in a folder within a loop.
-        let non_ui_sprite = sprite::Sprite::from_path_fmt(
-            "/mage-sheet_8_16.png",
-            ctx,
-            Duration::from_secs_f32(0.2),
-        )?;
+        // Sprites can also be initiated from a sprite pool, to make repeated file system access unneccessary
+        // and streamline loading of multiple sprites. This requires sprites in the folder to be formatted appropriately.
+
+        let sprite_pool = sprite::SpritePool::new()
+            // with_folder loads all .png/.bmp/.jpg/.jpeg files from the passed folder and optionally its subfolders
+            .with_folder(ctx, "/", true);
+
+        // We can now init a sprite from the pool. Sprites are saved in the pool with a key corresponding to their relative path
+        // (from the resource folder and without leading /) with the format information and file ending removed.
+        let non_ui_sprite = sprite_pool.init_sprite("mage-sheet", Duration::from_secs_f32(0.2))?;
 
         Ok(Self {
             gui: ui_sprite,
@@ -98,7 +100,10 @@ impl Scene for FScene {
         // Actually implementing some game state logic.
 
         // Pressing space changes the variant of the sprite.
-        if ctx.keyboard.is_key_just_pressed(winit::event::VirtualKeyCode::Space){
+        if ctx
+            .keyboard
+            .is_key_just_pressed(winit::event::VirtualKeyCode::Space)
+        {
             self.sprite.set_variant(self.sprite.get_variant() + 1);
         }
 
@@ -108,12 +113,14 @@ impl Scene for FScene {
         // Make the sprite bounce off the screen edges.
         let scaling = 5.;
 
-        if self.pos.x - scaling * 4. < 0. || self.pos.x + scaling * 4. >= ctx.gfx.drawable_size().0 {
-            self.v.x = self.v.x * -1.;
+        if self.pos.x - scaling * 4. < 0. || self.pos.x + scaling * 4. >= ctx.gfx.drawable_size().0
+        {
+            self.v.x *= -1.;
         }
 
-        if self.pos.y - scaling * 8. < 0. || self.pos.y + scaling * 8. >= ctx.gfx.drawable_size().1 {
-            self.v.y = self.v.y * -1.;
+        if self.pos.y - scaling * 8. < 0. || self.pos.y + scaling * 8. >= ctx.gfx.drawable_size().1
+        {
+            self.v.y *= -1.;
         }
 
         // And handle messages as usual
@@ -121,7 +128,6 @@ impl Scene for FScene {
         let messages = self.gui.manage_messages(ctx, None);
 
         if messages.contains(&UiMessage::Triggered(1)) {
-            // If it is, we end the current scene (and return to the previous one) by popping it off the stack.
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
 
@@ -136,19 +142,19 @@ impl Scene for FScene {
 
         // Drawing of our (limited) game state.
 
+        // see if we need to mirror our sprite if it moves left
         let mirroring = if self.v.x > 0. { 1. } else { -1. };
         let scaling = 5.;
 
         self.sprite.draw_sprite(
             ctx,
             &mut canvas,
-            DrawParam::new()
-                .dest_rect(Rect::new(
-                    self.pos.x - scaling * 4. * mirroring,
-                    self.pos.y - scaling * 8.,
-                    scaling* mirroring, 
-                    scaling,
-                )),
+            DrawParam::new().dest_rect(Rect::new(
+                self.pos.x - scaling * 4. * mirroring,
+                self.pos.y - scaling * 8.,
+                scaling * mirroring,
+                scaling,
+            )),
         );
 
         // And once again drawing the GUI.

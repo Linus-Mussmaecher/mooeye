@@ -45,7 +45,7 @@ impl mooeye::scene_manager::Scene for BScene {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, _mouse_listen: bool) -> Result<(), ggez::GameError> {
-        // As in ggez, your draw function draws the contents of your scene and always start by getting a canvas.
+        // As in ggez, your draw function draws the contents of your scene and always starts by getting a canvas.
         // This function should not alter your game state (even if it can access self mutably), only the display of that state.
         // Clearing the canvas should not be your default option - sometimes you may want a scene (like a pause menu) to 
         // occupy only a small part of the screen while still drawing other scenes behind it. In that case, pass None into 'clear'.
