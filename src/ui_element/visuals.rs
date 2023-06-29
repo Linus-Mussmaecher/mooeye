@@ -4,7 +4,7 @@ use ggez::{
     *,
 };
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 /// A struct that describes the additional visual elements of the background added to an element. This background will be drawn first and also contain the padding if any.
 pub struct Visuals {
     /// The color of the background.

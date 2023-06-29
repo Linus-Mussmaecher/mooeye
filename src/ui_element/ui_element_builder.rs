@@ -1,4 +1,4 @@
-use ggez::{winit::event::VirtualKeyCode, audio::Source};
+use ggez::{audio::Source, winit::event::VirtualKeyCode};
 
 use crate::{UiContent, UiElement};
 use std::hash::Hash;
@@ -7,6 +7,7 @@ use super::Layout;
 
 /// A builder struct for UiElements. Allows changing of all relevant fields of the built element, and contains shorthand function for changing the components of the elements layout.
 /// Also contains shorthand functions for some very frequently used combination of layout settings.
+#[derive(Debug)]
 pub struct UiElementBuilder<T: Copy + Eq + Hash> {
     element: UiElement<T>,
 }
@@ -22,8 +23,8 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
 
     /// If the elements content is a container, the passed element is added to it.
     /// Otherwise, the passed element is discarded.
-    pub fn with_child(mut self, element: UiElement<T>) -> Self{
-        if let Some(cont) = self.element.content.container_mut(){
+    pub fn with_child(mut self, element: UiElement<T>) -> Self {
+        if let Some(cont) = self.element.content.container_mut() {
             cont.add(element);
         }
         self
@@ -42,7 +43,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
     }
 
     /// Sets a sound to be played whenever this element is triggered via key press or mouse click.
-    pub fn with_trigger_sound(mut self, trigger_sound: impl Into<Option<Source>>) -> Self{
+    pub fn with_trigger_sound(mut self, trigger_sound: impl Into<Option<Source>>) -> Self {
         self.element.trigger_sound = trigger_sound.into();
         self
     }
@@ -57,7 +58,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
                 tt.layout.x_size = tt.layout.x_size.to_shrink();
                 tt.layout.y_size = tt.layout.y_size.to_shrink();
                 self.element.tooltip = Some(Box::new(tt))
-            },
+            }
         }
         self
     }
@@ -123,7 +124,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
     }
 
     /// Attaches a key code to this element. Pressing this key will send the same trigger event as clicking the element.
-    pub fn with_trigger_key(mut self, key: VirtualKeyCode) -> Self{
+    pub fn with_trigger_key(mut self, key: VirtualKeyCode) -> Self {
         self.element.keys.push(Some(key));
         self
     }

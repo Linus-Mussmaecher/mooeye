@@ -1,7 +1,7 @@
 use ggez::graphics::{DrawParam, Rect};
 
 /// An extension of the [ggez::graphics::DrawParam] struct specifically for UiElements.
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct UiDrawParam {
     /// The rectangular target area this element shall be drawn to.
     pub target: Rect,

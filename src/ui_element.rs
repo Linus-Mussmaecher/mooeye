@@ -78,8 +78,22 @@ pub struct UiElement<T: Copy + Eq + Hash> {
 }
 
 /// The functional type of a UiElements MessageHandler.
-pub type MessageHandler<T> =
-    Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>)>;
+type MessageHandler<T> = Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>)>;
+
+impl<T: Copy + Eq + Hash> std::fmt::Debug for UiElement<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("UiElement")
+            .field("layout", &self.layout)
+            .field("visuals", &self.visuals)
+            .field("hover_visuals", &self.hover_visuals)
+            .field("trigger_sound", &self.trigger_sound)
+            .field("id", &self.id)
+            .field("draw_cache", &self.draw_cache)
+            .field("tooltip", &self.tooltip)
+            .field("keys", &self.keys)
+            .finish()
+    }
+}
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Creates a new UiElement containig the specified content and the specified ID.

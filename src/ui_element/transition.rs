@@ -26,6 +26,19 @@ pub struct Transition<T: Copy + Eq + Hash> {
     progressed_duration: Duration,
 }
 
+impl<T: Copy + Eq + Hash> std::fmt::Debug for Transition<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Transition")
+            .field("new_layout", &self.new_layout)
+            .field("new_visuals", &self.new_visuals)
+            .field("new_hover_visuals", &self.new_hover_visuals)
+            .field("new_tooltip", &self.new_tooltip)
+            .field("total_duration", &self.total_duration)
+            .field("progressed_duration", &self.progressed_duration)
+            .finish()
+    }
+}
+
 impl<T: Copy + Eq + Hash> Transition<T> {
     /// Creates a new transition with the specified duration and all possible augmentations set to none. Can be used without adding changes to delay transitions added later.
     pub fn new(duration: Duration) -> Self {
