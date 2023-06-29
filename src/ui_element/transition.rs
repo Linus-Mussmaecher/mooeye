@@ -6,7 +6,6 @@ use crate::{UiContent, UiElement};
 
 use super::{Layout, Visuals};
 
-
 /// A Transition stuct that can be added to an UiElement to slowly change that elements properties over time.
 /// A transition can change the elements layout, visuals, hover_visuals, content and tooltip by first augmenting the transition with the relevant methods.
 pub struct Transition<T: Copy + Eq + Hash> {
@@ -28,7 +27,6 @@ pub struct Transition<T: Copy + Eq + Hash> {
 }
 
 impl<T: Copy + Eq + Hash> Transition<T> {
-
     /// Creates a new transition with the specified duration and all possible augmentations set to none. Can be used without adding changes to delay transitions added later.
     pub fn new(duration: Duration) -> Self {
         Self {
@@ -73,15 +71,12 @@ impl<T: Copy + Eq + Hash> Transition<T> {
 
     /// Augment this transition to now change the tooltip of the UiElement it is added to. This change happens in a single frame as soon as the transitions duration has elapsed.
     pub fn with_new_tooltip(mut self, new_tooltip: Option<UiElement<T>>) -> Self {
-        self.new_tooltip = match new_tooltip {
-            Some(element) => Some(Some(Box::new(element))),
-            None => None,
-        };
+        self.new_tooltip = new_tooltip.map(|element| Some(Box::new(element)));
         self
     }
 
     /// Progresses the internal timer of this transition by the specified amount. Returns true if the Transition is now complete and false otherwise.
-    pub fn progress(&mut self, delta: Duration) -> bool{
+    pub fn progress(&mut self, delta: Duration) -> bool {
         self.progressed_duration += delta;
         self.progressed_duration >= self.total_duration
     }
@@ -91,7 +86,6 @@ impl<T: Copy + Eq + Hash> Transition<T> {
         self.progressed_duration.as_secs_f32() / self.total_duration.as_secs_f32()
     }
 }
-
 
 /// Returns the average of two rectangles (all four values are averaged). rect1 is weighted by (1-ratio), while rect2 is weighted by ratio.
 /// Thus, ratio=0 returns rect1 and ratio=1 returns rect2. The progression between the two is linear and continuous.

@@ -1,7 +1,10 @@
-use ggez::{graphics::Rect};
+use ggez::graphics::Rect;
 use std::hash::Hash;
 
-use crate::{ui_element::{Size, UiContainer}, UiContent, UiElement};
+use crate::{
+    ui_element::{Size, UiContainer},
+    UiContent, UiElement,
+};
 
 /// A vertical box that will group elements from left to right. Stores elements in a vector that determines order of elements within the box.
 /// Elements will adhere to their own x and y alignment within the rectangle provided to them by this box.
@@ -22,10 +25,10 @@ impl<T: Copy + Eq + Hash> VerticalBox<T> {
     }
 
     /// Returns a new VerticalBox with the required spacing.
-    pub fn new_spaced(spacing: f32) -> Self{
-        Self{
+    pub fn new_spaced(spacing: f32) -> Self {
+        Self {
             children: Vec::new(),
-            spacing
+            spacing,
         }
     }
 
@@ -62,7 +65,7 @@ impl<T: Copy + Eq + Hash> VerticalBox<T> {
     fn distribute_height_to_fitting(
         &self,
         leftover: &mut f32,
-        res: &mut Vec<f32>,
+        res: &mut [f32],
         pred: impl Fn(&UiElement<T>) -> bool,
     ) {
         // get the number of elements fulfilling the predicate
@@ -102,6 +105,11 @@ impl<T: Copy + Eq + Hash> VerticalBox<T> {
     }
 }
 
+impl<T: Copy + Eq + Hash> Default for VerticalBox<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl<T: Copy + Eq + Hash> UiContent<T> for VerticalBox<T> {
     fn to_element_builder(
@@ -137,7 +145,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for VerticalBox<T> {
                 canvas,
                 param.target(Rect {
                     x: param.target.x,
-                    y: y,
+                    y,
                     w: param.target.w,
                     h: ele_dyn_height,
                 }),
@@ -145,7 +153,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for VerticalBox<T> {
             y += ele_dyn_height + self.spacing;
         }
     }
-    
+
     fn container(&self) -> Option<&dyn UiContainer<T>> {
         Some(self)
     }
@@ -153,10 +161,8 @@ impl<T: Copy + Eq + Hash> UiContent<T> for VerticalBox<T> {
     fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
         Some(self)
     }
-
 }
-impl<T: Copy + Eq + Hash> UiContainer<T> for VerticalBox<T>{
-
+impl<T: Copy + Eq + Hash> UiContainer<T> for VerticalBox<T> {
     fn content_width_range(&self) -> (f32, f32) {
         // maximum of all min widths and minimum of all max widths, as all elements are layed out in parallel x direction
 
@@ -196,7 +202,7 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for VerticalBox<T>{
         &mut self.children
     }
 
-    fn add(&mut self, element: UiElement<T>){
+    fn add(&mut self, element: UiElement<T>) {
         self.children.push(element);
     }
 

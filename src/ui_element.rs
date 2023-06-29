@@ -71,11 +71,15 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     keys: TinyVec<[Option<VirtualKeyCode>; 2]>,
 
     /// The message handler. This function is called on every frame to handle received message.
-    // The message handler lambda receives each frame a hash set consisting of all internal and external messages received by this element.
+    /// The message handler lambda receives each frame a hash set consisting of all internal and external messages received by this element.
     /// It also receives a function pointer. Calling this pointer with a transition pushes that transition to this elements transition queue.
     /// Lastly, it receives the current layout of the element. This allows any transitions to re-use that layout and only change the variables the transition wants to change.
-    message_handler: Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>)>,
+    message_handler: MessageHandler<T>,
 }
+
+/// The functional type of a UiElements MessageHandler.
+pub type MessageHandler<T> =
+    Box<dyn Fn(&HashSet<UiMessage<T>>, Layout, &mut VecDeque<Transition<T>>)>;
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Creates a new UiElement containig the specified content and the specified ID.
@@ -129,14 +133,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
     /// Removes all elements with the given ID from this element and (recursively) all its children.
     pub fn remove_elements(&mut self, id: u32) {
-        match self.content.container_mut() {
-            Some(cont) => {
-                cont.remove_id(id);
-                for child in cont.get_children_mut() {
-                    child.remove_elements(id);
-                }
+        if let Some(cont) = self.content.container_mut() {
+            cont.remove_id(id);
+            for child in cont.get_children_mut() {
+                child.remove_elements(id);
             }
-            None => {}
         }
     }
 
@@ -168,7 +169,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             Some(extern_messages) => intern_messages.union(&extern_messages).copied().collect(),
         };
 
-        self.distribute_messages(ctx, &all_messages).expect("Something went wrong delivering or executing messages. Probably you wrote a bad handler function.");
+        self.distribute_messages(&all_messages).expect("Something went wrong delivering or executing messages. Probably you wrote a bad handler function.");
 
         intern_messages
     }
@@ -206,8 +207,8 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
             {
                 res.insert(UiMessage::Clicked(self.id));
                 res.insert(UiMessage::Triggered(self.id));
-                if let Some(sound) = &self.trigger_sound{
-                    if sound.play_later().is_err() && cfg!(debug_assertions){
+                if let Some(sound) = &self.trigger_sound {
+                    if sound.play_later().is_err() && cfg!(debug_assertions) {
                         println!("[ERROR] Failed to play sound.");
                     }
                 }
@@ -244,17 +245,13 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     }
 
     /// Distributes the passed set of [UiMessage]s to this element and all its successors, letting their message handlers react to the messages.
-    fn distribute_messages(
-        &mut self,
-        ctx: &Context,
-        messages: &HashSet<UiMessage<T>>,
-    ) -> GameResult {
+    fn distribute_messages(&mut self, messages: &HashSet<UiMessage<T>>) -> GameResult {
         (self.message_handler)(messages, self.layout, &mut self.transitions);
 
         if let Some(cont) = self.content.container_mut() {
             // actual distribution
             for child in cont.get_children_mut() {
-                child.distribute_messages(ctx, messages)?;
+                child.distribute_messages(messages)?;
             }
             // remove expired children
             cont.remove_expired();
@@ -271,26 +268,26 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Progresses the currently active transition by the time of the last frame.
     /// If this ends the current transition, the values of this element are updated to the values given by the transition and it is removed from the queue.
     fn progress_transitions(&mut self, ctx: &Context) {
-        if !self.transitions.is_empty() {
-            if self.transitions[0].progress(ctx.time.delta()) {
-                let trans = self.transitions.pop_front().expect("Transitions did not contain a first element despite being not empty 2 lines ago.");
+        if !self.transitions.is_empty() && self.transitions[0].progress(ctx.time.delta()) {
+            let trans = self.transitions.pop_front().expect(
+                "Transitions did not contain a first element despite being not empty 2 lines ago.",
+            );
 
-                if let Some(layout) = trans.new_layout {
-                    self.layout = layout;
-                    self.draw_cache = DrawCache::Invalid;
-                }
-                if let Some(visuals) = trans.new_visuals {
-                    self.visuals = visuals;
-                }
-                if let Some(hover_visuals) = trans.new_hover_visuals {
-                    self.hover_visuals = hover_visuals;
-                }
-                if let Some(content) = trans.new_content {
-                    self.content = content;
-                }
-                if let Some(tooltip) = trans.new_tooltip {
-                    self.tooltip = tooltip;
-                }
+            if let Some(layout) = trans.new_layout {
+                self.layout = layout;
+                self.draw_cache = DrawCache::Invalid;
+            }
+            if let Some(visuals) = trans.new_visuals {
+                self.visuals = visuals;
+            }
+            if let Some(hover_visuals) = trans.new_hover_visuals {
+                self.hover_visuals = hover_visuals;
+            }
+            if let Some(content) = trans.new_content {
+                self.content = content;
+            }
+            if let Some(tooltip) = trans.new_tooltip {
+                self.tooltip = tooltip;
             }
         }
     }
@@ -409,7 +406,6 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                     );
                 }
                 self.draw_cache = DrawCache::Invalid;
-                return;
             } else {
                 self.draw_cache = DrawCache::Valid {
                     outer,

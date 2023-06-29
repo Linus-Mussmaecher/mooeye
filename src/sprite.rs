@@ -94,16 +94,16 @@ impl Sprite {
             .split('.')
             .next()
             .unwrap_or("")
-            .split("_")
+            .split('_')
             .collect::<Vec<&str>>()
             .iter()
             .rev()
             .take(2)
-            .map(|s| *s)
+            .copied()
             .rev()
             .collect::<Vec<&str>>();
 
-        let w = *width_height.get(0).ok_or(GameError::CustomError(format!(
+        let w = *width_height.first().ok_or(GameError::CustomError(format!(
             "Filename formatted incorretly - not ending in _width_height.extension. Filename: {}",
             pathstring
         )))?;
@@ -138,13 +138,13 @@ impl Sprite {
         if self.current_variant != variant {
             self.current_variant = variant;
             if self.h != 0 {
-                self.current_variant = self.current_variant % (self
+                self.current_variant %= self
                     .spritesheet
                     .as_ref()
                     .map(|img| img.height())
                     .unwrap_or_default()
-                    / self.h);
-            }                
+                    / self.h;
+            }
             self.current_frame_time = Duration::ZERO;
             self.current_frame = 0;
         }
@@ -325,7 +325,7 @@ impl SpritePool {
                             .map(|c| c.get(1).map(|m| m.as_str()))
                             .unwrap_or_default()
                             .unwrap_or_default()
-                            .replace(r"\", "/"),
+                            .replace('\\', "/"),
                         sprite,
                     );
                 }
@@ -369,10 +369,12 @@ impl SpritePool {
         let sprite = self
             .sprites
             .get(&path.as_ref().to_string_lossy().to_string())
-            .expect(&format!(
-                "[ERROR/Mooeye] Could not find sprite {}.",
-                path.as_ref().to_string_lossy().to_string()
-            ));
+            .unwrap_or_else(|| {
+                panic!(
+                    "[ERROR/Mooeye] Could not find sprite {}.",
+                    path.as_ref().to_string_lossy()
+                )
+            });
         Sprite {
             frame_time,
             ..sprite.clone()
@@ -443,5 +445,11 @@ impl SpritePool {
             println!(" | {}", &key);
         }
         println!("-+----------------")
+    }
+}
+
+impl Default for SpritePool {
+    fn default() -> Self {
+        Self::new()
     }
 }

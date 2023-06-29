@@ -1,4 +1,4 @@
-use ggez::{graphics::Rect};
+use ggez::graphics::Rect;
 use std::hash::Hash;
 
 use crate::{
@@ -16,7 +16,6 @@ pub struct HorizontalBox<T: Copy + Eq + Hash> {
 }
 
 impl<T: Copy + Eq + Hash> HorizontalBox<T> {
-
     /// Returns a new HorizontalBox with a default spacing of 5 pixels.
     pub fn new() -> Self {
         Self {
@@ -26,10 +25,10 @@ impl<T: Copy + Eq + Hash> HorizontalBox<T> {
     }
 
     /// Returns a new HorizontalBox with the required spacing.
-    pub fn new_spaced(spacing: f32) -> Self{
-        Self{
+    pub fn new_spaced(spacing: f32) -> Self {
+        Self {
             children: Vec::new(),
-            spacing
+            spacing,
         }
     }
 
@@ -66,7 +65,7 @@ impl<T: Copy + Eq + Hash> HorizontalBox<T> {
     fn distribute_width_to_fitting(
         &self,
         leftover: &mut f32,
-        res: &mut Vec<f32>,
+        res: &mut [f32],
         pred: impl Fn(&UiElement<T>) -> bool,
     ) {
         // get the number of elements fulfilling the predicate
@@ -106,6 +105,11 @@ impl<T: Copy + Eq + Hash> HorizontalBox<T> {
     }
 }
 
+impl<T: Copy + Eq + Hash> Default for HorizontalBox<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
     fn to_element_builder(
@@ -121,8 +125,6 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
             Size::Shrink(0., f32::INFINITY),
         )
     }
-
-    
 
     fn draw_content(
         &mut self,
@@ -140,7 +142,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
                 ctx,
                 canvas,
                 param.target(Rect {
-                    x: x,
+                    x,
                     y: param.target.y,
                     w: ele_dyn_width,
                     h: param.target.h,
@@ -159,7 +161,6 @@ impl<T: Copy + Eq + Hash> UiContent<T> for HorizontalBox<T> {
     }
 }
 impl<T: Copy + Hash + Eq> UiContainer<T> for HorizontalBox<T> {
-
     fn content_width_range(&self) -> (f32, f32) {
         // sum of all min widths and sum of all max widths, as elements are stacked in y direction. Add spacing.
 
@@ -194,7 +195,7 @@ impl<T: Copy + Hash + Eq> UiContainer<T> for HorizontalBox<T> {
         &self.children
     }
 
-    fn get_children_mut(&mut self) -> &mut [UiElement<T>]{
+    fn get_children_mut(&mut self) -> &mut [UiElement<T>] {
         &mut self.children
     }
 
@@ -202,14 +203,11 @@ impl<T: Copy + Hash + Eq> UiContainer<T> for HorizontalBox<T> {
         self.children.push(element);
     }
 
-    fn remove_expired(&mut self){
+    fn remove_expired(&mut self) {
         self.children.retain(|child| !child.expired());
     }
 
     fn remove_id(&mut self, id: u32) {
         self.children.retain(|child| child.get_id() != id);
     }
-
-    
 }
-

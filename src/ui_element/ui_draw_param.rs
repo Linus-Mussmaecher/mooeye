@@ -24,16 +24,13 @@ impl UiDrawParam {
 
     /// Returns a new [UiDrawParam] with the specified target area.
     pub fn target(self, target: Rect) -> Self {
-        Self {
-            target: target,
-            ..self
-        }
+        Self { target, ..self }
     }
 
     /// Returns a new [UiDrawParam] with the specified mouse_listen value.
     pub fn mouse_listen(self, mouse_listen: bool) -> Self {
         Self {
-            mouse_listen: mouse_listen,
+            mouse_listen,
             ..self
         }
     }
@@ -48,10 +45,7 @@ impl UiDrawParam {
 
     /// Returns a new [UiDrawParam] with the entire DrawParam replaced by the specified value.
     pub fn param(self, param: DrawParam) -> Self {
-        Self {
-            param: param,
-            ..self
-        }
+        Self { param, ..self }
     }
 }
 

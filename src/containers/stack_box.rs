@@ -26,6 +26,12 @@ impl<T: Copy + Eq + Hash> StackBox<T> {
     }
 }
 
+impl<T: Copy + Eq + Hash> Default for StackBox<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
     fn to_element_builder(
         self,
@@ -102,10 +108,7 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for StackBox<T> {
         self.children.retain(|child| !child.expired());
     }
 
-    
     fn remove_id(&mut self, id: u32) {
         self.children.retain(|child| child.get_id() != id);
     }
-
-    
 }

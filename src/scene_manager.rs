@@ -35,7 +35,6 @@ impl SceneManager {
 
 impl event::EventHandler<GameError> for SceneManager {
     fn update(&mut self, ctx: &mut Context) -> Result<(), GameError> {
-
         // Get current top scene of the stack
 
         if let Some(scene) = self.scene_stack.back_mut() {
@@ -56,10 +55,10 @@ impl event::EventHandler<GameError> for SceneManager {
                     for _ in 0..n {
                         self.scene_stack.pop_back();
                     }
-                        self.scene_stack.push_back(scene_box.into());
+                    self.scene_stack.push_back(scene_box);
                 }
                 SceneSwitch::Push(scene_box) => {
-                        self.scene_stack.push_back(scene_box.into());
+                    self.scene_stack.push_back(scene_box);
                 }
             }
         }
@@ -81,10 +80,7 @@ impl event::EventHandler<GameError> for SceneManager {
         canvas.finish(ctx)?;
 
         // iterate over all elements, only the last (=top) element may listen to the mouse position for hover-related visual changes
-        let mut it = self
-            .scene_stack
-            .iter_mut()
-            .peekable();
+        let mut it = self.scene_stack.iter_mut().peekable();
 
         while let Some(scenebox) = it.next() {
             scenebox.draw(ctx, it.peek().is_none())?;
