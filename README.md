@@ -16,19 +16,19 @@ This is a very simple UI library building upon [ggez game library](https://githu
  * Caching of element positions means a recalculation of dynamic element positions is only neccessary when the window size changes or the UI elements themselves change.
  * Transitions system to change layout, look and content of the UI while running. For larger changes of the structure, a complete re-build of the UI (similar to how an immediate UI rebuilds every frame) is suggested.
  * Message based communication with both internal (a user clicks a button) and external (a resource amount in your game changes) sources. Messages are handled internally with a customizable message handler, allowing you to change the look and content of your UI to react to user interaction or game state changes. All internal messages are also returned from the message handling function of your top UI element, allowing your game state to react to user inputs.
+ * Dynamic chaning of UiGraph by adding and removing elements even after initialisation.
 
 ## Additional Features
 
  * Stack-based scene manager eases the work with multiple scenes in a single game significantly by handling changes of main game state and appropriate drawing of (stacked) scenes.
  * Sprite struct automates drawing an animated sprite with multiple variants (e.g. an attacking, walking, ... character) and can be loaded from a single spritesheet file.
+ * Sprite pool struct to make batch-loading and formatting of sprites more ergonomic.
 
 ## Maintenance
 
 I am maintaining this project mostly for my own purposes. You may not actually want to use this, but hey, it's public. Bug fixes are not guaranteed and features ~~may be~~ are lacking, as they are most precisely what I wanted from a UI library, which may not neccessarily be what you want.
 
 ## How to use
-
-Probably don't. But if you want, read on.
 
 ### UI 
 
@@ -72,6 +72,8 @@ Sprites can be created with a path just like any ggez-Image, but can display ani
 The source image file needs to contain the different frames of each animation cycle aligned horizontally, with the different states forming the rows.
 
 See also the relevant examples in the [examples folder](/examples/) for usage of Sprite.
+
+Entire folders of sprites can be loaded with a [SpritePool](https://docs.rs/mooeye/latest/mooeye/sprite/struct.SpritePool.html), making repeated acceses to the file system unneccessary.
 
 ## License
 
