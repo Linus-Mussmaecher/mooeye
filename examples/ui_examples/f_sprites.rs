@@ -83,8 +83,8 @@ impl FScene {
             .with_folder(ctx, "/", true);
 
         // We can now init a sprite from the pool. Sprites are saved in the pool with a key corresponding to their relative path
-        // (from the resource folder and without leading /) with the format information and file ending removed.
-        let non_ui_sprite = sprite_pool.init_sprite("mage-sheet", Duration::from_secs_f32(0.2))?;
+        // (from the resource folder) with the format information and file ending removed.
+        let non_ui_sprite = sprite_pool.init_sprite("/mage-sheet", Duration::from_secs_f32(0.2))?;
 
         Ok(Self {
             gui: ui_sprite,

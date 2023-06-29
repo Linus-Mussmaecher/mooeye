@@ -96,7 +96,7 @@ impl Size {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Default)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 /// A struct that contains information about the layout of an UI-Element: their alignment, size, offset and padding.
 pub struct Layout {
     /// Wether this element aligns left, center or right. See [Alignment].
@@ -115,6 +115,21 @@ pub struct Layout {
     pub padding: (f32, f32, f32, f32),
     /// Specifies wether this elements content will only receive draw rectangles in the size of their content min ratio.
     pub preserve_ratio: bool,
+}
+
+impl Default for Layout {
+    fn default() -> Self {
+        Self {
+            x_alignment: Default::default(),
+            y_alignment: Default::default(),
+            x_offset: Default::default(),
+            y_offset: Default::default(),
+            x_size: Default::default(),
+            y_size: Default::default(),
+            padding: (5., 5., 5., 5.),
+            preserve_ratio: Default::default(),
+        }
+    }
 }
 
 impl Layout {
