@@ -22,8 +22,8 @@ pub struct Sprite {
     w: u32,
     /// Height of one sprite in the underlying sprite sheet.
     h: u32,
-    /// The underlying sprite sheet.
-    spritesheet: Image,
+    /// The underlying sprite sheet. Is an option to allow a default.
+    spritesheet: Option<Image>,
 
     /// The target time to spend each frame.
     frame_time: Duration,
@@ -44,7 +44,7 @@ impl Sprite {
             frame_time,
             w,
             h,
-            spritesheet,
+            spritesheet: Some(spritesheet),
             current_frame_time: Duration::ZERO,
             current_frame: 0,
             current_variant: 0,
@@ -65,7 +65,7 @@ impl Sprite {
             frame_time,
             w,
             h,
-            spritesheet: Image::from_path(ctx, path)?,
+            spritesheet: Some(Image::from_path(ctx, path)?),
             current_frame_time: Duration::ZERO,
             current_frame: 0,
             current_variant: 0,
@@ -126,7 +126,7 @@ impl Sprite {
             frame_time,
             w,
             h,
-            spritesheet: Image::from_path(ctx, path)?,
+            spritesheet: Some(Image::from_path(ctx, path)?),
             current_frame_time: Duration::ZERO,
             current_frame: 0,
             current_variant: 0,
@@ -135,9 +135,19 @@ impl Sprite {
 
     /// Sets the variant this sprite is currently displaying. Numbers that are too large to represent a valid variant will wrap around.
     pub fn set_variant(&mut self, variant: u32) {
-        self.current_variant = variant % (self.spritesheet.height() / self.h);
-        self.current_frame_time = Duration::ZERO;
-        self.current_frame = 0;
+        if self.current_variant != variant {
+            self.current_variant = variant;
+            if self.h != 0 {
+                self.current_variant = self.current_variant % (self
+                    .spritesheet
+                    .as_ref()
+                    .map(|img| img.height())
+                    .unwrap_or_default()
+                    / self.h);
+            }                
+            self.current_frame_time = Duration::ZERO;
+            self.current_frame = 0;
+        }
     }
 
     /// Returns the variant this sprite is currently displaying.
@@ -153,12 +163,18 @@ impl Sprite {
         self.frame_time
     }
 
-    pub fn set_frame_time(&mut self, frame_time: Duration){
+    pub fn set_frame_time(&mut self, frame_time: Duration) {
         self.frame_time = frame_time;
     }
 
     pub fn get_cycle_time(&self) -> Duration {
-        self.frame_time * self.spritesheet.width() / self.w
+        self.frame_time
+            * self
+                .spritesheet
+                .as_ref()
+                .map(|img| img.width())
+                .unwrap_or_default()
+            / self.w
     }
 
     /// Draws this sprite as given by the paramters, advancing the displayed frame as needed.
@@ -171,7 +187,13 @@ impl Sprite {
         self.current_frame_time += ctx.time.delta();
         while self.current_frame_time >= self.frame_time && !self.frame_time.is_zero() {
             self.current_frame_time -= self.frame_time;
-            self.current_frame = (self.current_frame + 1) % (self.spritesheet.width() / self.w);
+            self.current_frame = (self.current_frame + 1)
+                % (self
+                    .spritesheet
+                    .as_ref()
+                    .map(|img| img.width())
+                    .unwrap_or_default()
+                    / self.w);
         }
 
         self.draw(canvas, param);
@@ -180,15 +202,17 @@ impl Sprite {
 
 impl Drawable for Sprite {
     fn draw(&self, canvas: &mut graphics::Canvas, param: impl Into<graphics::DrawParam>) {
-        self.spritesheet.draw(
-            canvas,
-            (param.into() as graphics::DrawParam).src(Rect::new(
-                (self.w * self.current_frame) as f32 / self.spritesheet.width() as f32,
-                (self.h * self.current_variant) as f32 / self.spritesheet.height() as f32,
-                self.w as f32 / self.spritesheet.width() as f32,
-                self.h as f32 / self.spritesheet.height() as f32,
-            )),
-        );
+        if let Some(spritesheet) = &self.spritesheet {
+            spritesheet.draw(
+                canvas,
+                (param.into() as graphics::DrawParam).src(Rect::new(
+                    (self.w * self.current_frame) as f32 / spritesheet.width() as f32,
+                    (self.h * self.current_variant) as f32 / spritesheet.height() as f32,
+                    self.w as f32 / spritesheet.width() as f32,
+                    self.h as f32 / spritesheet.height() as f32,
+                )),
+            );
+        }
     }
 
     fn dimensions(
@@ -232,6 +256,20 @@ impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
     }
 }
 
+impl Default for Sprite {
+    fn default() -> Self {
+        Self {
+            w: 0,
+            h: 0,
+            spritesheet: None,
+            frame_time: Duration::ZERO,
+            current_frame_time: Duration::ZERO,
+            current_frame: 0,
+            current_variant: 0,
+        }
+    }
+}
+
 /// A pool that contains a number of initialized [sprite::Sprite]s at once and can be passed around and allows initialization of sprites using the prototype pattern and without having to re-access the file system or pass around a loading context.
 /// Provides functions for quickly initalizing folders of sprites and access methods similar to those of [graphics::Image] and [mooeye::sprite::Sprite].
 /// ### File format and access
@@ -242,6 +280,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
 /// A file named ```mage_16_16.png``` in a subfolder ```/sprites/player``` of the resource folder will be accessible with the key ```/sprites/player/mage```.
 pub struct SpritePool {
     sprites: HashMap<String, Sprite>,
+    default_duration: Duration,
 }
 
 impl SpritePool {
@@ -249,7 +288,13 @@ impl SpritePool {
     pub fn new() -> Self {
         Self {
             sprites: HashMap::new(),
+            default_duration: Duration::ZERO,
         }
+    }
+
+    pub fn with_default_duration(mut self, default_duration: Duration) -> Self {
+        self.default_duration = default_duration;
+        self
     }
 
     /// Loads all sprites within the given folder (relative to the ggez resource directory, see [ggez::context::ContextBuilder]) into the sprite pool.
@@ -272,7 +317,7 @@ impl SpritePool {
             let path_string = sub_path.to_string_lossy().to_string();
             if sprite_match.is_match(&path_string) {
                 if let Ok(sprite) =
-                    Sprite::from_path_fmt(sub_path.clone(), ctx, Duration::from_secs_f32(0.25))
+                    Sprite::from_path_fmt(sub_path.clone(), ctx, self.default_duration)
                 {
                     self.sprites.insert(
                         sprite_match
@@ -320,15 +365,14 @@ impl SpritePool {
     /// If you want to return an error, use [init_sprite] instead.
     /// For lazy initalization, use [init_sprite_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
-    pub fn init_sprite_unchecked(
-        &self,
-        path: impl AsRef<Path>,
-        frame_time: Duration,
-    ) -> Sprite {
+    pub fn init_sprite_unchecked(&self, path: impl AsRef<Path>, frame_time: Duration) -> Sprite {
         let sprite = self
             .sprites
             .get(&path.as_ref().to_string_lossy().to_string())
-            .expect(&format!("[ERROR/Mooeye] Could not find sprite {}.", path.as_ref().to_string_lossy().to_string()));
+            .expect(&format!(
+                "[ERROR/Mooeye] Could not find sprite {}.",
+                path.as_ref().to_string_lossy().to_string()
+            ));
         Sprite {
             frame_time,
             ..sprite.clone()
@@ -349,15 +393,52 @@ impl SpritePool {
     ) -> Result<Sprite, GameError> {
         let key = &path.as_ref().to_string_lossy().to_string();
         if !self.sprites.contains_key(key) {
-            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, Duration::ZERO)?;
+            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, self.default_duration)?;
             self.sprites.insert((*key).clone(), sprite);
         }
         self.init_sprite(path, frame_time)
     }
 
+    /// Returns a mutable reference to a sprite from the sprite pool.
+    /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
+    /// Instead, you can just store keys to this sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// See [graphics::Image] and [sprite::Sprite].
+    /// If the sprite (path) is not yet contained in the pool, an error is returned.
+    /// For lazy initalization, use [sprite_ref_lazy] instead.
+    /// See [SpritePool] for rules related to key assignment.
+    pub fn sprite_ref(&mut self, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError> {
+        let sprite = self
+            .sprites
+            .get_mut(&path.as_ref().to_string_lossy().to_string())
+            .ok_or_else(|| GameError::CustomError("Could not find sprite.".to_owned()))?;
+        Ok(sprite)
+    }
+
+    /// Returns a mutable reference to a sprite from the sprite pool.
+    /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
+    /// Instead, you can just store keys to this sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// See [graphics::Image] and [sprite::Sprite].
+    /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
+    /// If this also fails, an error is returned.
+    /// See [SpritePool] for rules related to key assignment.
+    pub fn sprite_ref_lazy(
+        &mut self,
+        ctx: &Context,
+        path: impl AsRef<Path>,
+    ) -> Result<&mut Sprite, GameError> {
+        let key = &path.as_ref().to_string_lossy().to_string();
+        if !self.sprites.contains_key(key) {
+            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, self.default_duration)?;
+            self.sprites.insert((*key).clone(), sprite);
+        }
+        self.sprite_ref(path)
+    }
+
     /// Prints all currently registered keys of this sprite pool. Useful if you are debugging key-issues.
     pub fn print_keys(&self) {
-        println!("Currently registered keys");
+        println!("Currently registered keys:");
         for (key, _) in self.sprites.iter() {
             println!(" | {}", &key);
         }
