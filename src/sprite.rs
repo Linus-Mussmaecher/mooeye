@@ -275,8 +275,8 @@ impl Default for Sprite {
     }
 }
 
-/// A pool that contains a number of initialized [sprite::Sprite]s at once and can be passed around and allows initialization of sprites using the prototype pattern and without having to re-access the file system or pass around a loading context.
-/// Provides functions for quickly initalizing folders of sprites and access methods similar to those of [graphics::Image] and [mooeye::sprite::Sprite].
+/// A pool that contains a number of initialized [Sprite]s at once and can be passed around and allows initialization of sprites using the prototype pattern and without having to re-access the file system or pass around a loading context.
+/// Provides functions for quickly initalizing folders of sprites and access methods similar to those of [graphics::Image] and [Sprite].
 /// ### File format and access
 /// File names must be formatted as ```NAME_WIDTH_HEIGHT.EXTENSION```.
 /// Access keys into the pool are the full path to the image file (relative to the resource directory), followed by only NAME, width, height and extension are stripped.
@@ -346,9 +346,9 @@ impl SpritePool {
 
     /// Initialies a sprite from the sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
-    /// See [graphics::Image] and [sprite::Sprite].
+    /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
-    /// For lazy initalization, use [init_sprite_lazy] instead.
+    /// For lazy initalization, use [init_sprite_lazy()] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn init_sprite(
         &self,
@@ -367,10 +367,10 @@ impl SpritePool {
 
     /// Initialies a sprite from the sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
-    /// See [graphics::Image] and [sprite::Sprite].
+    /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, this panics.
-    /// If you want to return an error, use [init_sprite] instead.
-    /// For lazy initalization, use [init_sprite_lazy] instead.
+    /// If you want to return an error, use [init_sprite()] instead.
+    /// For lazy initalization, use [init_sprite_lazy()] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn init_sprite_unchecked(&self, path: impl AsRef<Path>, frame_time: Duration) -> Sprite {
         let sprite = self
@@ -390,7 +390,7 @@ impl SpritePool {
 
     /// Initialies a sprite from the sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
-    /// See [graphics::Image] and [sprite::Sprite].
+    /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
     /// If this also fails, an error is returned.
     /// See [SpritePool] for rules related to key assignment.
@@ -412,9 +412,9 @@ impl SpritePool {
     /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
     /// Instead, you can just store keys to this sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
-    /// See [graphics::Image] and [sprite::Sprite].
+    /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
-    /// For lazy initalization, use [sprite_ref_lazy] instead.
+    /// For lazy initalization, use [sprite_ref_lazy()] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn sprite_ref(&mut self, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError> {
         let sprite = self
@@ -428,7 +428,7 @@ impl SpritePool {
     /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
     /// Instead, you can just store keys to this sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
-    /// See [graphics::Image] and [sprite::Sprite].
+    /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
     /// If this also fails, an error is returned.
     /// See [SpritePool] for rules related to key assignment.
