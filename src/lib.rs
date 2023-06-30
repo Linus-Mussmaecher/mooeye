@@ -6,6 +6,8 @@
 // * with_children
 // * multidirectional borders
 
+#![warn(missing_docs)]
+
 /// Contains the main UI element struct as well as related structures such as content, transitions, UI draw parameters etc..
 pub mod ui_element;
 pub use ui_element::UiContent;

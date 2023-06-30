@@ -13,6 +13,7 @@ pub struct StackBox<T: Copy + Eq + Hash> {
 }
 
 impl<T: Copy + Eq + Hash> StackBox<T> {
+    /// Creates a new empty StackBox.
     pub fn new() -> Self {
         Self {
             children: Vec::new(),

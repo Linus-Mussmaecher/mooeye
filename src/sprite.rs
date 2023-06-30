@@ -155,18 +155,23 @@ impl Sprite {
         self.current_variant
     }
 
+    /// Returns the width and height of a single frame of this sprite.
     pub fn get_dimensions(&self) -> (f32, f32) {
         (self.w as f32, self.h as f32)
     }
 
+    /// Returns the duration between two frames.
     pub fn get_frame_time(&self) -> Duration {
         self.frame_time
     }
 
+    /// Set the duration to wait between displaying two succeding frames.
     pub fn set_frame_time(&mut self, frame_time: Duration) {
         self.frame_time = frame_time;
     }
 
+    /// Returns the required time to cycle through every frame of the sprite.
+    /// Returns 0 if the sprite has a frame time of zero.
     pub fn get_cycle_time(&self) -> Duration {
         self.frame_time
             * self
@@ -292,6 +297,8 @@ impl SpritePool {
         }
     }
 
+    /// Sets a default duration this sprite pool will asign to every loaded sprite.
+    /// This is especially useful when using a lot of Sprites only as references.
     pub fn with_default_duration(mut self, default_duration: Duration) -> Self {
         self.default_duration = default_duration;
         self

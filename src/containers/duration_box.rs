@@ -1,7 +1,7 @@
-use crate::{UiContent, UiElement, ui_element::UiContainer};
-use std::{hash::Hash, time::Duration, slice};
+use crate::{ui_element::UiContainer, UiContent, UiElement};
+use std::{hash::Hash, slice, time::Duration};
 
-/// A ox that will display a single elements and serves as a wrapper to that element.
+/// A Box that will display a single elements and serves as a wrapper to that element.
 /// Also keeps a [Duration] attribute and marks itself as expired after that duration.
 pub struct DurationBox<T: Copy + Eq + Hash> {
     /// Contains the UiElements within this box in the right order (front to back).
@@ -11,6 +11,7 @@ pub struct DurationBox<T: Copy + Eq + Hash> {
 }
 
 impl<T: Copy + Eq + Hash> DurationBox<T> {
+    /// Creates a new [DurationBox] with the initial duration and child element.
     pub fn new(duration: Duration, element: UiElement<T>) -> Self {
         Self {
             child: element,
@@ -54,7 +55,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for DurationBox<T> {
         Some(self)
     }
 }
-impl<T: Copy + Eq + Hash> UiContainer<T> for DurationBox<T>{
+impl<T: Copy + Eq + Hash> UiContainer<T> for DurationBox<T> {
     fn content_width_range(&self) -> (f32, f32) {
         self.child.width_range()
     }
@@ -71,11 +72,11 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for DurationBox<T>{
         slice::from_mut(&mut self.child)
     }
 
-    fn add(&mut self, element: UiElement<T>){
+    fn add(&mut self, element: UiElement<T>) {
         self.child = element;
     }
 
-    fn remove_expired(&mut self){
+    fn remove_expired(&mut self) {
         if self.child.expired() {
             self.child = UiElement::new(0, ());
         }
@@ -86,6 +87,4 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for DurationBox<T>{
             self.child = UiElement::new(0, ());
         }
     }
-
-    
 }
