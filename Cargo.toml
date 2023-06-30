@@ -11,7 +11,7 @@ homepage = "https://github.com/Linus-Mussmaecher/mooeye"
 keywords = ["UI", "ggez", "game-development", "static-UI", "game"]
 
 [dependencies]
-ggez = "0.9.0-rc0"
+ggez = "0.9.0"
 tinyvec = "1.6.0"
 regex = "1.7.3"
 
