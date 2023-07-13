@@ -30,6 +30,17 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
         self
     }
 
+    /// If the elements content is a container and the passed conditional evaluates to ```true```, the passed element is added to it.
+    /// Otherwise, the passed element is discarded.
+    pub fn with_conditional_child(mut self, condition: bool, element: UiElement<T>) -> Self {
+        if condition {
+            if let Some(cont) = self.element.content.container_mut() {
+                cont.add(element);
+            }
+        }
+        self
+    }
+
     /// Sets the elements visuals.
     pub fn with_visuals(mut self, visuals: super::Visuals) -> Self {
         self.element.visuals = visuals;
