@@ -388,6 +388,7 @@ impl SpritePool {
         }
     }
 
+    #[deprecated(note = "or rather, not yet functional")]
     /// Initialies a sprite from the sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
@@ -424,6 +425,7 @@ impl SpritePool {
         Ok(sprite)
     }
 
+    #[deprecated(note = "or rather, not yet functional")]
     /// Returns a mutable reference to a sprite from the sprite pool.
     /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
     /// Instead, you can just store keys to this sprite pool.
