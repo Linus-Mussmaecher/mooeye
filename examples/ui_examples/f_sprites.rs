@@ -20,6 +20,7 @@ pub struct FScene {
     gui: UiElement<()>,
     // A sprite can be used as an UI element, but also simply as part of your game state separated from the UI
     sprite: sprite::Sprite,
+    sprite2: sprite::Sprite,
     pos: Vec2,
     v: Vec2,
 }
@@ -86,9 +87,19 @@ impl FScene {
         // (from the resource folder) with the format information and file ending removed.
         let non_ui_sprite = sprite_pool.init_sprite("/mage-sheet", Duration::from_secs_f32(0.2))?;
 
+        // you can also initialize a sprite pool without any folder at all
+        let mut sprite_pool2 = sprite::SpritePool::new();
+
+        // in this case, you can use lazy initialisation of sprites to fill the sprite pool only with those sprites currently needed.
+        // Lazy initilisation draws from the pool if possible, from the file system if needed (and loads into the pool in this case) and panics if it can't find anything in the fs.
+        // Requires a mutable sprite pool!
+        let lazy_sprite =
+            sprite_pool2.init_sprite_lazy(ctx, "/moo-sheet", Duration::from_secs_f32(0.5))?;
+
         Ok(Self {
             gui: ui_sprite,
             sprite: non_ui_sprite,
+            sprite2: lazy_sprite,
             pos: Vec2::new(50., 200.),
             v: Vec2::new(4., 4.),
         })
@@ -153,6 +164,19 @@ impl Scene for FScene {
                 self.pos.x - scaling * 4. * mirroring,
                 self.pos.y - scaling * 8.,
                 scaling * mirroring,
+                scaling,
+            )),
+        );
+
+        let scaling = 2.;
+
+        self.sprite2.draw_sprite(
+            ctx,
+            &mut canvas,
+            DrawParam::new().dest_rect(Rect::new(
+                self.pos.x - scaling * 4. + 32.,
+                self.pos.y - scaling * 8. + 32.,
+                scaling,
                 scaling,
             )),
         );

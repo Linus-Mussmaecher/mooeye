@@ -388,7 +388,6 @@ impl SpritePool {
         }
     }
 
-    #[deprecated(note = "or rather, not yet functional")]
     /// Initialies a sprite from the sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
@@ -403,8 +402,34 @@ impl SpritePool {
     ) -> Result<Sprite, GameError> {
         let key = &path.as_ref().to_string_lossy().to_string();
         if !self.sprites.contains_key(key) {
-            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, self.default_duration)?;
-            self.sprites.insert((*key).clone(), sprite);
+            let directory = key.rsplit_once('/').unwrap_or_default().0.to_owned() + "/";
+
+            let paths = ctx
+                .fs
+                .read_dir(directory)
+                .expect("Could not find specified path.");
+
+            let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
+
+            for sub_path in paths {
+                let path_string = sub_path.to_string_lossy().to_string();
+                if sprite_match.is_match(&path_string) {
+                    if let Ok(sprite) =
+                        Sprite::from_path_fmt(sub_path.clone(), ctx, self.default_duration)
+                    {
+                        let path_str = sprite_match
+                            .captures(&path_string)
+                            .map(|c| c.get(1).map(|m| m.as_str()))
+                            .unwrap_or_default()
+                            .unwrap_or_default()
+                            .replace('\\', "/");
+
+                        if path_str == path.as_ref().to_owned().to_string_lossy() {
+                            self.sprites.insert(path_str, sprite);
+                        }
+                    }
+                }
+            }
         }
         self.init_sprite(path, frame_time)
     }
