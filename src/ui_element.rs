@@ -188,6 +188,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         intern_messages
     }
 
+    /// Returns wether this element should be removed by its parents.
     pub(crate) fn expired(&self) -> bool {
         self.content.expired()
     }

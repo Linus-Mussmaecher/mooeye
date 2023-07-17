@@ -284,7 +284,9 @@ impl Default for Sprite {
 /// ### Example
 /// A file named ```mage_16_16.png``` in a subfolder ```/sprites/player``` of the resource folder will be accessible with the key ```/sprites/player/mage```.
 pub struct SpritePool {
+    /// The sprites currently stored in this pool for cloning.
     sprites: HashMap<String, Sprite>,
+    /// The default-duration any newly loaded sprite will be initialized with. Mostly importat if you use references to sprites in this pool.
     default_duration: Duration,
 }
 

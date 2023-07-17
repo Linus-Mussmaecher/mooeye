@@ -7,6 +7,7 @@
 // * multidirectional borders
 
 #![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
 
 /// Contains the main UI element struct as well as related structures such as content, transitions, UI draw parameters etc..
 pub mod ui_element;

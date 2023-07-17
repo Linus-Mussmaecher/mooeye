@@ -9,6 +9,7 @@ use super::Layout;
 /// Also contains shorthand functions for some very frequently used combination of layout settings.
 #[derive(Debug)]
 pub struct UiElementBuilder<T: Copy + Eq + Hash> {
+    /// The element currenty being built.
     element: UiElement<T>,
 }
 

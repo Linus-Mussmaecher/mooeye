@@ -68,6 +68,7 @@ impl Visuals {
         );
     }
 
+    /// Creates a mesh that can be used to draw this visual based on its attributes.
     fn create_mesh(&self, target: Rect) -> Result<MeshBuilder, GameError> {
         let tolerance = 1.;
         let inner_radius: Vec<f32> = (0..4)
