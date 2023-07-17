@@ -6,13 +6,18 @@ use mooeye::{*, scene_manager::Scene};
 // In this example, our scene struct contains a gui consiting of a single UI element.
 
 
+/// Another very basic scene. This time, it contains a UiElement called gui.
+/// This is the root element of you GUI, and any interactions and acces to the GUI of this scene happen through this object.
 pub struct CScene{
+    /// The scenes GUI root element.
     gui: UiElement<()>,
 }
 
 impl CScene {
-
-    
+    /// Creates a new CScene.
+    /// Once again, we have no special parameters. Often, you ```new``` function will contain a lot of code
+    /// basically describing the laoyut of you GUI, so this can get lengthy.
+    /// Split in to helper functions as appropriate!    
     pub fn new(ctx: &Context) -> Self{
         // The scene constructor is usually the place where we create the state of our UI.
         // In this case, we will only create a single element.

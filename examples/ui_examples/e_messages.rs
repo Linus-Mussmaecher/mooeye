@@ -1,12 +1,12 @@
 use std::{
-    collections::{HashMap},
+    collections::HashMap,
     time::Duration,
 };
 
 use mooeye::{
     containers::grid_box::GridBox,
     scene_manager::{Scene, SceneSwitch},
-    ui_element::{Transition},
+    ui_element::Transition,
     UiMessage, *,
 };
 
@@ -17,11 +17,14 @@ use ggez::{
 };
 use mooeye::{containers, UiContent, UiElement};
 
+/// A once again basic scene containing only a GUI.
 pub struct EScene {
+    /// The root element of EScene's GUI.
     gui: UiElement<()>,
 }
 
 impl EScene {
+    /// Creates a new 'default' EScene.
     pub fn new(ctx: &Context) -> GameResult<Self> {
 
 

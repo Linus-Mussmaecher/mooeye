@@ -16,16 +16,25 @@ use mooeye::{UiContent, UiElement};
 // # Sprites
 // In this example, we have a look at the sprite class that can be used for drawing animated images.
 
+/// A struct of 'game data' for scene F.
+/// In addition to our GUI, this also contains sprite and position data for a game entity.
 pub struct FScene {
+    /// The root element of FScene's GUI.
     gui: UiElement<()>,
-    // A sprite can be used as an UI element, but also simply as part of your game state separated from the UI
+    /// A sprite for a wizard.
+    /// A sprite can be used as an UI element, but also simply as part of your game state separated from the UI
     sprite: sprite::Sprite,
+    /// Another sprite displaying a cow.
+    /// It will graze next to the wizard.
     sprite2: sprite::Sprite,
+    /// The position of the wizard sprite on the screen.
     pos: Vec2,
+    /// The speed of the wizard sprite on the screen
     v: Vec2,
 }
 
 impl FScene {
+    /// Creates a new FScene in the mooeye-idiomatic way.
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Reusing the visuals from E.
 

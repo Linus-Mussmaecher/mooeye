@@ -4,11 +4,18 @@ use mooeye::{containers::StackBox, scene_manager::Scene, ui_element::UiContainer
 // # Containers
 // In this example, we learn about the 4 main types of containers provided with mooeye and use them to create a UI containing multiple elements.
 
+/// A very basic scene struct, once again only holding the root element of our GUI.
 pub struct DScene {
+    /// The root element of DScene's GUI.
     gui: UiElement<()>,
 }
 
 impl DScene {
+    /// Creates a new DScene.
+    /// As you can see, for scenes that do not change based on parameters, we would like to use something like ```DScene::default()``` to
+    /// communicate that this is the standard way for a ```DScene``` to come into existence.
+    /// However, we cannot derive Default as the passing of a parameter ```ctx: &Context``` is almost always neccessary,
+    /// so we have to use ```new(ctx: &Context)``` instead.
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Predefine some visuals so we don't have to do it for every element.
 
