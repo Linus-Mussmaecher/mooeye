@@ -400,6 +400,17 @@ impl SpritePool {
         path: impl AsRef<Path>,
         frame_time: Duration,
     ) -> Result<Sprite, GameError> {
+        // attempt to load the sprite
+        self.attempt_load(ctx, &path)?;
+        // try to return the sprite (that should now be inserted).
+        // If no sprite could be inserted, this will error
+        self.init_sprite(path, frame_time)
+    }
+
+    /// Splits the given path into a folder and file name.
+    /// Then searches the folder for a file with the name and suffix _w_h.imageformat.
+    /// If found, loads that sprite into the pool.
+    fn attempt_load(&mut self, ctx: &Context, path: impl AsRef<Path>) -> Result<(), GameError> {
         let key = &path.as_ref().to_string_lossy().to_string();
         if !self.sprites.contains_key(key) {
             let directory = key.rsplit_once('/').unwrap_or_default().0.to_owned() + "/";
@@ -418,10 +429,14 @@ impl SpritePool {
                         .captures(&path_string)
                         .map(|c| c.get(1).map(|m| m.as_str()))
                         .ok_or_else(|| {
-                            GameError::CustomError("Could not extract sprite name".to_owned())
+                            GameError::CustomError(
+                                "[ERROR/Mooeye] Sprite does not have a name.".to_owned(),
+                            )
                         })?
                         .ok_or_else(|| {
-                            GameError::CustomError("Could not extract sprite name".to_owned())
+                            GameError::CustomError(
+                                "[ERROR/Mooeye] Sprite does not have a name.".to_owned(),
+                            )
                         })?
                         .replace('\\', "/");
 
@@ -432,19 +447,30 @@ impl SpritePool {
                             Sprite::from_path_fmt(sub_path.clone(), ctx, self.default_duration)
                         {
                             self.sprites.insert(path_str, sprite);
+                            return Ok(());
                         }
                     }
                 }
             }
         }
-        // try to return the sprite (that should now be inserted).
-        // If no sprite could be inserted, this will error
-        self.init_sprite(path, frame_time)
+        Err(GameError::CustomError(
+            "[ERROR/Mooeye] Could not find sprite.".to_owned(),
+        ))
     }
 
     /// Returns a mutable reference to a sprite from the sprite pool.
+    /// ## Use
     /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
     /// Instead, you can just store keys to this sprite pool.
+    /// Note that the actual ```sprite_sheet``` in the [Sprite] struct is just a handle to data on the GPU, so the storage
+    /// savings are not monumental.
+    /// However, you still save some space as the state of the sprite does not need to be stored.
+    /// Not storing the sprite has a distince disadvantage: Different entities with the same reference cannot have different states,
+    /// so they always need to display the same frame and the same sprite-state.
+    /// The performance losses are dependent on the size of the sprite pool. Smaller sprite pools work better.
+    ///
+    /// Of course, this function is supremely useful if you only need to draw a sprite once.
+    /// ## Syntax
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
@@ -454,29 +480,26 @@ impl SpritePool {
         let sprite = self
             .sprites
             .get_mut(&path.as_ref().to_string_lossy().to_string())
-            .ok_or_else(|| GameError::CustomError("Could not find sprite.".to_owned()))?;
+            .ok_or_else(|| {
+                GameError::CustomError(
+                    "[ERROR/Mooeye] Could not find the specified sprite.".to_owned(),
+                )
+            })?;
         Ok(sprite)
     }
 
-    #[deprecated(note = "or rather, not yet functional")]
     /// Returns a mutable reference to a sprite from the sprite pool.
-    /// This is useful if you do not want to have each entity with the same sprite to hold a copy of the sprite.
-    /// Instead, you can just store keys to this sprite pool.
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
-    /// See [graphics::Image] and [Sprite].
-    /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
-    /// If this also fails, an error is returned.
-    /// See [SpritePool] for rules related to key assignment.
+    /// For syntax and use see [sprite_ref], this is a lazy version of that function.
+    /// If the requested key is not yet in the sprite pool, this function will attempt to load it and return the correct reference.
+    /// If the requested file cannot be found, an error is returned.
     pub fn sprite_ref_lazy(
         &mut self,
         ctx: &Context,
         path: impl AsRef<Path>,
     ) -> Result<&mut Sprite, GameError> {
-        let key = &path.as_ref().to_string_lossy().to_string();
-        if !self.sprites.contains_key(key) {
-            let sprite = Sprite::from_path_fmt(path.as_ref(), ctx, self.default_duration)?;
-            self.sprites.insert((*key).clone(), sprite);
-        }
+        // Attempt to load the sprite
+        self.attempt_load(ctx, &path)?;
+        // Return the sprite that is now (hopefully) in the pool. If it is not, this will error.
         self.sprite_ref(path)
     }
 
