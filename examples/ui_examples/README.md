@@ -1,4 +1,4 @@
-# Examples
+# UI-Examples
 
 This is the examples folder. The examples are supposed to be read in order a-g.
 
