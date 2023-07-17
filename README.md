@@ -5,7 +5,7 @@
 [![Crates.io](https://img.shields.io/crates/v/mooeye.svg)](https://crates.io/crates/mooeye)
 [![Crates.io](https://img.shields.io/crates/d/mooeye.svg)](https://crates.io/crates/mooeye)
 
-This is a very simple UI library building upon [ggez game library](https://github.com/ggez/ggez). It was originally written for personal use with my own Rust gamedev projets. The whole library is very much work-in-progress.
+This is a very simple UI library building upon [ggez game library](https://github.com/ggez/ggez). It was originally written for personal use with my own Rust gamedev projets.
 
 ## UI Features
 
@@ -26,7 +26,7 @@ This is a very simple UI library building upon [ggez game library](https://githu
 
 ## Maintenance
 
-I am maintaining this project mostly for my own purposes. You may not actually want to use this, but hey, it's public. Bug fixes are not guaranteed and features ~~may be~~ are lacking, as they are most precisely what I wanted from a UI library, which may not neccessarily be what you want.
+I am maintaining this project mostly for my own purposes, and by myself. Updates may be far and in between, but Mooeye is in a very usable state right now.
 
 ## How to use
 
