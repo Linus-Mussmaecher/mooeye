@@ -404,33 +404,41 @@ impl SpritePool {
         if !self.sprites.contains_key(key) {
             let directory = key.rsplit_once('/').unwrap_or_default().0.to_owned() + "/";
 
-            let paths = ctx
-                .fs
-                .read_dir(directory)
-                .expect("Could not find specified path.");
+            let paths = ctx.fs.read_dir(directory)?;
 
             let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
 
             for sub_path in paths {
+                // for every file in path
                 let path_string = sub_path.to_string_lossy().to_string();
+                // check if its an image
                 if sprite_match.is_match(&path_string) {
-                    if let Ok(sprite) =
-                        Sprite::from_path_fmt(sub_path.clone(), ctx, self.default_duration)
-                    {
-                        let path_str = sprite_match
-                            .captures(&path_string)
-                            .map(|c| c.get(1).map(|m| m.as_str()))
-                            .unwrap_or_default()
-                            .unwrap_or_default()
-                            .replace('\\', "/");
+                    // check what name the sprite would have
+                    let path_str = sprite_match
+                        .captures(&path_string)
+                        .map(|c| c.get(1).map(|m| m.as_str()))
+                        .ok_or_else(|| {
+                            GameError::CustomError("Could not extract sprite name".to_owned())
+                        })?
+                        .ok_or_else(|| {
+                            GameError::CustomError("Could not extract sprite name".to_owned())
+                        })?
+                        .replace('\\', "/");
 
-                        if path_str == path.as_ref().to_owned().to_string_lossy() {
+                    // compare to the requested name
+                    if path_str == path.as_ref().to_owned().to_string_lossy() {
+                        // if it fits and can be loaded, put it into the pool
+                        if let Ok(sprite) =
+                            Sprite::from_path_fmt(sub_path.clone(), ctx, self.default_duration)
+                        {
                             self.sprites.insert(path_str, sprite);
                         }
                     }
                 }
             }
         }
+        // try to return the sprite (that should now be inserted).
+        // If no sprite could be inserted, this will error
         self.init_sprite(path, frame_time)
     }
 
