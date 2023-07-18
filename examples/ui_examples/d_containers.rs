@@ -1,5 +1,5 @@
 use ggez::{graphics::Color, *};
-use mooeye::{containers::StackBox, scene_manager::Scene, ui_element::UiContainer, *};
+use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 // # Containers
 // In this example, we learn about the 4 main types of containers provided with mooeye and use them to create a UI containing multiple elements.
@@ -7,7 +7,7 @@ use mooeye::{containers::StackBox, scene_manager::Scene, ui_element::UiContainer
 /// A very basic scene struct, once again only holding the root element of our GUI.
 pub struct DScene {
     /// The root element of DScene's GUI.
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
 }
 
 impl DScene {
@@ -19,7 +19,7 @@ impl DScene {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Predefine some visuals so we don't have to do it for every element.
 
-        let vis = ui_element::Visuals::new(
+        let vis = ui::Visuals::new(
             Color::from_rgb(180, 120, 60),
             Color::from_rgb(18, 12, 6),
             1.,
@@ -28,21 +28,21 @@ impl DScene {
 
         // You can also create 'custom' visuals that allow you to set the thickness of each border & radius of each corner separately.
 
-        let vis2 = ui_element::Visuals::new_custom(
+        let vis2 = ui::Visuals::new_custom(
             Color::from_rgb(180, 120, 60),
             Color::from_rgb(18, 12, 6),
             [4., 1., 4., 1.],
             [2., 2., 2., 2.],
         );
 
-        let hover_vis = ui_element::Visuals::new(
+        let hover_vis = ui::Visuals::new(
             Color::from_rgb(160, 100, 40),
             Color::from_rgb(18, 12, 6),
             3.,
             0.,
         );
 
-        let cont_vis = ui_element::Visuals::new_custom(
+        let cont_vis = ui::Visuals::new_custom(
             Color::from_rgb(60, 120, 180),
             Color::from_rgb(180, 180, 190),
             [16., 8., 8., 8.],
@@ -53,7 +53,7 @@ impl DScene {
         // This is neccessary as the 'add' function used to add UI elements to grid containers can fail, thus failing the constructor.
 
         // The first container we use is a vertical box simply laying out elements from top to bottom.
-        let mut ver_box = containers::VerticalBox::new();
+        let mut ver_box = ui::containers::VerticalBox::new();
         // We can manually change the spacing between elements in the box
         ver_box.spacing = 10.;
         // first, we need to add all the children to this vertical box.
@@ -80,7 +80,7 @@ impl DScene {
             .build();
 
         // Another container we can use is GridBox. A GridBox needs to be initialized with a set height and width and cannot be extended.
-        let mut grid = containers::GridBox::new(4, 4);
+        let mut grid = ui::containers::GridBox::new(4, 4);
         // The contents of a grid box are initialized as empty elements.  We'll add buttons to the diagonal of the grid.
         for i in 0..4 {
             // Create an element.
@@ -91,7 +91,7 @@ impl DScene {
                 .to_element_builder(0, ctx)
                 .with_visuals(vis)
                 // Elements can be given alignment and will align within their respecitive cell in the grid.
-                .with_alignment(ui_element::Alignment::Max, None)
+                .with_alignment(ui::Alignment::Max, None)
                 .build();
             // Add the element to the box. This can fail, if ver_box were not an actual container
             // or a container that requires a special method for adding, like e.g. GridBox.
@@ -111,14 +111,14 @@ impl DScene {
 
         // This time, we'll enhance our back button a bit by using an icon that is displayed over the top left corner.
         // To achieve this, we'll use a StackBox.
-        let mut stack = StackBox::new();
+        let mut stack = ui::containers::StackBox::new();
         stack.add(back);
         // The add_top function adds something to the top of a stack box. Creating and adding an element can be done inline.
         stack.add_top(
             graphics::Image::from_path(ctx, "/moo.png")?
                 .to_element_builder(0, ctx)
                 // We'll align the icon to the top right
-                .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
+                .with_alignment(ui::Alignment::Min, ui::Alignment::Min)
                 // and offset it slightly
                 .with_offset(-10., -10.)
                 .build(),
@@ -141,7 +141,7 @@ impl DScene {
         // if you don't want to create multiple variables, adding of children can be done inline for non-grid
         // containers by using .with_child.
         Ok(Self {
-            gui: containers::HorizontalBox::new()
+            gui: ui::containers::HorizontalBox::new()
                 .to_element_builder(0, ctx)
                 .with_child(ver_box)
                 .with_child(grid)
@@ -150,13 +150,13 @@ impl DScene {
     }
 }
 
-impl Scene for DScene {
+impl scene_manager::Scene for DScene {
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         // Nothing much to do here, except implement the back button functionality.
 
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&UiMessage::Triggered(1)) {
+        if messages.contains(&ui::UiMessage::Triggered(1)) {
             // If it is, we end the current scene (and return to the previous one) by popping it off the stack.
             return Ok(scene_manager::SceneSwitch::pop(1));
         }

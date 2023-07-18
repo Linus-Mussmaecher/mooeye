@@ -2,7 +2,7 @@ use std::{hash::Hash, time::Duration};
 
 use ggez::graphics::Rect;
 
-use crate::{UiContent, UiElement};
+use crate::ui::{UiContent, UiElement};
 
 use super::{Layout, Visuals};
 

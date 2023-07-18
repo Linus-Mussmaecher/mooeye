@@ -6,8 +6,8 @@ use ggez::{
 };
 
 use crate::{
-    ui_element::{Size, UiElementBuilder},
-    UiContent,
+    ui::UiContent,
+    ui::{Size, UiElementBuilder},
 };
 use std::hash::Hash;
 
@@ -246,7 +246,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
         &mut self,
         ctx: &mut Context,
         canvas: &mut graphics::Canvas,
-        param: crate::ui_element::UiDrawParam,
+        param: crate::ui::UiDrawParam,
     ) {
         self.draw_sprite(
             ctx,

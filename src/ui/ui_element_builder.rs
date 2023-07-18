@@ -1,6 +1,6 @@
 use ggez::{audio::Source, winit::event::VirtualKeyCode};
 
-use crate::{UiContent, UiElement};
+use crate::ui::{UiContent, UiElement};
 use std::hash::Hash;
 
 use super::Layout;
@@ -82,7 +82,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
     pub fn with_message_handler(
         mut self,
         handler: impl Fn(
-                &std::collections::HashSet<crate::UiMessage<T>>,
+                &std::collections::HashSet<crate::ui::UiMessage<T>>,
                 Layout,
                 &mut std::collections::VecDeque<super::Transition<T>>,
             ) + 'static,

@@ -1,5 +1,5 @@
 use ggez::{graphics::Color, *};
-use mooeye::{scene_manager::Scene, *};
+use mooeye::{scene_manager, ui, ui::UiContent};
 
 /// This scene is the main-drop in scene and allows you to access the different tutorial scenes.
 /// This is not intended to be a tutorial in itself and is thus more sparsely commented,
@@ -7,7 +7,7 @@ use mooeye::{scene_manager::Scene, *};
 pub struct SelectorScene {
     /// The root element of this scene's GUI.
     /// As this is just a UI-scene with no underlying game state, no further fields are neccessary.
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
 }
 
 impl SelectorScene {
@@ -17,14 +17,14 @@ impl SelectorScene {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Defining visuals
 
-        let vis = ui_element::Visuals::new(
+        let vis = ui::Visuals::new(
             Color::from_rgb(180, 120, 60),
             Color::from_rgb(18, 12, 6),
             1.,
             0.,
         );
 
-        let hover_vis = ui_element::Visuals::new(
+        let hover_vis = ui::Visuals::new(
             Color::from_rgb(160, 100, 40),
             Color::from_rgb(18, 12, 6),
             3.,
@@ -33,7 +33,7 @@ impl SelectorScene {
 
         // Creating main grid
 
-        let mut grid = containers::GridBox::new(3, 2);
+        let mut grid = ui::containers::GridBox::new(3, 2);
 
         let contents = ["Scene", "UiElement", "Container", "Messages", "Sprites"];
 
@@ -84,37 +84,37 @@ impl SelectorScene {
     }
 }
 
-impl Scene for SelectorScene {
+impl scene_manager::Scene for SelectorScene {
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
         // Scene switches for different scenes
 
-        if messages.contains(&UiMessage::Triggered(1)) {
+        if messages.contains(&ui::UiMessage::Triggered(1)) {
             return Ok(scene_manager::SceneSwitch::push(
                 crate::b_scene::BScene::new(ctx),
             ));
         }
 
-        if messages.contains(&UiMessage::Triggered(2)) {
+        if messages.contains(&ui::UiMessage::Triggered(2)) {
             return Ok(scene_manager::SceneSwitch::push(
                 crate::c_uielement::CScene::new(ctx),
             ));
         }
 
-        if messages.contains(&UiMessage::Triggered(3)) {
+        if messages.contains(&ui::UiMessage::Triggered(3)) {
             return Ok(scene_manager::SceneSwitch::push(
                 crate::d_containers::DScene::new(ctx)?,
             ));
         }
 
-        if messages.contains(&UiMessage::Triggered(4)) {
+        if messages.contains(&ui::UiMessage::Triggered(4)) {
             return Ok(scene_manager::SceneSwitch::push(
                 crate::e_messages::EScene::new(ctx)?,
             ));
         }
 
-        if messages.contains(&UiMessage::Triggered(5)) {
+        if messages.contains(&ui::UiMessage::Triggered(5)) {
             return Ok(scene_manager::SceneSwitch::push(
                 crate::f_sprites::FScene::new(ctx)?,
             ));
@@ -122,7 +122,7 @@ impl Scene for SelectorScene {
 
         // Exit
 
-        if messages.contains(&UiMessage::Triggered(6)) {
+        if messages.contains(&ui::UiMessage::Triggered(6)) {
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
 

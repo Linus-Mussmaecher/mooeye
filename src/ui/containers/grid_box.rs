@@ -5,15 +5,13 @@ use tinyvec::TinyVec;
 /// The default size for tinyvecs in this module.
 const VECSIZE: usize = 32;
 
-use crate::{
-    ui_element::{Size, UiContainer, UiElementBuilder},
-    UiContent, UiElement,
-};
+use crate::ui;
+use crate::ui::UiContainer;
 
 /// A Grid Box that is initialized with a fixed width and height an can display elements in every cell.
 pub struct GridBox<T: Copy + Eq + Hash> {
     /// The contents of this grid box, organized by rows
-    children: Vec<UiElement<T>>,
+    children: Vec<ui::UiElement<T>>,
 
     /// The distance between two rows of this grid box.
     pub vertical_spacing: f32,
@@ -32,7 +30,9 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     /// Creates a new GridBox with the specified number of columns and rows.
     pub fn new(columns: usize, rows: usize) -> Self {
         Self {
-            children: (0..columns * rows).map(|_| UiElement::new(0, ())).collect(),
+            children: (0..columns * rows)
+                .map(|_| ui::UiElement::new(0, ()))
+                .collect(),
             vertical_spacing: 5.,
             horizontal_spacing: 5.,
             cols: columns,
@@ -49,7 +49,9 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
         vertical_spacing: f32,
     ) -> Self {
         Self {
-            children: (0..columns * rows).map(|_| UiElement::new(0, ())).collect(),
+            children: (0..columns * rows)
+                .map(|_| ui::UiElement::new(0, ()))
+                .collect(),
             vertical_spacing,
             horizontal_spacing,
             cols: columns,
@@ -60,8 +62,8 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
 
     /// Adds an element to the specified position in the grid, overwriting any element previously there.
     /// If the index is out of bounds, this function will return an error.
-    /// Keep in mind that the basic [crate::UiElement::add_element] function will not work on a [GridBox].
-    pub fn add(&mut self, element: UiElement<T>, x: usize, y: usize) -> GameResult {
+    /// Keep in mind that the basic [ui::UiElement::add_element] function will not work on a [GridBox].
+    pub fn add(&mut self, element: ui::UiElement<T>, x: usize, y: usize) -> GameResult {
         if x >= self.cols || y >= self.rows {
             Err(ggez::GameError::CustomError(format!(
                 "Index out of bounds: ({}, {}) does not fit in ({}, {}).",
@@ -96,7 +98,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index % self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.get_layout().x_size, Size::Fill(_, _))
+                            hs || matches!(element.get_layout().x_size, ui::Size::Fill(_, _))
                         })
                 })
                 .collect(),
@@ -115,7 +117,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index % self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.get_layout().x_size, Size::Shrink(_, _))
+                            hs || matches!(element.get_layout().x_size, ui::Size::Shrink(_, _))
                         })
                 })
                 .collect(),
@@ -147,7 +149,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index / self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.get_layout().y_size, Size::Fill(_, _))
+                            hs || matches!(element.get_layout().y_size, ui::Size::Fill(_, _))
                         })
                 })
                 .collect(),
@@ -166,7 +168,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
                         .enumerate()
                         .filter(|(index, _)| *index / self.cols == col)
                         .fold(false, |hs, (_, element)| {
-                            hs || matches!(element.get_layout().y_size, Size::Shrink(_, _))
+                            hs || matches!(element.get_layout().y_size, ui::Size::Shrink(_, _))
                         })
                 })
                 .collect(),
@@ -260,18 +262,14 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     }
 }
 
-impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
-    fn to_element_builder(
-        self,
-        id: u32,
-        _ctx: &ggez::Context,
-    ) -> crate::ui_element::UiElementBuilder<T>
+impl<T: Copy + Eq + Hash> ui::UiContent<T> for GridBox<T> {
+    fn to_element_builder(self, id: u32, _ctx: &ggez::Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
-        UiElementBuilder::new(id, self).with_size(
-            Size::Shrink(0., f32::INFINITY),
-            Size::Shrink(0., f32::INFINITY),
+        ui::UiElementBuilder::new(id, self).with_size(
+            ui::Size::Shrink(0., f32::INFINITY),
+            ui::Size::Shrink(0., f32::INFINITY),
         )
     }
 
@@ -279,7 +277,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         &mut self,
         ctx: &mut ggez::Context,
         canvas: &mut ggez::graphics::Canvas,
-        param: crate::ui_element::UiDrawParam,
+        param: ui::UiDrawParam,
     ) {
         // get column widths
         let column_widths = self.get_column_widths(param.target.w);
@@ -318,16 +316,16 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
         }
     }
 
-    fn container(&self) -> Option<&dyn UiContainer<T>> {
+    fn container(&self) -> Option<&dyn ui::UiContainer<T>> {
         Some(self)
     }
 
-    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
+    fn container_mut(&mut self) -> Option<&mut dyn ui::UiContainer<T>> {
         Some(self)
     }
 }
 
-impl<T: Copy + Eq + Hash> UiContainer<T> for GridBox<T> {
+impl<T: Copy + Eq + Hash> ui::UiContainer<T> for GridBox<T> {
     fn content_width_range(&self) -> (f32, f32) {
         self.get_column_ranges().iter().fold(
             (
@@ -348,22 +346,22 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for GridBox<T> {
         )
     }
 
-    fn get_children(&self) -> &[UiElement<T>] {
+    fn get_children(&self) -> &[ui::UiElement<T>] {
         &self.children
     }
 
-    fn get_children_mut(&mut self) -> &mut [UiElement<T>] {
+    fn get_children_mut(&mut self) -> &mut [ui::UiElement<T>] {
         &mut self.children
     }
 
-    fn add(&mut self, _element: UiElement<T>) {
+    fn add(&mut self, _element: ui::UiElement<T>) {
         panic!("You tried to add an element to a grid box without using an index. This may happen because you tried to use the add-to-id functionality from live adding. Don't do this with grid boxes.")
     }
 
     fn remove_expired(&mut self) {
         for i in 0..self.children.len() {
             if self.children[i].expired() {
-                self.children[i] = UiElement::new(0, ());
+                self.children[i] = ui::UiElement::new(0, ());
             }
         }
     }
@@ -371,7 +369,7 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for GridBox<T> {
     fn remove_id(&mut self, id: u32) {
         for i in 0..self.children.len() {
             if self.children[i].get_id() == id {
-                self.children[i] = UiElement::new(0, ());
+                self.children[i] = ui::UiElement::new(0, ());
             }
         }
     }

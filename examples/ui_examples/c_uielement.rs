@@ -1,5 +1,5 @@
 use ggez::{*, graphics::Color};
-use mooeye::{*, scene_manager::Scene};
+use mooeye::{ui, ui::UiContent, scene_manager};
 
 
 // # UI, UI elements, UI element builder and basic messages
@@ -10,7 +10,7 @@ use mooeye::{*, scene_manager::Scene};
 /// This is the root element of you GUI, and any interactions and acces to the GUI of this scene happen through this object.
 pub struct CScene{
     /// The scenes GUI root element.
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
 }
 
 impl CScene {
@@ -34,7 +34,7 @@ impl CScene {
         .to_element_builder(1, ctx) 
         // We can now use the functions of UiElementBuilder to style and position our element.
         // First, we'll set the visuals using a Visuals struct.
-        .with_visuals(ui_element::Visuals::new(
+        .with_visuals(ui::Visuals::new(
             Color::from_rgb(49, 53, 69),
             Color::from_rgb(250, 246, 230),
             4.,8. 
@@ -42,7 +42,7 @@ impl CScene {
         // Additionally, you can add keycodes that make your element respond to key presses as it would respond to clicks
         .with_trigger_key(winit::event::VirtualKeyCode::A)
         // We can also set the alignment within the window...
-        .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Center)
+        .with_alignment(ui::Alignment::Min, ui::Alignment::Center)
         // ... offset the element (note that we can pass None into most of these functions to leave the presets for one dimension untouched) ...
         .with_offset(25., None)
         // ... or set its padding ...
@@ -58,7 +58,7 @@ impl CScene {
 
 }
 
-impl Scene for CScene{
+impl scene_manager::Scene for CScene{
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
 
         // Usually, we would first perform our game logic here, but this scene has no logic.
@@ -69,7 +69,7 @@ impl Scene for CScene{
         let messages = self.gui.manage_messages(ctx, None);
 
         // We then check if our button has been clicked by creating a Clicked event with the correct ID and checking if it is contained in the messages set.
-        if messages.contains(&UiMessage::Triggered(1)){
+        if messages.contains(&ui::UiMessage::Triggered(1)){
             // If it is, we end the current scene (and return to the previous one) by popping it off the stack.
             return Ok(scene_manager::SceneSwitch::pop(1));
         }

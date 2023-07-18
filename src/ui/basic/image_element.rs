@@ -4,10 +4,10 @@ use ggez::{
 };
 use std::hash::Hash;
 
-use crate::{ui_element::Size, UiContent};
+use crate::ui;
 
-impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Image {
-    fn to_element_builder(self, id: u32, ctx: &Context) -> crate::ui_element::UiElementBuilder<T>
+impl<T: Copy + Eq + Hash> ui::UiContent<T> for ggez::graphics::Image {
+    fn to_element_builder(self, id: u32, ctx: &Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
@@ -18,10 +18,10 @@ impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Image {
             h: 0.,
         });
 
-        crate::ui_element::UiElementBuilder::new(id, self)
+        ui::UiElementBuilder::new(id, self)
             .with_size(
-                Size::Fill(size.w, f32::INFINITY),
-                Size::Fill(size.h, f32::INFINITY),
+                ui::Size::Fill(size.w, f32::INFINITY),
+                ui::Size::Fill(size.h, f32::INFINITY),
             )
             .with_preserve_ratio(true)
     }
@@ -30,7 +30,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Image {
         &mut self,
         ctx: &mut Context,
         canvas: &mut graphics::Canvas,
-        param: crate::ui_element::UiDrawParam,
+        param: ui::UiDrawParam,
     ) {
         if let Some(dim) = self.dimensions(ctx) {
             canvas.draw(

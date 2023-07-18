@@ -3,24 +3,18 @@ use std::{
     time::Duration,
 };
 
-use mooeye::{
-    containers::GridBox,
-    scene_manager::{Scene, SceneSwitch},
-    ui_element::Transition,
-    UiMessage, *,
-};
+use mooeye::{ui, ui::UiContent, scene_manager};
 
 use ggez::{
     context::Context,
     graphics::{Color, Text},
     *,
 };
-use mooeye::{containers, UiContent, UiElement};
 
 /// A once again basic scene containing only a GUI.
 pub struct EScene {
     /// The root element of EScene's GUI.
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
 }
 
 impl EScene {
@@ -45,12 +39,12 @@ impl EScene {
             // We check if any of the buttons that interest us were clicked in the last frame.
             for id in ids{
                 for message in messages{
-                    if *message == UiMessage::<()>::Clicked(id){
+                    if *message == ui::UiMessage::<()>::Clicked(id){
 
                         // If yes, we add a new transition to the vector.
                         transitions.push_back(
                             // Transitions are initalized with the duration they should take to complete and augmented via the builder pattern.
-                            Transition::new(Duration::ZERO)
+                            ui::Transition::new(Duration::ZERO)
                             // Here, we add a new content that will replace the old text once the transition completes.
                             .with_new_content(Text::new(format!(
                                 "Move this element with the buttons.\nYou clicked a button with id {}.",
@@ -68,7 +62,7 @@ impl EScene {
         .build();
 
         // Define a general visual style to use for all buttons.
-        let vis = ui_element::Visuals::new(
+        let vis = ui::Visuals::new(
             Color::from_rgb(77, 109, 191),
             Color::from_rgb(55, 67, 87),
             2.,
@@ -76,7 +70,7 @@ impl EScene {
         );
 
         // Create a grid box to hold all buttons.
-        let mut grid_box = GridBox::new(2, 3);
+        let mut grid_box = ui::containers::GridBox::new(2, 3);
 
         // Now, we create 6 buttons to move the element to all possible vertical and horizontal alignments and add them to the grid.
         let vert_up = Text::new(" ^ ")
@@ -143,14 +137,14 @@ impl EScene {
         
         // We create a general VBox to contain our UI
         // We can create Vertical and Horizontal Boxes with the 'spaced' constructor to set its spacing value.
-        let gui_box = containers::VerticalBox::new_spaced(6.)
+        let gui_box = ui::containers::VerticalBox::new_spaced(6.)
         .to_element_builder(0, ctx)
         // We put the title, grid and back button together in a box.
         .with_child(title)
         .with_child(grid_box.to_element(30, ctx))
         .with_child(back)
-        .with_size(ui_element::Size::Shrink(128., f32::INFINITY), ui_element::Size::Shrink(0., f32::INFINITY))
-        .with_visuals(ui_element::Visuals::new(
+        .with_size(ui::Size::Shrink(128., f32::INFINITY), ui::Size::Shrink(0., f32::INFINITY))
+        .with_visuals(ui::Visuals::new(
             Color::from_rgb(120, 170, 200),
             Color::from_rgb(55, 67, 87),
             2.,
@@ -165,24 +159,24 @@ impl EScene {
                 return;
             }
             let vert_map = HashMap::from([
-                (11, ui_element::Alignment::Min),
-                (12, ui_element::Alignment::Center),
-                (13, ui_element::Alignment::Max),
+                (11, ui::Alignment::Min),
+                (12, ui::Alignment::Center),
+                (13, ui::Alignment::Max),
             ]);
             let hor_map = HashMap::from([
-                (21, ui_element::Alignment::Min),
-                (22, ui_element::Alignment::Center),
-                (23, ui_element::Alignment::Max),
+                (21, ui::Alignment::Min),
+                (22, ui::Alignment::Center),
+                (23, ui::Alignment::Max),
             ]);
             // Check if any vertical buttons were clicked.
             for (key, val) in vert_map {
-                if messages.contains(&UiMessage::Triggered(key)) {
+                if messages.contains(&ui::UiMessage::Triggered(key)) {
                     transitions.push_back(
                         // If yes, add a transition.
-                        Transition::new(Duration::from_secs_f32(1.5))
+                        ui::Transition::new(Duration::from_secs_f32(1.5))
                         // This time, we don't change the content, but the layout.
                         // Layout, visuals and hover_visuals are not  changed on completion like content, but instead applied gradually.
-                        .with_new_layout(ui_element::Layout{
+                        .with_new_layout(ui::Layout{
                             y_alignment: val,
                             ..layout
                         }),
@@ -191,9 +185,9 @@ impl EScene {
             }
             // Repeat for horizontal keys.
             for (key, val) in hor_map {
-                if messages.contains(&UiMessage::Triggered(key)) {
+                if messages.contains(&ui::UiMessage::Triggered(key)) {
                     transitions.push_back(
-                        Transition::new(Duration::from_secs_f32(1.5)).with_new_layout(ui_element::Layout{
+                        ui::Transition::new(Duration::from_secs_f32(1.5)).with_new_layout(ui::Layout{
                             x_alignment: val,
                             ..layout
                         }),
@@ -208,22 +202,22 @@ impl EScene {
 }
 
 
-impl Scene for EScene {
-    fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError> {
+impl scene_manager::Scene for EScene {
+    fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         // Nothing much to do here, except implement the back button functionality.
 
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&UiMessage::Triggered(1)){
+        if messages.contains(&ui::UiMessage::Triggered(1)){
             // If it is, we end the current scene (and return to the previous one) by popping it off the stack.
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
 
-        if messages.contains(&UiMessage::Triggered(13)){
+        if messages.contains(&ui::UiMessage::Triggered(13)){
             // If a certain button is pressed, add a small text element to the gui.
             self.gui.add_element(100,
                 // using a duration box as a wrapper will remove the element after a set amount of time
-                  containers::DurationBox::new(
+                  ui::containers::DurationBox::new(
                     Duration::from_secs_f32(1.5),
                      graphics::Text::new("Just a small reminder that you pressed button 13.")
                      .set_font("Bahnschrift")
@@ -232,7 +226,7 @@ impl Scene for EScene {
                      .set_scale(28.)
                      .to_owned()
                      .to_element_builder(0, ctx)
-                     .with_visuals(ui_element::Visuals::new(
+                     .with_visuals(ui::Visuals::new(
                         Color::from_rgb(77, 109, 191),
                         Color::from_rgb(55, 67, 87),
                         2.,
@@ -240,7 +234,7 @@ impl Scene for EScene {
                     ))
                      .build()
                     ).to_element_builder(0, ctx)
-                    .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
+                    .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
                     .with_offset(0., 25.)
                     .build()
                     );

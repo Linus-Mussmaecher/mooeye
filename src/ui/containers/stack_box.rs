@@ -1,6 +1,6 @@
 use ggez::GameResult;
 
-use crate::{ui_element::UiContainer, UiContent, UiElement};
+use crate::ui;
 use std::hash::Hash;
 
 /// A stack box that will display elements stacked on top of one another.
@@ -9,7 +9,7 @@ use std::hash::Hash;
 /// Every child element will receive the same rectangle.
 pub struct StackBox<T: Copy + Eq + Hash> {
     /// Contains the UiElements within this box in the right order (front to back).
-    children: Vec<UiElement<T>>,
+    children: Vec<ui::UiElement<T>>,
 }
 
 impl<T: Copy + Eq + Hash> StackBox<T> {
@@ -21,7 +21,7 @@ impl<T: Copy + Eq + Hash> StackBox<T> {
     }
 
     /// Adds a UiElement to the top of this stack box (unlike the normal add function, which adds to the bottom).
-    pub fn add_top(&mut self, element: UiElement<T>) -> GameResult {
+    pub fn add_top(&mut self, element: ui::UiElement<T>) -> GameResult {
         self.children.insert(0, element);
         Ok(())
     }
@@ -33,16 +33,12 @@ impl<T: Copy + Eq + Hash> Default for StackBox<T> {
     }
 }
 
-impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
-    fn to_element_builder(
-        self,
-        id: u32,
-        _ctx: &ggez::Context,
-    ) -> crate::ui_element::UiElementBuilder<T>
+impl<T: Copy + Eq + Hash> ui::UiContent<T> for StackBox<T> {
+    fn to_element_builder(self, id: u32, _ctx: &ggez::Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
-        crate::ui_element::UiElementBuilder::new(id, self)
+        ui::UiElementBuilder::new(id, self)
             .as_shrink()
             .with_padding((0., 0., 0., 0.))
     }
@@ -50,23 +46,23 @@ impl<T: Copy + Eq + Hash> UiContent<T> for StackBox<T> {
         &mut self,
         ctx: &mut ggez::Context,
         canvas: &mut ggez::graphics::Canvas,
-        param: crate::ui_element::UiDrawParam,
+        param: ui::UiDrawParam,
     ) {
         for child in self.children.iter_mut().rev() {
             child.draw_to_rectangle(ctx, canvas, param);
         }
     }
 
-    fn container(&self) -> Option<&dyn UiContainer<T>> {
+    fn container(&self) -> Option<&dyn ui::UiContainer<T>> {
         Some(self)
     }
 
-    fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
+    fn container_mut(&mut self) -> Option<&mut dyn ui::UiContainer<T>> {
         Some(self)
     }
 }
 
-impl<T: Copy + Eq + Hash> UiContainer<T> for StackBox<T> {
+impl<T: Copy + Eq + Hash> ui::UiContainer<T> for StackBox<T> {
     fn content_width_range(&self) -> (f32, f32) {
         // maximum of all min widths and minimum of all max widths, as all elements are layed out in parallel x direction
 
@@ -93,15 +89,15 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for StackBox<T> {
             })
     }
 
-    fn get_children(&self) -> &[UiElement<T>] {
+    fn get_children(&self) -> &[ui::UiElement<T>] {
         &self.children
     }
 
-    fn get_children_mut(&mut self) -> &mut [UiElement<T>] {
+    fn get_children_mut(&mut self) -> &mut [ui::UiElement<T>] {
         &mut self.children
     }
 
-    fn add(&mut self, element: UiElement<T>) {
+    fn add(&mut self, element: ui::UiElement<T>) {
         self.children.push(element);
     }
 

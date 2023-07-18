@@ -1,9 +1,6 @@
 use std::time::Duration;
 
-use mooeye::{
-    scene_manager::{Scene, SceneSwitch},
-    UiMessage, *,
-};
+use mooeye::{scene_manager, sprite, ui, ui::UiContent};
 
 use ggez::{
     context::Context,
@@ -11,7 +8,6 @@ use ggez::{
     graphics::{Color, DrawParam, Rect},
     *,
 };
-use mooeye::{UiContent, UiElement};
 
 // # Sprites
 // In this example, we have a look at the sprite class that can be used for drawing animated images.
@@ -20,7 +16,7 @@ use mooeye::{UiContent, UiElement};
 /// In addition to our GUI, this also contains sprite and position data for a game entity.
 pub struct FScene {
     /// The root element of FScene's GUI.
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
     /// A sprite for a wizard.
     /// A sprite can be used as an UI element, but also simply as part of your game state separated from the UI
     sprite: sprite::Sprite,
@@ -38,21 +34,21 @@ impl FScene {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Reusing the visuals from E.
 
-        let vis = ui_element::Visuals::new(
+        let vis = ui::Visuals::new(
             Color::from_rgb(180, 120, 60),
             Color::from_rgb(18, 12, 6),
             1.,
             0.,
         );
 
-        let hover_vis = ui_element::Visuals::new(
+        let hover_vis = ui::Visuals::new(
             Color::from_rgb(160, 100, 40),
             Color::from_rgb(18, 12, 6),
             3.,
             0.,
         );
 
-        let cont_vis = ui_element::Visuals::new(
+        let cont_vis = ui::Visuals::new(
             Color::from_rgb(60, 120, 180),
             Color::from_rgb(180, 180, 190),
             1.,
@@ -115,8 +111,8 @@ impl FScene {
     }
 }
 
-impl Scene for FScene {
-    fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError> {
+impl scene_manager::Scene for FScene {
+    fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         // Actually implementing some game state logic.
 
         // Pressing space changes the variant of the sprite.
@@ -147,7 +143,7 @@ impl Scene for FScene {
 
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&UiMessage::Triggered(1)) {
+        if messages.contains(&ui::UiMessage::Triggered(1)) {
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
 

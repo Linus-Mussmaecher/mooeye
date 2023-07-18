@@ -4,11 +4,10 @@ use ggez::{
 };
 use std::hash::Hash;
 
+use crate::ui;
 
-use crate::{UiContent, ui_element::Size};
-
-impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Text {
-    fn to_element_builder(self, id: u32, ctx: &Context) -> crate::ui_element::UiElementBuilder<T>
+impl<T: Copy + Eq + Hash> ui::UiContent<T> for ggez::graphics::Text {
+    fn to_element_builder(self, id: u32, ctx: &Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
@@ -19,21 +18,15 @@ impl<T: Copy + Eq + Hash> UiContent<T> for ggez::graphics::Text {
             h: 0.,
         });
 
-        crate::ui_element::UiElementBuilder::new(id, self)
+        ui::UiElementBuilder::new(id, self)
             .with_size(
-                Size::Fill(size.w, f32::INFINITY),
-                Size::Fixed(size.h),
+                ui::Size::Fill(size.w, f32::INFINITY),
+                ui::Size::Fixed(size.h),
             )
             .with_preserve_ratio(true)
     }
 
-
-    fn draw_content(
-        &mut self,
-        ctx: &mut Context,
-        canvas: &mut Canvas,
-        param: crate::ui_element::UiDrawParam,
-    ) {
+    fn draw_content(&mut self, ctx: &mut Context, canvas: &mut Canvas, param: ui::UiDrawParam) {
         if let Some(dim) = self.dimensions(ctx) {
             canvas.draw(
                 self,
