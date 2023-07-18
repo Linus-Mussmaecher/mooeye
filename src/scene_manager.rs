@@ -124,7 +124,7 @@ impl SceneSwitch {
     }
 }
 
-/// A scene in your game. This is basically a version of the EventHandler usually used with ggez that also returns a possible scene switch in its update function.
+/// A scene in your game. This is basically a wrapper of [ggez::event::EventHandler] that also returns a possible scene switch in its update function.
 pub trait Scene {
     /// A function that fulfils the same purpose as [ggez::event::EventHandler::update] but also returns if the scene is to be switched.
     fn update(&mut self, ctx: &mut Context) -> Result<SceneSwitch, GameError>;

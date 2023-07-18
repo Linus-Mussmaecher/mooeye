@@ -103,9 +103,9 @@ pub struct Layout {
     pub x_alignment: Alignment,
     /// Wether this element aligns top, center or bottom. See [Alignment].
     pub y_alignment: Alignment,
-    /// How many pixels away from the most left- or rightmost position this element aligns. Should be positive. Does not work with Alignment::CENTER.
+    /// How many pixels away from the most left- or rightmost position this element aligns. Should be positive. Does not work with [Alignment::Center].
     pub x_offset: f32,
-    /// How many pixels away from the most top- or bottommost position this element aligns. Should be positive. Does not work with Alignment::CENTER.
+    /// How many pixels away from the most top- or bottommost position this element aligns. Should be positive. Does not work with [Alignment::Center].
     pub y_offset: f32,
     /// The size and growth behaviour of this element in the horizontal direction. See [Size].
     pub x_size: Size,

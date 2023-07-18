@@ -1,16 +1,21 @@
-/// Contains the [VerticalBox] struct.
-pub mod vertical_box;
-/// Contains the [HorizontalBox] struct.
-pub mod horizontal_box;
-/// Contains the [StackBox] struct.
-pub mod stack_box;
-/// Contains the [GridBox] struct.
-pub mod grid_box;
 /// Contains the [DurationBox] struct.
-pub mod duration_box;
+mod duration_box;
+/// Contains the [GridBox] struct.
+mod grid_box;
+/// Contains the [HorizontalBox] struct.
+mod horizontal_box;
+/// Contains the [StackBox] struct.
+mod stack_box;
+/// Contains the [VerticalBox] struct.
+mod vertical_box;
 
-pub use vertical_box::VerticalBox;
-pub use horizontal_box::HorizontalBox;
-pub use stack_box::StackBox;
-pub use grid_box::GridBox;
+/// Basic container element.
 pub use duration_box::DurationBox;
+/// Basic container element.
+pub use grid_box::GridBox;
+/// Basic container element.
+pub use horizontal_box::HorizontalBox;
+/// Basic container element.
+pub use stack_box::StackBox;
+/// Basic container element.
+pub use vertical_box::VerticalBox;

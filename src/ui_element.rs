@@ -97,7 +97,7 @@ impl<T: Copy + Eq + Hash> std::fmt::Debug for UiElement<T> {
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Creates a new UiElement containig the specified content and the specified ID.
-    /// The element will be treated as a leaf node, even if its implements [UiContainer<T>].
+    /// The element will be treated as a leaf node, even if its implements [UiContainer].
     /// ID should be as unique as you require it.
     /// Layout and visuals will be set to default values, hover_visuals is initialized as None.
     pub fn new<E: UiContent<T> + 'static>(id: u32, content: E) -> Self {
@@ -117,7 +117,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     }
 
     /// Adds an element to this element (or its children), recursively searching until an element with a fitting ID is found.
-    /// The element is discarded there is no container (as in: an elements whose [UiContent<T>::get_children]-function returns Some) child with fitting ID.
+    /// The element is discarded there is no container child with fitting ID.
     pub fn add_element(&mut self, id: u32, element: UiElement<T>) -> Option<UiElement<T>> {
         match self.content.container_mut() {
             Some(cont) => {
@@ -168,7 +168,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Receives a data structure containing all messages triggered by your game_state this frame (or None if there were no messages).
     /// It then collects all messages sent by this element and its children and redistributes all of those messages to this element and all children.
     /// Returns all internal messages to act on them.
-    /// In addition, if this element has children, all children whose [UiContent<T>::removeable] function returns true are removed from the container.
+    /// In addition, if this element has children, all children whose [UiContent::expired] function returns true are removed from the container.
     pub fn update(
         &mut self,
         ctx: &ggez::Context,
@@ -193,7 +193,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         self.content.expired()
     }
 
-    /// Deprecated version of [update].
+    /// Deprecated version of [UiElement::update].
     pub fn manage_messages(
         &mut self,
         ctx: &ggez::Context,
@@ -625,14 +625,14 @@ pub trait UiContent<T: Copy + Eq + Hash> {
         false
     }
 
-    /// Returns an immutable reference to Self (cast to a container) if this element also implements [UiContainer<T>].
+    /// Returns an immutable reference to Self (cast to a container) if this element also implements [UiContainer].
     /// If it does not, returns None.
     /// Remember to overwrite this function for all of your custom containers!
     fn container(&self) -> Option<&dyn UiContainer<T>> {
         None
     }
 
-    /// Returns a mutable reference to Self (cast to a container) if this element also implements [UiContainer<T>].
+    /// Returns a mutable reference to Self (cast to a container) if this element also implements [UiContainer].
     /// If it does not, returns None.
     /// Remember to overwrite this function for all of your custom containers!
     fn container_mut(&mut self) -> Option<&mut dyn UiContainer<T>> {
@@ -641,7 +641,7 @@ pub trait UiContent<T: Copy + Eq + Hash> {
 }
 
 /// This trait marks a special type of UiContent that contains other UiElements.
-/// Remember to overwrite the [UiContent<T>::container] and [UiContent<T>::container_mut] functions of [UiContent<T>].
+/// Remember to overwrite the [UiContent::container] and [UiContent::container_mut] functions of [UiContent].
 pub trait UiContainer<T: Copy + Eq + Hash>: UiContent<T> {
     /// Returns any dynamic width restrictions induced by the content, not the layout. Usually, this refers to the layout of child elements of containers.
     /// Default implementation returns (0., infinty) (no restrictions).
@@ -664,7 +664,7 @@ pub trait UiContainer<T: Copy + Eq + Hash>: UiContent<T> {
     /// Attempts to add a UiElement to this elements children.
     fn add(&mut self, element: UiElement<T>);
 
-    /// Removes all elements from this container whose [UiContent<T>::expired]-function returns true.
+    /// Removes all elements from this container whose [UiContent::expired]-function returns true.
     fn remove_expired(&mut self);
 
     /// Removes all elements from this container whose ids match.

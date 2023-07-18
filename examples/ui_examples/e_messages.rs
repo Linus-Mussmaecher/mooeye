@@ -4,7 +4,7 @@ use std::{
 };
 
 use mooeye::{
-    containers::grid_box::GridBox,
+    containers::GridBox,
     scene_manager::{Scene, SceneSwitch},
     ui_element::Transition,
     UiMessage, *,

@@ -42,10 +42,15 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     }
 
     /// Returns a new GridBox with the required spacing.
-    pub fn new_spaced(columns: usize, rows: usize, horizontal_spacing: f32, vertical_spacing: f32) -> Self {
+    pub fn new_spaced(
+        columns: usize,
+        rows: usize,
+        horizontal_spacing: f32,
+        vertical_spacing: f32,
+    ) -> Self {
         Self {
             children: (0..columns * rows).map(|_| UiElement::new(0, ())).collect(),
-        vertical_spacing,
+            vertical_spacing,
             horizontal_spacing,
             cols: columns,
             rows,
@@ -55,7 +60,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
 
     /// Adds an element to the specified position in the grid, overwriting any element previously there.
     /// If the index is out of bounds, this function will return an error.
-    /// Keep in mind that the basic [crate::UiContent::add] function will not work on a [GridBox].
+    /// Keep in mind that the basic [crate::UiElement::add_element] function will not work on a [GridBox].
     pub fn add(&mut self, element: UiElement<T>, x: usize, y: usize) -> GameResult {
         if x >= self.cols || y >= self.rows {
             Err(ggez::GameError::CustomError(format!(
@@ -253,7 +258,6 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
             })
             .collect()
     }
-
 }
 
 impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
@@ -313,7 +317,7 @@ impl<T: Copy + Eq + Hash> UiContent<T> for GridBox<T> {
             );
         }
     }
-    
+
     fn container(&self) -> Option<&dyn UiContainer<T>> {
         Some(self)
     }
@@ -352,11 +356,11 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for GridBox<T> {
         &mut self.children
     }
 
-    fn add(&mut self, _element: UiElement<T>){
+    fn add(&mut self, _element: UiElement<T>) {
         panic!("You tried to add an element to a grid box without using an index. This may happen because you tried to use the add-to-id functionality from live adding. Don't do this with grid boxes.")
     }
 
-    fn remove_expired(&mut self){
+    fn remove_expired(&mut self) {
         for i in 0..self.children.len() {
             if self.children[i].expired() {
                 self.children[i] = UiElement::new(0, ());
@@ -371,6 +375,4 @@ impl<T: Copy + Eq + Hash> UiContainer<T> for GridBox<T> {
             }
         }
     }
-
-    
 }

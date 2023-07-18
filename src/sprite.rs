@@ -350,7 +350,7 @@ impl SpritePool {
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
-    /// For lazy initalization, use [init_sprite_lazy()] instead.
+    /// For lazy initalization, use [SpritePool::init_sprite_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn init_sprite(
         &self,
@@ -371,8 +371,8 @@ impl SpritePool {
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, this panics.
-    /// If you want to return an error, use [init_sprite()] instead.
-    /// For lazy initalization, use [init_sprite_lazy()] instead.
+    /// If you want to return an error, use [SpritePool::init_sprite] instead.
+    /// For lazy initalization, use [SpritePool::init_sprite_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn init_sprite_unchecked(&self, path: impl AsRef<Path>, frame_time: Duration) -> Sprite {
         let sprite = self
@@ -476,7 +476,7 @@ impl SpritePool {
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
-    /// For lazy initalization, use [sprite_ref_lazy()] instead.
+    /// For lazy initalization, use [SpritePool::sprite_ref_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn sprite_ref(&mut self, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError> {
         let sprite = self
@@ -491,7 +491,7 @@ impl SpritePool {
     }
 
     /// Returns a mutable reference to a sprite from the sprite pool.
-    /// For syntax and use see [sprite_ref], this is a lazy version of that function.
+    /// For syntax and use see [SpritePool::sprite_ref], this is a lazy version of that function.
     /// If the requested key is not yet in the sprite pool, this function will attempt to load it and return the correct reference.
     /// If the requested file cannot be found, an error is returned.
     pub fn sprite_ref_lazy(
