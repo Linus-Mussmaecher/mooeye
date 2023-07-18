@@ -36,7 +36,7 @@ When using MooEye, your game state struct contains an ```gui: UiElement<T>```. I
 
 Every frame, you want to call [```gui.draw_to_screen()```](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.UiElement.html#method.draw_to_screen) to draw the Ui within your draw function to draw the UI. ```T``` is the type of your extern messages. Collect every change in your game state that you want to represent in the UI and pass them on to the UI in the update step of your game loop using [```gui.manage_messages()```](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.UiElement.html#method.manage_messages). Your message handlers will then receive these messages and change the UI appropriately (for larger changes, you may also completely rebuild the UI rather than writing enormous handlers). [```gui.manage_messages()```](https://docs.rs/mooeye/latest/mooeye/ui_element/struct.UiElement.html#method.manage_messages) will return a set of internal messages informing you of buttons the user has clicked. This way, your game state can conversely react to interaction with the UI.
 
-For more extensive explanation and examples see the [docs](https://docs.rs/mooeye) or the examples in the [examples folder](/examples/).
+For more extensive explanation and examples see the [docs](https://docs.rs/mooeye) or the examples in the [examples folder](/examples/ui_examples).
 
 ### Dynamic sizing rules
 
