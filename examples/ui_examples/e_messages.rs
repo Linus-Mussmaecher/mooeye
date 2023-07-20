@@ -197,7 +197,15 @@ impl EScene {
         })
         .build();
 
-        Ok(Self { gui: gui_box })
+        // Finally, we wrap our gui_box into a space-filling stack pane so we have a place to later add further elements
+
+        Ok(Self {
+            gui: ui::containers::StackBox::new()
+            .to_element_builder(100, ctx)
+            .as_fill()
+            .with_child(gui_box)
+            .build()
+        })
     }
 }
 
