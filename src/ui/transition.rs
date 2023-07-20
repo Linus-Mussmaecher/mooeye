@@ -89,13 +89,13 @@ impl<T: Copy + Eq + Hash> Transition<T> {
     }
 
     /// Progresses the internal timer of this transition by the specified amount. Returns true if the Transition is now complete and false otherwise.
-    pub fn progress(&mut self, delta: Duration) -> bool {
+    pub(crate) fn progress(&mut self, delta: Duration) -> bool {
         self.progressed_duration += delta;
         self.progressed_duration >= self.total_duration
     }
 
     /// Returns a float in between 0. and 1. describung how much of this transitions total duration has elapsed already.
-    pub fn get_progress_ratio(&self) -> f32 {
+    pub(crate) fn get_progress_ratio(&self) -> f32 {
         self.progressed_duration.as_secs_f32() / self.total_duration.as_secs_f32()
     }
 }
