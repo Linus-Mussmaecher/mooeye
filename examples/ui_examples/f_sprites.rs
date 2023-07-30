@@ -98,8 +98,12 @@ impl FScene {
         // in this case, you can use lazy initialisation of sprites to fill the sprite pool only with those sprites currently needed.
         // Lazy initilisation draws from the pool if possible, from the file system if needed (and loads into the pool in this case) and panics if it can't find anything in the fs.
         // Requires a mutable sprite pool!
+        // For testing purposes, we are loading a sprite we have already loaded - this should be drawn from the pool.
         let lazy_sprite =
-            sprite_pool2.init_sprite_lazy(ctx, "/moo-sheet", Duration::from_secs_f32(0.5))?;
+            sprite_pool2.init_sprite_lazy(ctx, "/mage-sheet", Duration::from_secs_f32(0.5))?;
+        // now load the correct sprite
+        let lazy_sprite =
+            sprite_pool2.init_sprite_lazy(ctx, "/moo-sheet", lazy_sprite.get_frame_time())?;
 
         Ok(Self {
             gui: ui_sprite,

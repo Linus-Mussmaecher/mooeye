@@ -402,8 +402,13 @@ impl SpritePool {
         path: impl AsRef<Path>,
         frame_time: Duration,
     ) -> Result<Sprite, GameError> {
-        // attempt to load the sprite
-        self.attempt_load(ctx, &path)?;
+        // convert the key to a string
+        let key = path.as_ref().to_string_lossy().to_string();
+        // if it is not in the pool yet
+        if !self.sprites.contains_key(&key) {
+            // attempt to load the sprite
+            self.attempt_load(ctx, &key)?;
+        }
         // try to return the sprite (that should now be inserted).
         // If no sprite could be inserted, this will error
         self.init_sprite(path, frame_time)
@@ -412,38 +417,26 @@ impl SpritePool {
     /// Splits the given path into a folder and file name.
     /// Then searches the folder for a file with the name and suffix _w_h.imageformat.
     /// If found, loads that sprite into the pool.
-    fn attempt_load(&mut self, ctx: &Context, path: impl AsRef<Path>) -> Result<(), GameError> {
-        let key = &path.as_ref().to_string_lossy().to_string();
-        if !self.sprites.contains_key(key) {
-            let directory = key.rsplit_once('/').unwrap_or_default().0.to_owned() + "/";
+    fn attempt_load(&mut self, ctx: &Context, key: &str) -> Result<(), GameError> {
+        // split off the directory to search
+        let directory = key.rsplit_once('/').unwrap_or_default().0.to_owned() + "/";
+        // get all branching paths
+        let paths = ctx.fs.read_dir(directory)?;
+        // genreate a regex to match image files
+        let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
 
-            let paths = ctx.fs.read_dir(directory)?;
-
-            let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
-
-            for sub_path in paths {
-                // for every file in path
-                let path_string = sub_path.to_string_lossy().to_string();
-                // check if its an image
-                if sprite_match.is_match(&path_string) {
-                    // check what name the sprite would have
-                    let path_str = sprite_match
-                        .captures(&path_string)
-                        .map(|c| c.get(1).map(|m| m.as_str()))
-                        .ok_or_else(|| {
-                            GameError::CustomError(
-                                "[ERROR/Mooeye] Sprite does not have a name.".to_owned(),
-                            )
-                        })?
-                        .ok_or_else(|| {
-                            GameError::CustomError(
-                                "[ERROR/Mooeye] Sprite does not have a name.".to_owned(),
-                            )
-                        })?
-                        .replace('\\', "/");
-
+        for sub_path in paths {
+            // for every file in path
+            let path_string = sub_path.to_string_lossy().to_string();
+            // check if its an image
+            if sprite_match.is_match(&path_string) {
+                // check what name the sprite would have
+                if let Some(Some(path_str)) = sprite_match
+                    .captures(&path_string)
+                    .map(|c| c.get(1).map(|m| m.as_str().replace('\\', "/").to_owned()))
+                {
                     // compare to the requested name
-                    if path_str == path.as_ref().to_owned().to_string_lossy() {
+                    if path_str == key {
                         // if it fits and can be loaded, put it into the pool
                         if let Ok(sprite) =
                             Sprite::from_path_fmt(sub_path.clone(), ctx, self.default_duration)
@@ -455,6 +448,7 @@ impl SpritePool {
                 }
             }
         }
+
         Err(GameError::CustomError(
             "[ERROR/Mooeye] Could not find sprite.".to_owned(),
         ))
@@ -499,8 +493,13 @@ impl SpritePool {
         ctx: &Context,
         path: impl AsRef<Path>,
     ) -> Result<&mut Sprite, GameError> {
-        // Attempt to load the sprite
-        self.attempt_load(ctx, &path)?;
+        // convert the key to a string
+        let key = path.as_ref().to_string_lossy().to_string();
+        // if it is not in the pool yet
+        if !self.sprites.contains_key(&key) {
+            // attempt to load the sprite
+            self.attempt_load(ctx, &key)?;
+        }
         // Return the sprite that is now (hopefully) in the pool. If it is not, this will error.
         self.sprite_ref(path)
     }
