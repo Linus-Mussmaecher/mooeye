@@ -1,4 +1,4 @@
-use ggez::graphics::{DrawParam, Rect};
+use good_web_game::graphics::{DrawParam, Rect};
 
 /// An extension of the [ggez::graphics::DrawParam] struct specifically for UiElements.
 #[derive(Copy, Clone, Debug, Default, PartialEq)]

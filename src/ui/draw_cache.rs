@@ -1,4 +1,4 @@
-use ggez::graphics::Rect;
+use good_web_game::graphics::Rect;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 /// This struct remembers the rects a UiElement was drawn to and holds a bool that returns wether or not it can be drawn to those rects again.

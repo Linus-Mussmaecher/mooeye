@@ -1,6 +1,6 @@
 use std::{hash::Hash, time::Duration};
 
-use ggez::graphics::Rect;
+use good_web_game::graphics::Rect;
 
 use crate::ui::{UiContent, UiElement};
 

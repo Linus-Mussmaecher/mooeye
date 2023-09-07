@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use super::*;
 
-use ggez::{graphics::Canvas, Context};
+use good_web_game::{graphics::Canvas, Context};
 
 /// A trait that marks any struct that can be the content of a UI element. Should not be used directly, only when wrapped in such an element.
 /// ### Basic elements

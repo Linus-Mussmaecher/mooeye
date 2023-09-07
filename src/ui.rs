@@ -1,9 +1,9 @@
 use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 
-use ggez::audio::{SoundSource, Source};
-use ggez::winit::event::VirtualKeyCode;
-use ggez::{
+use good_web_game::audio::{SoundSource, Source};
+use good_web_game::winit::event::VirtualKeyCode;
+use good_web_game::{
     glam::Vec2,
     graphics::{Canvas, Rect},
     Context, GameResult,

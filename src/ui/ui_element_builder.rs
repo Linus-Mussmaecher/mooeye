@@ -1,4 +1,4 @@
-use ggez::{audio::Source, winit::event::VirtualKeyCode};
+use good_web_game::{audio::Source, winit::event::VirtualKeyCode};
 
 use crate::ui::{UiContent, UiElement};
 use std::hash::Hash;

@@ -1,4 +1,4 @@
-use ggez::{glam::Vec2, graphics::Rect};
+use good_web_game::graphics::Rect;
 
 #[derive(Copy, Clone, PartialEq, Debug, Default)]
 /// An enum that describes the alignment behaviour of an element.
