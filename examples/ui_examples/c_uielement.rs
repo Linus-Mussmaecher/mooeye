@@ -1,4 +1,5 @@
-use good_web_game::{*, graphics::Color};
+use good_web_game::{*, graphics::Color,
+    event::GraphicsContext,};
 use mooeye::{ui, ui::UiContent, scene_manager};
 
 
@@ -25,8 +26,8 @@ impl CScene {
         let text_element = 
         // First, we create anything implementing UiContent. good_web_game Image and Text do that, so we'll use a Text.
         // You can format that text as you can in good_web_game, so let's use our custom font and set a larger size.
-        graphics::Text::new("Take me back!") 
-        .set_font("Bahnschrift", 32.)
+        graphics::Text::new(graphics::TextFragment::new("Take me back!")) 
+        //.set_font(, 32.)
         // Then we'll convert that content to an UiElementBuilder. We have to give it an ID.
         // ID 0 is reserved for elements not sending messages, but since we want to use the Text as a button, we'll use 1.
         .to_owned()
@@ -39,7 +40,7 @@ impl CScene {
             4.,8. 
         ))
         // Additionally, you can add keycodes that make your element respond to key presses as it would respond to clicks
-        .with_trigger_key(winit::event::VirtualKeyCode::A)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::A)
         // We can also set the alignment within the window...
         .with_alignment(ui::Alignment::Min, ui::Alignment::Center)
         // ... offset the element (note that we can pass None into most of these functions to leave the presets for one dimension untouched) ...
@@ -58,7 +59,8 @@ impl CScene {
 }
 
 impl scene_manager::Scene for CScene{
-    fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(&mut self, ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,) -> Result<scene_manager::SceneSwitch, GameError> {
 
         // Usually, we would first perform our game logic here, but this scene has no logic.
 
@@ -77,19 +79,9 @@ impl scene_manager::Scene for CScene{
         Ok(scene_manager::SceneSwitch::None)
     }
 
-    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
-        let mut canvas = good_web_game::graphics::Canvas::from_frame(ctx, None);        
-        canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
-        
-        // Here, you would draw your gamestate.
-
-        // Drawing a gui is as easy as calling draw_to_screen on the root element.
-        // If you are using a scene, you can simply pass on the mouse_listen parameter. It will be managed by the scene manager.
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        // Once again, we end drawing by finishing the canvas.
-        canvas.finish(ctx)?;
+    fn draw(&mut self, ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext, mouse_listen: bool) -> Result<(), GameError> {
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
         Ok(())
     }

@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use mooeye::{scene_manager, sprite, ui, ui::UiContent};
 
+use glam::Vec2;
 use good_web_game::{
-    context::Context,
-    glam::Vec2,
-    graphics::{Color, DrawParam, Rect},
+    event::GraphicsContext,
+    graphics::{Color, DrawParam},
     *,
 };
 
@@ -31,7 +31,7 @@ pub struct FScene {
 
 impl FScene {
     /// Creates a new FScene in the mooeye-idiomatic way.
-    pub fn new(ctx: &Context) -> Result<Self, GameError> {
+    pub fn new(ctx: &mut Context, gfx_ctx: &mut GraphicsContext) -> Result<Self, GameError> {
         // Reusing the visuals from E.
 
         let vis = ui::Visuals::new(
@@ -60,6 +60,7 @@ impl FScene {
         let ui_sprite = sprite::Sprite::from_path(
             "/moo-sheet_16_16.png",
             ctx,
+            gfx_ctx,
             16,
             24,
             Duration::from_secs_f32(0.25),
@@ -71,8 +72,7 @@ impl FScene {
         .with_hover_visuals(hover_vis)
         .with_tooltip(
             graphics::Text::new("This is a sprite! Click it to end the scene.")
-                .set_scale(28.)
-                .set_font("Bahnschrift")
+                //.set_font("Bahnschrift", 28.)
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(cont_vis)
@@ -86,29 +86,20 @@ impl FScene {
 
         let sprite_pool = sprite::SpritePool::new()
             // with_folder loads all .png/.bmp/.jpg/.jpeg files from the passed folder and optionally its subfolders
-            .with_path_list(ctx, "/", true);
+            .with_path_list(ctx, gfx_ctx, "./sprites.txt", true);
 
         // We can now init a sprite from the pool. Sprites are saved in the pool with a key corresponding to their relative path
         // (from the resource folder) with the format information and file ending removed.
         let non_ui_sprite = sprite_pool.init_sprite("/mage-sheet", Duration::from_secs_f32(0.2))?;
+        let other_sprite = sprite_pool.init_sprite("/moo-sheet", Duration::from_secs_f32(0.2))?;
 
         // you can also initialize a sprite pool without any folder at all
         let mut sprite_pool2 = sprite::SpritePool::new();
 
-        // in this case, you can use lazy initialisation of sprites to fill the sprite pool only with those sprites currently needed.
-        // Lazy initilisation draws from the pool if possible, from the file system if needed (and loads into the pool in this case) and panics if it can't find anything in the fs.
-        // Requires a mutable sprite pool!
-        // For testing purposes, we are loading a sprite we have already loaded - this should be drawn from the pool.
-        let lazy_sprite =
-            sprite_pool2.init_sprite_lazy(ctx, "/mage-sheet", Duration::from_secs_f32(0.5))?;
-        // now load the correct sprite
-        let lazy_sprite =
-            sprite_pool2.init_sprite_lazy(ctx, "/moo-sheet", lazy_sprite.get_frame_time())?;
-
         Ok(Self {
             gui: ui_sprite,
             sprite: non_ui_sprite,
-            sprite2: lazy_sprite,
+            sprite2: other_sprite,
             pos: Vec2::new(50., 200.),
             v: Vec2::new(4., 4.),
         })
@@ -116,14 +107,18 @@ impl FScene {
 }
 
 impl scene_manager::Scene for FScene {
-    fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+    ) -> Result<scene_manager::SceneSwitch, GameError> {
         // Actually implementing some game state logic.
 
         // Pressing space changes the variant of the sprite.
-        if ctx
-            .keyboard
-            .is_key_just_pressed(winit::event::VirtualKeyCode::Space)
-        {
+        if good_web_game::input::keyboard::is_key_pressed(
+            ctx,
+            good_web_game::input::keyboard::KeyCode::Space,
+        ) {
             self.sprite.set_variant(self.sprite.get_variant() + 1);
         }
 
@@ -133,13 +128,11 @@ impl scene_manager::Scene for FScene {
         // Make the sprite bounce off the screen edges.
         let scaling = 5.;
 
-        if self.pos.x - scaling * 4. < 0. || self.pos.x + scaling * 4. >= ctx.gfx.drawable_size().0
-        {
+        if self.pos.x - scaling * 4. < 0. || self.pos.x + scaling * 4. >= gfx_ctx.screen_size().0 {
             self.v.x *= -1.;
         }
 
-        if self.pos.y - scaling * 8. < 0. || self.pos.y + scaling * 8. >= ctx.gfx.drawable_size().1
-        {
+        if self.pos.y - scaling * 8. < 0. || self.pos.y + scaling * 8. >= gfx_ctx.screen_size().1 {
             self.v.y *= -1.;
         }
 
@@ -154,12 +147,12 @@ impl scene_manager::Scene for FScene {
         Ok(scene_manager::SceneSwitch::None)
     }
 
-    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
-
-        let mut canvas = good_web_game::graphics::Canvas::from_frame(ctx, None);
-        canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
-
+    fn draw(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), GameError> {
         // Drawing of our (limited) game state.
 
         // see if we need to mirror our sprite if it moves left
@@ -168,33 +161,37 @@ impl scene_manager::Scene for FScene {
 
         self.sprite.draw_sprite(
             ctx,
-            &mut canvas,
-            DrawParam::new().dest_rect(Rect::new(
-                self.pos.x - scaling * 4. * mirroring,
-                self.pos.y - scaling * 8.,
-                scaling * mirroring,
-                scaling,
-            )),
+            gfx_ctx,
+            DrawParam::new()
+                .dest(graphics::Point2 {
+                    x: self.pos.x - scaling * 4. * mirroring,
+                    y: self.pos.y - scaling * 8.,
+                })
+                .scale(graphics::Vector2 {
+                    x: scaling * mirroring,
+                    y: scaling,
+                }),
         );
 
         let scaling = 2.;
 
         self.sprite2.draw_sprite(
             ctx,
-            &mut canvas,
-            DrawParam::new().dest_rect(Rect::new(
-                self.pos.x - scaling * 4. + 32.,
-                self.pos.y - scaling * 8. + 32.,
-                scaling,
-                scaling,
-            )),
+            gfx_ctx,
+            DrawParam::new()
+                .dest(graphics::Point2 {
+                    x: self.pos.x - scaling * 4. + 32.,
+                    y: self.pos.y - scaling * 8. + 32.,
+                })
+                .scale(graphics::Vector2 {
+                    x: scaling,
+                    y: scaling,
+                }),
         );
 
         // And once again drawing the GUI.
 
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        canvas.finish(ctx)?;
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
         Ok(())
     }

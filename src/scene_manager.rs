@@ -18,17 +18,6 @@ impl SceneManager {
         sm.scene_stack.push_back(Box::new(initial_scene));
         sm
     }
-
-    /// All-in-one-method to create a new SceneManger with the specified initial scene and immediately run it.
-    /// If using SceneManager, calling this method should be the last line of your main function.
-    /// The running of the game will end as soon as the scene stack is emptied.
-    pub fn new_and_run<T: Scene + 'static>(
-        conf: good_web_game::conf::Conf,
-        initial_scene: T,
-    ) -> Result<(), GameError> {
-        let sm = SceneManager::new(initial_scene);
-        good_web_game::start(conf, |mut _ctx, mut _gfx_ctx| Box::new(sm))
-    }
 }
 
 impl event::EventHandler<GameError> for SceneManager {

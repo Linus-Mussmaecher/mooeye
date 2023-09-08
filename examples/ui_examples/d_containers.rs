@@ -1,4 +1,4 @@
-use good_web_game::{graphics::Color, *};
+use good_web_game::{event::GraphicsContext, graphics::Color, *};
 use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 // # Containers
@@ -16,7 +16,7 @@ impl DScene {
     /// communicate that this is the standard way for a ```DScene``` to come into existence.
     /// However, we cannot derive Default as the passing of a parameter ```ctx: &Context``` is almost always neccessary,
     /// so we have to use ```new(ctx: &Context)``` instead.
-    pub fn new(ctx: &Context) -> Result<Self, GameError> {
+    pub fn new(ctx: &mut Context, gfx_ctx: &mut GraphicsContext) -> Result<Self, GameError> {
         // Predefine some visuals so we don't have to do it for every element.
 
         let vis = ui::Visuals::new(
@@ -61,7 +61,7 @@ impl DScene {
         for i in 0..8 {
             // Create an element.
             let element = graphics::Text::new(format!("{}", i))
-                .set_font("Bahnschrift", 28.)
+                //.set_font("Bahnschrift", 28.)
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(vis2)
@@ -84,7 +84,7 @@ impl DScene {
         for i in 0..4 {
             // Create an element.
             let element = graphics::Text::new(format!("{}", i))
-                .set_font("Bahnschrift", 28.)
+                //.set_font("Bahnschrift", 28.)
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(vis)
@@ -99,7 +99,7 @@ impl DScene {
         // We'll also create our usual back button and put it into the top right of the grid.
 
         let back = graphics::Text::new("Back!")
-            .set_font("Bahnschrift", 28.)
+            //.set_font("Bahnschrift", 28.)
             .to_owned()
             .to_element_builder(1, ctx)
             .with_visuals(vis)
@@ -112,7 +112,7 @@ impl DScene {
         stack.add(back);
         // The add_top function adds something to the top of a stack box. Creating and adding an element can be done inline.
         stack.add_top(
-            graphics::Image::from_path(ctx, "/moo.png")?
+            graphics::Image::new(ctx, gfx_ctx, "/moo.png")?
                 .to_element_builder(0, ctx)
                 // We'll align the icon to the top right
                 .with_alignment(ui::Alignment::Min, ui::Alignment::Min)
@@ -148,7 +148,11 @@ impl DScene {
 }
 
 impl scene_manager::Scene for DScene {
-    fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+    ) -> Result<scene_manager::SceneSwitch, GameError> {
         // Nothing much to do here, except implement the back button functionality.
 
         let messages = self.gui.manage_messages(ctx, None);
@@ -161,16 +165,13 @@ impl scene_manager::Scene for DScene {
         Ok(scene_manager::SceneSwitch::None)
     }
 
-    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
-
-        let mut canvas = good_web_game::graphics::Canvas::from_frame(ctx, None);
-        // Since we don't set the sampler to 'nearest', our corners will look more round, but the pixel-cow will look blurry.
-        //canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
-
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        canvas.finish(ctx)?;
+    fn draw(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), GameError> {
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
         Ok(())
     }

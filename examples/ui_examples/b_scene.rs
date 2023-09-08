@@ -1,7 +1,8 @@
 use std::time::Duration;
 
 use good_web_game::{
-    graphics::{Color, DrawParam, Drawable, Text},
+    event::GraphicsContext,
+    graphics::{DrawParam, Drawable, Text},
     Context,
 };
 
@@ -31,10 +32,13 @@ impl mooeye::scene_manager::Scene for BScene {
     fn update(
         &mut self,
         ctx: &mut good_web_game::Context,
+        _gfx_ctx: &mut GraphicsContext,
     ) -> Result<mooeye::scene_manager::SceneSwitch, good_web_game::GameError> {
         // Put your game logic, any changes to your game state, here.
 
-        self.duration = self.duration.saturating_sub(ctx.time.delta());
+        self.duration = self
+            .duration
+            .saturating_sub(good_web_game::timer::delta(ctx));
 
         // Lastly, return a Result containing a (possible) possible SceneSwitch.
 
@@ -50,22 +54,10 @@ impl mooeye::scene_manager::Scene for BScene {
     fn draw(
         &mut self,
         ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
         _mouse_listen: bool,
     ) -> Result<(), good_web_game::GameError> {
-        // As in good_web_game, your draw function draws the contents of your scene and always starts by getting a canvas.
-        // This function should not alter your game state (even if it can access self mutably), only the display of that state.
-        // Clearing the canvas should not be your default option - sometimes you may want a scene (like a pause menu) to
-        // occupy only a small part of the screen while still drawing other scenes behind it. In that case, pass None into 'clear'.
-        let mut canvas =
-            good_web_game::graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
-        // Use this sampler setting if you are using pixel graphics.
-        canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
-
-        self.hello
-            .draw(&mut canvas, ctx.gfx_context, DrawParam::default());
-
-        // The draw function should always end by finishing the canvas.
-        canvas.finish(ctx)?;
+        self.hello.draw(ctx, gfx_ctx, DrawParam::default());
 
         Ok(())
     }

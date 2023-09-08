@@ -1,4 +1,4 @@
-use good_web_game::{graphics::Color, *};
+use good_web_game::{event::GraphicsContext, graphics::Color, *};
 use mooeye::{scene_manager, ui, ui::UiContent};
 
 /// This scene is the main-drop in scene and allows you to access the different tutorial scenes.
@@ -39,20 +39,20 @@ impl SelectorScene {
 
         for (i, &cont) in contents.iter().enumerate() {
             grid.add(
-                graphics::Text::new(cont)
-                    .set_scale(32.)
+                graphics::Text::new(graphics::TextFragment::new(cont).scale(32.))
                     .to_owned()
                     .to_element_builder(i as u32 + 1, ctx)
                     .with_visuals(vis)
                     .with_hover_visuals(hover_vis)
                     .with_tooltip(
-                        graphics::Text::new(format!(
-                            "Click to look at the Scene created in the file {}.",
-                            contents[i].to_lowercase()
-                        ))
-                        .set_scale(24.)
-                        .set_wrap(true)
-                        .set_bounds(glam::Vec2::new(240., 500.))
+                        graphics::Text::new(
+                            graphics::TextFragment::new(format!(
+                                "Click to look at the Scene created in the file {}.",
+                                contents[i].to_lowercase()
+                            ))
+                            .scale(24.),
+                        )
+                        .set_bounds(graphics::Point2::new(240., 500.), graphics::Align::Left)
                         .to_owned()
                         .to_element_builder(0, ctx)
                         .with_visuals(hover_vis)
@@ -67,8 +67,7 @@ impl SelectorScene {
         // Add quit button
 
         grid.add(
-            graphics::Text::new("Quit")
-                .set_scale(32.)
+            graphics::Text::new(graphics::TextFragment::new("Quit").scale(32.))
                 .to_owned()
                 .to_element_builder(6, ctx)
                 .with_visuals(vis)
@@ -85,7 +84,11 @@ impl SelectorScene {
 }
 
 impl scene_manager::Scene for SelectorScene {
-    fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+    ) -> Result<scene_manager::SceneSwitch, GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
         // Scene switches for different scenes
@@ -104,7 +107,7 @@ impl scene_manager::Scene for SelectorScene {
 
         if messages.contains(&ui::UiMessage::Triggered(3)) {
             return Ok(scene_manager::SceneSwitch::push(
-                crate::d_containers::DScene::new(ctx)?,
+                crate::d_containers::DScene::new(ctx, gfx_ctx)?,
             ));
         }
 
@@ -116,7 +119,7 @@ impl scene_manager::Scene for SelectorScene {
 
         if messages.contains(&ui::UiMessage::Triggered(5)) {
             return Ok(scene_manager::SceneSwitch::push(
-                crate::f_sprites::FScene::new(ctx)?,
+                crate::f_sprites::FScene::new(ctx, gfx_ctx)?,
             ));
         }
 
@@ -129,16 +132,15 @@ impl scene_manager::Scene for SelectorScene {
         Ok(scene_manager::SceneSwitch::None)
     }
 
-    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
+    fn draw(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), GameError> {
         // business as usual
-        let mut canvas =
-            good_web_game::graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
 
-        canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
-
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        canvas.finish(ctx)?;
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
         Ok(())
     }

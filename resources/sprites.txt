@@ -1,0 +1,2 @@
+./mage-sheet_8_16.png
+./moo-sheet_16_16.png

@@ -5,9 +5,9 @@ use std::{
 
 use mooeye::{ui, ui::UiContent, scene_manager};
 
-use ggez::{
-    context::Context,
+use good_web_game::{
     graphics::{Color, Text},
+    event::GraphicsContext,
     *,
 };
 
@@ -19,13 +19,13 @@ pub struct EScene {
 
 impl EScene {
     /// Creates a new 'default' EScene.
-    pub fn new(ctx: &Context) -> GameResult<Self> {
+    pub fn new(ctx: &mut Context) -> GameResult<Self> {
 
 
         // This title will change based on transitions whenever certain buttons are clicked.
         let title = Text::new("Move this element with the buttons.\nYou have not yet clicked a button.")
         // First, we style the title.
-        .set_font("Bahnschrift", 28.)
+        //.set_font("Bahnschrift", 28.)
         .to_owned()
         .to_element_builder(0, ctx)
         // Then, we add a message handler to the element.
@@ -49,7 +49,7 @@ impl EScene {
                                 "Move this element with the buttons.\nYou clicked a button with id {}.",
                                 id
                             ))
-                            .set_font("Bahnschrift", 24.)
+                            //.set_font("Bahnschrift", 24.)
                             .to_owned())
                         )
                         
@@ -72,18 +72,18 @@ impl EScene {
 
         // Now, we create 6 buttons to move the element to all possible vertical and horizontal alignments and add them to the grid.
         let vert_up = Text::new(" ^ ")
-            .set_font("Bahnschrift")
+            //.set_font("Bahnschrift")
             .to_owned()
             .to_element_builder(11, ctx)
             .with_visuals(vis) 
             // We can also set a sound to be played on click/key press
-            .with_trigger_sound(ggez::audio::Source::new(ctx, "/blipSelect.wav").ok())
+            .with_trigger_sound(good_web_game::audio::Source::new(ctx, "/blipSelect.wav").ok())
             .build();
         grid_box
             .add(vert_up, 0, 0)?;
 
         let vert_ce = Text::new(" . ")
-            .set_font("Bahnschrift")
+            //.set_font("Bahnschrift")
             .to_owned()
             .to_element_builder(12, ctx)
             .with_visuals(vis)
@@ -92,7 +92,7 @@ impl EScene {
             .add(vert_ce, 0, 1)?;
 
         let vert_do = Text::new(" v ")
-            .set_font("Bahnschrift")
+            //.set_font("Bahnschrift")
             .to_owned().to_element_builder(13, ctx)
             .with_visuals(vis)
             .build();
@@ -100,7 +100,7 @@ impl EScene {
             .add(vert_do, 0, 2)?;
 
         let hor_up = Text::new(" < ")
-            .set_font("Bahnschrift")
+            //.set_font("Bahnschrift")
             .to_owned().to_element_builder(21, ctx)
             .with_visuals(vis)
             .build();
@@ -108,7 +108,7 @@ impl EScene {
             .add(hor_up, 1, 0)?;
 
         let hor_ce = Text::new(" . ")
-            .set_font("Bahnschrift")
+            //.shet_font("Bahnschrift")
             .to_owned().to_element_builder(22, ctx)
             .with_visuals(vis)
             .build();
@@ -116,7 +116,7 @@ impl EScene {
             .add(hor_ce, 1, 1)?;
 
         let hor_do = Text::new(" > ")
-            .set_font("Bahnschrift")
+            //.set_font("Bahnschrift")
             .to_owned().to_element_builder(23, ctx)
             .with_visuals(vis)
             .build();
@@ -125,7 +125,7 @@ impl EScene {
 
         // The well-known back button will take us back to scene select.
         let back = Text::new("Back")
-            .set_font("Bahnschrift")
+            //.set_font("Bahnschrift")
             .to_owned()
             .to_element_builder(1, ctx)
             .with_visuals(vis)
@@ -209,7 +209,7 @@ impl EScene {
 
 
 impl scene_manager::Scene for EScene {
-    fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(&mut self, ctx: &mut Context, gfx_ctx: &mut GraphicsContext) -> Result<scene_manager::SceneSwitch, GameError> {
         // Nothing much to do here, except implement the back button functionality.
 
         let messages = self.gui.manage_messages(ctx, None);
@@ -226,10 +226,10 @@ impl scene_manager::Scene for EScene {
                   ui::containers::DurationBox::new(
                     Duration::from_secs_f32(1.5),
                      graphics::Text::new("Just a small reminder that you pressed button 13.")
-                     .set_font("Bahnschrift")
-                     .set_wrap(true)
-                     .set_bounds(glam::Vec2::new(200., 500.))
-                     .set_scale(28.)
+                     //.set_font("Bahnschrift")
+                     //.set_wrap(true)
+                     .set_bounds(graphics::Point2::new(200., 500.), graphics::Align::Left)
+                     //.set_scale(28.)
                      .to_owned()
                      .to_element_builder(0, ctx)
                      .with_visuals(ui::Visuals::new(
@@ -250,16 +250,8 @@ impl scene_manager::Scene for EScene {
     
     }
 
-    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
-
-        // Once again the basic drawing function.
-
-        let mut canvas = graphics::Canvas::from_frame(ctx, None);
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
-
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        canvas.finish(ctx)?;
+    fn draw(&mut self, ctx: &mut Context, gfx_ctx: &mut GraphicsContext, mouse_listen: bool) -> Result<(), GameError> {
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
         Ok(())
     }
