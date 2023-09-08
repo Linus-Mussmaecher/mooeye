@@ -39,6 +39,11 @@ impl mooeye::scene_manager::Scene for BScene {
         self.duration = self
             .duration
             .saturating_sub(good_web_game::timer::delta(ctx));
+        log::info!(
+            "{} from {}",
+            good_web_game::timer::delta(ctx).as_secs_f32(),
+            self.duration.as_secs_f32()
+        );
 
         // Lastly, return a Result containing a (possible) possible SceneSwitch.
 
@@ -57,6 +62,16 @@ impl mooeye::scene_manager::Scene for BScene {
         gfx_ctx: &mut GraphicsContext,
         _mouse_listen: bool,
     ) -> Result<(), good_web_game::GameError> {
+        good_web_game::graphics::clear(
+            ctx,
+            gfx_ctx,
+            good_web_game::graphics::Color {
+                r: 0.,
+                g: 0.,
+                b: 0.,
+                a: 0.,
+            },
+        );
         self.hello.draw(ctx, gfx_ctx, DrawParam::default());
 
         Ok(())

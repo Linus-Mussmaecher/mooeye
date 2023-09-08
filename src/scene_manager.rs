@@ -26,8 +26,6 @@ impl event::EventHandler<GameError> for SceneManager {
         ctx: &mut Context,
         gfx_ctx: &mut good_web_game::event::GraphicsContext,
     ) -> Result<(), GameError> {
-        ctx.timer_context.tick();
-
         // Get current top scene of the stack
 
         if let Some(scene) = self.scene_stack.back_mut() {

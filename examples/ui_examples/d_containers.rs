@@ -111,15 +111,18 @@ impl DScene {
         let mut stack = ui::containers::StackBox::new();
         stack.add(back);
         // The add_top function adds something to the top of a stack box. Creating and adding an element can be done inline.
-        stack.add_top(
-            graphics::Image::new(ctx, gfx_ctx, "/moo.png")?
-                .to_element_builder(0, ctx)
-                // We'll align the icon to the top right
-                .with_alignment(ui::Alignment::Min, ui::Alignment::Min)
-                // and offset it slightly
-                .with_offset(-10., -10.)
-                .build(),
-        )?;
+        if let Ok(image) = graphics::Image::new(ctx, gfx_ctx, "./moo-sheet_16_16.png") {
+            stack.add_top(
+                image
+                    .to_element_builder(0, ctx)
+                    // We'll align the icon to the top right
+                    .with_alignment(ui::Alignment::Min, ui::Alignment::Min)
+                    // and offset it slightly
+                    .with_offset(-10., -10.)
+                    .build(),
+            )?;
+        }
+
         // to_element is a shorthand for to_element_builder().build() if we want to simply take the default builder and not change anything.
         let stack = stack.to_element(0, ctx);
 

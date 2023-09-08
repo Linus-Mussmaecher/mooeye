@@ -14,7 +14,7 @@ pub fn setup_and_run() -> GameResult {
 
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_dir);
-        path.push("resources");
+        path.push("./resources");
         path
     } else {
         path::PathBuf::from("./resources")
@@ -26,14 +26,14 @@ pub fn setup_and_run() -> GameResult {
 
     good_web_game::start(conf, |ctx, mut _gfx_ctx| {
         // Add fonts from the resource folder.
-        let data = ctx
-            .filesystem
-            .open("/bahnschrift.ttf")
-            .unwrap()
-            .bytes
-            .into_inner();
+        // let data = ctx
+        //     .filesystem
+        //     .open("/bahnschrift.ttf")
+        //     .unwrap()
+        //     .bytes
+        //     .into_inner();
 
-        good_web_game::graphics::Font::new_glyph_font_bytes(ctx, &data).unwrap();
+        //good_web_game::graphics::Font::new_glyph_font_bytes(ctx, &data).unwrap();
         let start_scene = super::g_selector_scene::SelectorScene::new(ctx).unwrap();
         let sm = SceneManager::new(start_scene);
         Box::new(sm)

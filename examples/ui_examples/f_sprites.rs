@@ -93,9 +93,6 @@ impl FScene {
         let non_ui_sprite = sprite_pool.init_sprite("/mage-sheet", Duration::from_secs_f32(0.2))?;
         let other_sprite = sprite_pool.init_sprite("/moo-sheet", Duration::from_secs_f32(0.2))?;
 
-        // you can also initialize a sprite pool without any folder at all
-        let mut sprite_pool2 = sprite::SpritePool::new();
-
         Ok(Self {
             gui: ui_sprite,
             sprite: non_ui_sprite,
