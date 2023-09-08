@@ -59,8 +59,7 @@ impl CScene {
 }
 
 impl scene_manager::Scene for CScene{
-    fn update(&mut self, ctx: &mut Context,
-        gfx_ctx: &mut GraphicsContext,) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(&mut self, ctx: &mut Context,        _gfx_ctx: &mut GraphicsContext,) -> Result<scene_manager::SceneSwitch, GameError> {
 
         // Usually, we would first perform our game logic here, but this scene has no logic.
 

@@ -209,7 +209,7 @@ impl EScene {
 
 
 impl scene_manager::Scene for EScene {
-    fn update(&mut self, ctx: &mut Context, gfx_ctx: &mut GraphicsContext) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(&mut self, ctx: &mut Context, _gfx_ctx: &mut GraphicsContext) -> Result<scene_manager::SceneSwitch, GameError> {
         // Nothing much to do here, except implement the back button functionality.
 
         let messages = self.gui.manage_messages(ctx, None);

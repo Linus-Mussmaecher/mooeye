@@ -154,7 +154,7 @@ impl scene_manager::Scene for DScene {
     fn update(
         &mut self,
         ctx: &mut Context,
-        gfx_ctx: &mut GraphicsContext,
+        _gfx_ctx: &mut GraphicsContext,
     ) -> Result<scene_manager::SceneSwitch, GameError> {
         // Nothing much to do here, except implement the back button functionality.
 

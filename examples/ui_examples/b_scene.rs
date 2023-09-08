@@ -72,7 +72,7 @@ impl mooeye::scene_manager::Scene for BScene {
                 a: 0.,
             },
         );
-        self.hello.draw(ctx, gfx_ctx, DrawParam::default());
+        self.hello.draw(ctx, gfx_ctx, DrawParam::default())?;
 
         Ok(())
     }
