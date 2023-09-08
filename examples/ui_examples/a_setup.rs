@@ -22,7 +22,9 @@ pub fn setup_and_run() -> GameResult {
 
     // Generate game context and event loop.
 
-    let conf = good_web_game::conf::Conf::default().physical_root_dir(Some(resource_dir));
+    let conf = good_web_game::conf::Conf::default()
+        .physical_root_dir(Some(resource_dir))
+        .cache(Some(include_bytes!("resources.tar")));
 
     good_web_game::start(conf, |ctx, mut _gfx_ctx| {
         // Add fonts from the resource folder.

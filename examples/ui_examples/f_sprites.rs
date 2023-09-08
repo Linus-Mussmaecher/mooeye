@@ -58,7 +58,7 @@ impl FScene {
         // A sprite can be loaded by specifying a path, just like an Image.
         // Additionaly, you need to inform the sprite of the grid size of its sheet and the duration each frame is displayed.
         let ui_sprite = sprite::Sprite::from_path(
-            "/moo-sheet_16_16.png",
+            "./moo-sheet_16_16.png",
             ctx,
             gfx_ctx,
             16,
@@ -90,8 +90,9 @@ impl FScene {
 
         // We can now init a sprite from the pool. Sprites are saved in the pool with a key corresponding to their relative path
         // (from the resource folder) with the format information and file ending removed.
-        let non_ui_sprite = sprite_pool.init_sprite("/mage-sheet", Duration::from_secs_f32(0.2))?;
-        let other_sprite = sprite_pool.init_sprite("/moo-sheet", Duration::from_secs_f32(0.2))?;
+        let non_ui_sprite =
+            sprite_pool.init_sprite("./mage-sheet", Duration::from_secs_f32(0.2))?;
+        let other_sprite = sprite_pool.init_sprite("./moo-sheet", Duration::from_secs_f32(0.2))?;
 
         Ok(Self {
             gui: ui_sprite,

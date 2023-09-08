@@ -111,7 +111,7 @@ impl DScene {
         let mut stack = ui::containers::StackBox::new();
         stack.add(back);
         // The add_top function adds something to the top of a stack box. Creating and adding an element can be done inline.
-        if let Ok(image) = graphics::Image::new(ctx, gfx_ctx, "./moo-sheet_16_16.png") {
+        if let Ok(image) = graphics::Image::new(ctx, gfx_ctx, "./moo.png") {
             stack.add_top(
                 image
                     .to_element_builder(0, ctx)

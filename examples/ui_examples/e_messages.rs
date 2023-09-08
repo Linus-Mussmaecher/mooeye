@@ -77,7 +77,7 @@ impl EScene {
             .to_element_builder(11, ctx)
             .with_visuals(vis) 
             // We can also set a sound to be played on click/key press
-            .with_trigger_sound(good_web_game::audio::Source::new(ctx, "/blipSelect.wav").ok())
+            .with_trigger_sound(good_web_game::audio::Source::new(ctx, "./blipSelect.wav").ok())
             .build();
         grid_box
             .add(vert_up, 0, 0)?;
