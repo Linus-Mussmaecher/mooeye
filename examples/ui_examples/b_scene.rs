@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::{
+use good_web_game::{
     graphics::{Color, DrawParam, Drawable, Text},
     Context,
 };
@@ -18,7 +18,7 @@ pub struct BScene {
 }
 
 impl BScene {
-    /// Creates a new BScene. There are no special parameters, but, just like in ggez, we need to pass a context to most creations.
+    /// Creates a new BScene. There are no special parameters, but, just like in good_web_game, we need to pass a context to most creations.
     pub fn new(_ctx: &Context) -> Self {
         Self {
             duration: Duration::from_secs(2),
@@ -30,8 +30,8 @@ impl BScene {
 impl mooeye::scene_manager::Scene for BScene {
     fn update(
         &mut self,
-        ctx: &mut ggez::Context,
-    ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
+        ctx: &mut good_web_game::Context,
+    ) -> Result<mooeye::scene_manager::SceneSwitch, good_web_game::GameError> {
         // Put your game logic, any changes to your game state, here.
 
         self.duration = self.duration.saturating_sub(ctx.time.delta());
@@ -49,18 +49,20 @@ impl mooeye::scene_manager::Scene for BScene {
 
     fn draw(
         &mut self,
-        ctx: &mut ggez::Context,
+        ctx: &mut good_web_game::Context,
         _mouse_listen: bool,
-    ) -> Result<(), ggez::GameError> {
-        // As in ggez, your draw function draws the contents of your scene and always starts by getting a canvas.
+    ) -> Result<(), good_web_game::GameError> {
+        // As in good_web_game, your draw function draws the contents of your scene and always starts by getting a canvas.
         // This function should not alter your game state (even if it can access self mutably), only the display of that state.
         // Clearing the canvas should not be your default option - sometimes you may want a scene (like a pause menu) to
         // occupy only a small part of the screen while still drawing other scenes behind it. In that case, pass None into 'clear'.
-        let mut canvas = ggez::graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
+        let mut canvas =
+            good_web_game::graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
         // Use this sampler setting if you are using pixel graphics.
-        canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
+        canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
 
-        self.hello.draw(&mut canvas, DrawParam::default());
+        self.hello
+            .draw(&mut canvas, ctx.gfx_context, DrawParam::default());
 
         // The draw function should always end by finishing the canvas.
         canvas.finish(ctx)?;

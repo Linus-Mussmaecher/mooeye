@@ -1,5 +1,5 @@
 //! # Mooeye
-//! A simple static UI library for the ggez game library.
+//! A simple static UI library for the good_web_game game library.
 //!
 //! [![Docs Status](https://docs.rs/mooeye/badge.svg)](https://docs.rs/mooeye)
 //! [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Linus-Mussmaecher/mooeye/LICENSE)
@@ -11,7 +11,7 @@
 //! and
 //! [examples](https://github.com/Linus-Mussmaecher/mooeye/tree/main/examples/ui_examples)
 //! for instructions on how to use this library to
-//! * create UIs for your games or applications in the ggez game engige.
+//! * create UIs for your games or applications in the good_web_game game engige.
 //! * use the scene manager to handle multiple different gamestates and menu layers gracefully.
 //! * use sprites to animate objects in your UIs or in game.
 

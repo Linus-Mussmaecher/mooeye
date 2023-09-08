@@ -1,4 +1,4 @@
-use ggez::{graphics, Context};
+use good_web_game::Context;
 use std::hash::Hash;
 
 use crate::ui;
@@ -14,7 +14,7 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for () {
     fn draw_content(
         &mut self,
         _ctx: &mut Context,
-        _canvas: &mut graphics::Canvas,
+        _canvas: &mut good_web_game::event::GraphicsContext,
         _param: ui::UiDrawParam,
     ) {
     }

@@ -1,22 +1,17 @@
-use ggez::{
-    graphics::{self, Drawable, Rect},
+use good_web_game::{
+    graphics::{self, Drawable},
     Context,
 };
 use std::hash::Hash;
 
 use crate::ui;
 
-impl<T: Copy + Eq + Hash> ui::UiContent<T> for ggez::graphics::Image {
+impl<T: Copy + Eq + Hash> ui::UiContent<T> for good_web_game::graphics::Image {
     fn to_element_builder(self, id: u32, ctx: &Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
-        let size = self.dimensions(&ctx.gfx).unwrap_or(Rect {
-            x: 0.,
-            y: 0.,
-            w: 0.,
-            h: 0.,
-        });
+        let size = self.dimensions();
 
         ui::UiElementBuilder::new(id, self)
             .with_size(
@@ -29,19 +24,22 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for ggez::graphics::Image {
     fn draw_content(
         &mut self,
         ctx: &mut Context,
-        canvas: &mut graphics::Canvas,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
         param: ui::UiDrawParam,
     ) {
-        if let Some(dim) = self.dimensions(ctx) {
-            canvas.draw(
-                self,
-                param.param.dest_rect(Rect::new(
-                    param.target.x,
-                    param.target.y,
-                    param.target.w / dim.w,
-                    param.target.h / dim.h,
-                )),
-            );
-        }
+        self.draw(
+            ctx,
+            gfx_ctx,
+            param
+                .param
+                .dest(graphics::Point2 {
+                    x: param.target.x,
+                    y: param.target.y,
+                })
+                .scale(graphics::Vector2 {
+                    x: param.target.w / self.dimensions().w,
+                    y: param.target.h / self.dimensions().h,
+                }),
+        );
     }
 }

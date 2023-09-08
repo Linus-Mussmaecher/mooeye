@@ -25,8 +25,7 @@ impl EScene {
         // This title will change based on transitions whenever certain buttons are clicked.
         let title = Text::new("Move this element with the buttons.\nYou have not yet clicked a button.")
         // First, we style the title.
-        .set_font("Bahnschrift")
-        .set_scale(28.)
+        .set_font("Bahnschrift", 28.)
         .to_owned()
         .to_element_builder(0, ctx)
         // Then, we add a message handler to the element.
@@ -50,8 +49,7 @@ impl EScene {
                                 "Move this element with the buttons.\nYou clicked a button with id {}.",
                                 id
                             ))
-                            .set_font("Bahnschrift")
-                            .set_scale(24.)
+                            .set_font("Bahnschrift", 24.)
                             .to_owned())
                         )
                         

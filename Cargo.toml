@@ -12,8 +12,9 @@ keywords = ["UI", "ggez", "game-development", "static-UI", "game"]
 
 [dependencies]
 good-web-game = "0.6"
-tinyvec = "1.6.0"
+tinyvec = {version = "1.6.0", features = ["alloc"]}
 regex = "1.7.3"
+glam = "0.24"
 
 
 # Tests. GGEZ panicks when creating an event loop outside of the main thread, so we have to disable the cargo test harness to force this tests onto the main thread.

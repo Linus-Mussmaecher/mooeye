@@ -1,4 +1,4 @@
-use ggez::{graphics::Color, *};
+use good_web_game::{graphics::Color, *};
 use mooeye::{scene_manager, ui, ui::UiContent};
 
 /// This scene is the main-drop in scene and allows you to access the different tutorial scenes.
@@ -131,9 +131,10 @@ impl scene_manager::Scene for SelectorScene {
 
     fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
         // business as usual
-        let mut canvas = ggez::graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
+        let mut canvas =
+            good_web_game::graphics::Canvas::from_frame(ctx, Color::from_rgb(100, 100, 150));
 
-        canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
+        canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
 
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
 

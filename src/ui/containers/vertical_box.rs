@@ -1,4 +1,4 @@
-use ggez::graphics::Rect;
+use good_web_game::graphics::Rect;
 use std::hash::Hash;
 
 use crate::ui;
@@ -110,7 +110,7 @@ impl<T: Copy + Eq + Hash> Default for VerticalBox<T> {
 }
 
 impl<T: Copy + Eq + Hash> ui::UiContent<T> for VerticalBox<T> {
-    fn to_element_builder(self, id: u32, _ctx: &ggez::Context) -> ui::UiElementBuilder<T>
+    fn to_element_builder(self, id: u32, _ctx: &good_web_game::Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
@@ -122,8 +122,8 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for VerticalBox<T> {
 
     fn draw_content(
         &mut self,
-        ctx: &mut ggez::Context,
-        canvas: &mut ggez::graphics::Canvas,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
         param: ui::UiDrawParam,
     ) {
         // get calculate vector of dynamically allocated total heights for each element
@@ -136,7 +136,7 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for VerticalBox<T> {
         for (element, ele_dyn_height) in self.children.iter_mut().zip(dyn_height) {
             element.draw_to_rectangle(
                 ctx,
-                canvas,
+                gfx_ctx,
                 param.target(Rect {
                     x: param.target.x,
                     y,

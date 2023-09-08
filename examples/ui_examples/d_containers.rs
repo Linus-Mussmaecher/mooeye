@@ -1,4 +1,4 @@
-use ggez::{graphics::Color, *};
+use good_web_game::{graphics::Color, *};
 use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 // # Containers
@@ -61,8 +61,7 @@ impl DScene {
         for i in 0..8 {
             // Create an element.
             let element = graphics::Text::new(format!("{}", i))
-                .set_font("Bahnschrift")
-                .set_scale(28.)
+                .set_font("Bahnschrift", 28.)
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(vis2)
@@ -85,8 +84,7 @@ impl DScene {
         for i in 0..4 {
             // Create an element.
             let element = graphics::Text::new(format!("{}", i))
-                .set_font("Bahnschrift")
-                .set_scale(28.)
+                .set_font("Bahnschrift", 28.)
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(vis)
@@ -101,8 +99,7 @@ impl DScene {
         // We'll also create our usual back button and put it into the top right of the grid.
 
         let back = graphics::Text::new("Back!")
-            .set_font("Bahnschrift")
-            .set_scale(28.)
+            .set_font("Bahnschrift", 28.)
             .to_owned()
             .to_element_builder(1, ctx)
             .with_visuals(vis)
@@ -167,9 +164,9 @@ impl scene_manager::Scene for DScene {
     fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
         // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
 
-        let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);
+        let mut canvas = good_web_game::graphics::Canvas::from_frame(ctx, None);
         // Since we don't set the sampler to 'nearest', our corners will look more round, but the pixel-cow will look blurry.
-        //canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
+        //canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
 
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
 

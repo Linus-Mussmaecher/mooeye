@@ -1,13 +1,10 @@
 use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 
-use good_web_game::audio::{SoundSource, Source};
-use good_web_game::winit::event::VirtualKeyCode;
-use good_web_game::{
-    glam::Vec2,
-    graphics::{Canvas, Rect},
-    Context, GameResult,
-};
+use good_web_game::audio::Source;
+use good_web_game::event::GraphicsContext;
+use good_web_game::input::keyboard::is_key_pressed;
+use good_web_game::{graphics::Rect, input::keyboard::KeyCode, Context, GameResult};
 
 /// The main struct and traits [UiElement], [UiContent], [UiContainer].
 mod ui_element;
@@ -16,7 +13,7 @@ pub use ui_element::UiContent;
 
 /// Contains basic UI contents such as text and images.
 /// There is nothing actually here, because the basic elements Text, Image and Empty
-/// are created by simply implementing UiContent on ggez's Text and Image as well as the basic ().
+/// are created by simply implementing UiContent on good_web_game's Text and Image as well as the basic ().
 pub mod basic;
 /// Contains UI contents that contain other UI elements, such as vertical boxes and stack boxes.
 pub mod containers;
@@ -48,7 +45,7 @@ pub use message::UiMessage;
 mod ui_element_builder;
 pub use ui_element_builder::UiElementBuilder;
 
-/// The [UiDrawParam] struct is an extension of the [ggez::graphics::DrawParam] struct and contains some additonal information specific to UiElements.
+/// The [UiDrawParam] struct is an extension of the [good_web_game::graphics::DrawParam] struct and contains some additonal information specific to UiElements.
 mod ui_draw_param;
 pub use ui_draw_param::UiDrawParam;
 
@@ -80,7 +77,7 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     transitions: VecDeque<Transition<T>>,
 
     /// The keyboard key triggering events on this element.
-    keys: TinyVec<[Option<VirtualKeyCode>; 2]>,
+    keys: TinyVec<[Option<KeyCode>; 2]>,
 
     /// The message handler. This function is called on every frame to handle received message.
     /// The message handler lambda receives each frame a hash set consisting of all internal and external messages received by this element.
@@ -98,7 +95,7 @@ impl<T: Copy + Eq + Hash> std::fmt::Debug for UiElement<T> {
             .field("layout", &self.layout)
             .field("visuals", &self.visuals)
             .field("hover_visuals", &self.hover_visuals)
-            .field("trigger_sound", &self.trigger_sound)
+            //.field("trigger_sound", &self.trigger_sound)
             .field("id", &self.id)
             .field("draw_cache", &self.draw_cache)
             .field("tooltip", &self.tooltip)
@@ -183,7 +180,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// In addition, if this element has children, all children whose [UiContent::expired] function returns true are removed from the container.
     pub fn update(
         &mut self,
-        ctx: &ggez::Context,
+        ctx: &mut good_web_game::Context,
         extern_messages: impl Into<Option<HashSet<UiMessage<T>>>>,
     ) -> HashSet<UiMessage<T>> {
         // Message handling
@@ -208,14 +205,14 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Deprecated version of [UiElement::update].
     pub fn manage_messages(
         &mut self,
-        ctx: &ggez::Context,
+        ctx: &mut good_web_game::Context,
         extern_messages: impl Into<Option<HashSet<UiMessage<T>>>>,
     ) -> HashSet<UiMessage<T>> {
         self.update(ctx, extern_messages)
     }
 
     /// Iterates over this element and all successors and collects all internal messages (clicks) sent during the last frame.
-    fn collect_messages(&self, ctx: &Context) -> HashSet<UiMessage<T>> {
+    fn collect_messages(&self, ctx: &mut Context) -> HashSet<UiMessage<T>> {
         let mut res: HashSet<UiMessage<T>> = HashSet::new();
 
         if self.id != 0
@@ -225,25 +222,25 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                     outer,
                     inner: _,
                     target: _,
-                } => outer.contains(ctx.mouse.position()),
+                } => outer.contains(ctx.mouse_context.mouse_position()),
             }
         {
             if ctx
-                .mouse
-                .button_just_pressed(ggez::event::MouseButton::Left)
+                .mouse_context
+                .button_pressed(good_web_game::event::MouseButton::Left)
             {
                 res.insert(UiMessage::Clicked(self.id));
                 res.insert(UiMessage::Triggered(self.id));
                 if let Some(sound) = &self.trigger_sound {
-                    if sound.play_later().is_err() && cfg!(debug_assertions) {
+                    if sound.play(ctx).is_err() && cfg!(debug_assertions) {
                         println!("[ERROR] Failed to play sound.");
                     }
                 }
             }
 
             if ctx
-                .mouse
-                .button_just_pressed(ggez::event::MouseButton::Right)
+                .mouse_context
+                .button_pressed(good_web_game::event::MouseButton::Right)
             {
                 res.insert(UiMessage::ClickedRight(self.id));
             }
@@ -252,7 +249,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         if self.id != 0
             && self.keys.iter().any(|key_opt| {
                 if let Some(key) = key_opt {
-                    ctx.keyboard.is_key_just_pressed(*key)
+                    is_key_pressed(ctx, *key)
                 } else {
                     false
                 }
@@ -295,7 +292,9 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Progresses the currently active transition by the time of the last frame.
     /// If this ends the current transition, the values of this element are updated to the values given by the transition and it is removed from the queue.
     fn progress_transitions(&mut self, ctx: &Context) {
-        if !self.transitions.is_empty() && self.transitions[0].progress(ctx.time.delta()) {
+        if !self.transitions.is_empty()
+            && self.transitions[0].progress(good_web_game::timer::delta(ctx))
+        {
             let trans = self.transitions.pop_front().expect(
                 "Transitions did not contain a first element despite being not empty 2 lines ago.",
             );
@@ -331,7 +330,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                     outer,
                     inner: _,
                     target: _,
-                } => outer.contains(ctx.mouse.position()),
+                } => outer.contains(ctx.mouse_context.mouse_position()),
             }
         {
             // yes: get what this element, diregarding transitions, would display on hover
@@ -502,8 +501,8 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     }
 
     /// Returns the minimum size required by the content of this element.
-    fn content_min(&self) -> Vec2 {
-        Vec2 {
+    fn content_min(&self) -> glam::Vec2 {
+        glam::Vec2 {
             x: self
                 .content
                 .container()
@@ -523,7 +522,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     pub(crate) fn draw_to_rectangle(
         &mut self,
         ctx: &mut Context,
-        canvas: &mut Canvas,
+        gfx_ctx: &mut GraphicsContext,
         param: UiDrawParam,
     ) {
         self.progress_transitions(ctx);
@@ -544,30 +543,30 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
 
         // draw visuals
         self.get_current_visual(ctx, param)
-            .draw(ctx, canvas, param.target(outer));
+            .draw(ctx, gfx_ctx, param.target(outer));
 
         // draw content
 
-        self.content.draw_content(ctx, canvas, param.target(inner));
+        self.content.draw_content(ctx, gfx_ctx, param.target(inner));
 
         // draw tooltip
-        if param.mouse_listen && outer.contains(ctx.mouse.position()) {
+        if param.mouse_listen && outer.contains(ctx.mouse_context.mouse_position()) {
             if let Some(tt) = &mut self.tooltip {
                 // get relevant positions
-                let mouse_pos = ctx.mouse.position();
-                let screen_size = ctx.gfx.window().inner_size();
+                let mouse_pos = ctx.mouse_context.mouse_position();
+                let screen_size = gfx_ctx.screen_size();
                 let tt_size = (tt.width_range().0, tt.height_range().0);
 
                 // check if element center is left or right on the screen
-                let x = if 2. * inner.x + inner.w > screen_size.width as f32 {
+                let x = if 2. * inner.x + inner.w > screen_size.0 as f32 {
                     mouse_pos.x - tt_size.0 - 10.
                 } else {
                     mouse_pos.x + 10.
                 }
-                .clamp(0., screen_size.width as f32 - tt_size.0);
+                .clamp(0., screen_size.0 as f32 - tt_size.0);
 
                 // check if element is on the top or bottom of the screen
-                let y = (if 2. * inner.y + inner.h > screen_size.height as f32 {
+                let y = (if 2. * inner.y + inner.h > screen_size.1 as f32 {
                     mouse_pos.y - tt_size.1
                 } else {
                     mouse_pos.y
@@ -577,26 +576,31 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 // draw the tooltip
                 tt.draw_to_rectangle(
                     ctx,
-                    canvas,
+                    gfx_ctx,
                     param
                         .target(Rect::new(x, y, tt_size.0, tt_size.1))
-                        .z_level(param.param.z + 1),
+                        .z_level(param.z_level + 1),
                 );
             }
         }
     }
 
     /// Draws this UiElement to the current screen. Call this on your root element every frame.
-    pub fn draw_to_screen(&mut self, ctx: &mut Context, canvas: &mut Canvas, mouse_listen: bool) {
+    pub fn draw_to_screen(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        mouse_listen: bool,
+    ) {
         self.draw_to_rectangle(
             ctx,
-            canvas,
+            gfx_ctx,
             UiDrawParam::default()
                 .target(Rect::new(
                     0.,
                     0.,
-                    ctx.gfx.window().inner_size().width as f32,
-                    ctx.gfx.window().inner_size().height as f32,
+                    gfx_ctx.screen_size().0,
+                    gfx_ctx.screen_size().1,
                 ))
                 .mouse_listen(mouse_listen),
         );

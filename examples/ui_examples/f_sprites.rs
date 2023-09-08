@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use mooeye::{scene_manager, sprite, ui, ui::UiContent};
 
-use ggez::{
+use good_web_game::{
     context::Context,
     glam::Vec2,
     graphics::{Color, DrawParam, Rect},
@@ -157,8 +157,8 @@ impl scene_manager::Scene for FScene {
     fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
         // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
 
-        let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);
-        canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
+        let mut canvas = good_web_game::graphics::Canvas::from_frame(ctx, None);
+        canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
 
         // Drawing of our (limited) game state.
 

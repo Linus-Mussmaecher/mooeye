@@ -1,4 +1,4 @@
-use ggez::GameResult;
+use good_web_game::GameResult;
 
 use crate::ui;
 use std::hash::Hash;
@@ -34,7 +34,7 @@ impl<T: Copy + Eq + Hash> Default for StackBox<T> {
 }
 
 impl<T: Copy + Eq + Hash> ui::UiContent<T> for StackBox<T> {
-    fn to_element_builder(self, id: u32, _ctx: &ggez::Context) -> ui::UiElementBuilder<T>
+    fn to_element_builder(self, id: u32, _ctx: &good_web_game::Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
@@ -44,12 +44,12 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for StackBox<T> {
     }
     fn draw_content(
         &mut self,
-        ctx: &mut ggez::Context,
-        canvas: &mut ggez::graphics::Canvas,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
         param: ui::UiDrawParam,
     ) {
         for child in self.children.iter_mut().rev() {
-            child.draw_to_rectangle(ctx, canvas, param);
+            child.draw_to_rectangle(ctx, gfx_ctx, param);
         }
     }
 

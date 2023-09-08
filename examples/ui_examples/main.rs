@@ -8,7 +8,7 @@
 //!
 //! You can run the example code (which is also the test code) using ```cargo  test```.
 
-use ggez::*;
+use good_web_game::*;
 
 /// ## A - Setup
 /// This example contains the setup of any mooeye application using the provided SceneManager.

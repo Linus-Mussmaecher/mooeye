@@ -1,4 +1,4 @@
-use good_web_game::{audio::Source, winit::event::VirtualKeyCode};
+use good_web_game::{audio::Source, input::keyboard::KeyCode};
 
 use crate::ui::{UiContent, UiElement};
 use std::hash::Hash;
@@ -136,7 +136,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
     }
 
     /// Attaches a key code to this element. Pressing this key will send the same trigger event as clicking the element.
-    pub fn with_trigger_key(mut self, key: VirtualKeyCode) -> Self {
+    pub fn with_trigger_key(mut self, key: KeyCode) -> Self {
         self.element.keys.push(Some(key));
         self
     }

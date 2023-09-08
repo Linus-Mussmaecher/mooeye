@@ -1,12 +1,14 @@
 use good_web_game::graphics::{DrawParam, Rect};
 
-/// An extension of the [ggez::graphics::DrawParam] struct specifically for UiElements.
+/// An extension of the [good_web_game::graphics::DrawParam] struct specifically for UiElements.
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct UiDrawParam {
     /// The rectangular target area this element shall be drawn to.
     pub target: Rect,
     /// Wether or not the element should listen to the mouse position and possible change its visuals or display a tooltip when hovered over.
     pub mouse_listen: bool,
+    /// Changes the z-level of the element. Currently non-functional.
+    pub z_level: i32,
     /// A basic draw param struct to manage things like z-level, color and src-rect.
     /// Setting dest_rect may yield unexpected behaviour, as it will likely be overwritten by target when drawing.
     pub param: DrawParam,
@@ -18,6 +20,7 @@ impl UiDrawParam {
         Self {
             target: Rect::default(),
             mouse_listen: true,
+            z_level: 0,
             param: DrawParam::new(),
         }
     }
@@ -37,10 +40,7 @@ impl UiDrawParam {
 
     /// Returns a new [UiDrawParam] with only the z value of the contained param set to the specified value.
     pub fn z_level(self, z_level: i32) -> Self {
-        Self {
-            param: self.param.z(z_level),
-            ..self
-        }
+        Self { z_level, ..self }
     }
 
     /// Returns a new [UiDrawParam] with the entire DrawParam replaced by the specified value.
@@ -53,6 +53,7 @@ impl From<DrawParam> for UiDrawParam {
     fn from(value: DrawParam) -> Self {
         Self {
             target: Rect::default(),
+            z_level: 0,
             mouse_listen: true,
             param: value,
         }

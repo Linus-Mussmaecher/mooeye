@@ -1,4 +1,4 @@
-use ggez::{*, graphics::Color};
+use good_web_game::{*, graphics::Color};
 use mooeye::{ui, ui::UiContent, scene_manager};
 
 
@@ -23,11 +23,10 @@ impl CScene {
         // In this case, we will only create a single element.
 
         let text_element = 
-        // First, we create anything implementing UiContent. ggez Image and Text do that, so we'll use a Text.
-        // You can format that text as you can in ggez, so let's use our custom font and set a larger size.
+        // First, we create anything implementing UiContent. good_web_game Image and Text do that, so we'll use a Text.
+        // You can format that text as you can in good_web_game, so let's use our custom font and set a larger size.
         graphics::Text::new("Take me back!") 
-        .set_font("Bahnschrift")
-        .set_scale(32.)
+        .set_font("Bahnschrift", 32.)
         // Then we'll convert that content to an UiElementBuilder. We have to give it an ID.
         // ID 0 is reserved for elements not sending messages, but since we want to use the Text as a button, we'll use 1.
         .to_owned()
@@ -80,8 +79,8 @@ impl scene_manager::Scene for CScene{
 
     fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
         // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
-        let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);        
-        canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
+        let mut canvas = good_web_game::graphics::Canvas::from_frame(ctx, None);        
+        canvas.set_sampler(good_web_game::graphics::Sampler::nearest_clamp());
         
         // Here, you would draw your gamestate.
 

@@ -1,6 +1,6 @@
-use ggez::{
-    glam::Vec2,
-    graphics::{Canvas, Color, Mesh, MeshBuilder, Rect},
+use good_web_game::{
+    event::GraphicsContext,
+    graphics::{Color, Drawable, MeshBuilder, Point2, Rect},
     *,
 };
 
@@ -58,14 +58,17 @@ impl Visuals {
     }
 
     /// Draws the background to the canvas, filling the rectangle target.
-    pub(crate) fn draw(&self, ctx: &Context, canvas: &mut Canvas, param: super::UiDrawParam) {
-        canvas.draw(
-            &Mesh::from_data(
-                ctx,
-                self.create_mesh(param.target).unwrap_or_default().build(),
-            ),
-            param.param,
-        );
+    pub(crate) fn draw(
+        &self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        param: super::UiDrawParam,
+    ) {
+        self.create_mesh(param.target)
+            .unwrap_or_default()
+            .build(ctx, gfx_ctx)
+            .unwrap()
+            .draw(ctx, gfx_ctx, param.param);
     }
 
     /// Creates a mesh that can be used to draw this visual based on its attributes.
@@ -83,40 +86,40 @@ impl Visuals {
         mesh_builder
             .circle(
                 graphics::DrawMode::fill(),
-                Vec2::new(
-                    target.x + target.w - self.corner_radii[0],
-                    target.y + self.corner_radii[0],
-                ),
+                Point2 {
+                    x: target.x + target.w - self.corner_radii[0],
+                    y: target.y + self.corner_radii[0],
+                },
                 self.corner_radii[0],
                 tolerance,
                 self.border,
             )?
             .circle(
                 graphics::DrawMode::fill(),
-                Vec2::new(
-                    target.x + target.w - self.corner_radii[1],
-                    target.y + target.h - self.corner_radii[1],
-                ),
+                Point2 {
+                    x: target.x + target.w - self.corner_radii[1],
+                    y: target.y + target.h - self.corner_radii[1],
+                },
                 self.corner_radii[1],
                 tolerance,
                 self.border,
             )?
             .circle(
                 graphics::DrawMode::fill(),
-                Vec2::new(
-                    target.x + self.corner_radii[2],
-                    target.y + target.h - self.corner_radii[2],
-                ),
+                Point2 {
+                    x: target.x + self.corner_radii[2],
+                    y: target.y + target.h - self.corner_radii[2],
+                },
                 self.corner_radii[2],
                 tolerance,
                 self.border,
             )?
             .circle(
                 graphics::DrawMode::fill(),
-                Vec2::new(
-                    target.x + self.corner_radii[3],
-                    target.y + self.corner_radii[3],
-                ),
+                Point2 {
+                    x: target.x + self.corner_radii[3],
+                    y: target.y + self.corner_radii[3],
+                },
                 self.corner_radii[3],
                 tolerance,
                 self.border,
@@ -171,40 +174,40 @@ impl Visuals {
         mesh_builder
             .circle(
                 graphics::DrawMode::fill(),
-                Vec2::new(
-                    target.x + target.w - self.border_widths[1] - inner_radius[0],
-                    target.y + self.border_widths[0] + inner_radius[0],
-                ),
+                Point2 {
+                    x: target.x + target.w - self.border_widths[1] - inner_radius[0],
+                    y: target.y + self.border_widths[0] + inner_radius[0],
+                },
                 inner_radius[0],
                 tolerance,
                 self.background,
             )?
             .circle(
                 graphics::DrawMode::fill(),
-                Vec2::new(
-                    target.x + target.w - self.border_widths[1] - inner_radius[1],
-                    target.y + target.h - self.border_widths[2] - inner_radius[1],
-                ),
+                Point2 {
+                    x: target.x + target.w - self.border_widths[1] - inner_radius[1],
+                    y: target.y + target.h - self.border_widths[2] - inner_radius[1],
+                },
                 inner_radius[1],
                 tolerance,
                 self.background,
             )?
             .circle(
                 graphics::DrawMode::fill(),
-                Vec2::new(
-                    target.x + self.border_widths[3] + inner_radius[2],
-                    target.y + target.h - self.border_widths[2] - inner_radius[2],
-                ),
+                Point2 {
+                    x: target.x + self.border_widths[3] + inner_radius[2],
+                    y: target.y + target.h - self.border_widths[2] - inner_radius[2],
+                },
                 inner_radius[2],
                 tolerance,
                 self.background,
             )?
             .circle(
                 graphics::DrawMode::fill(),
-                Vec2::new(
-                    target.x + self.border_widths[3] + inner_radius[3],
-                    target.y + self.border_widths[0] + inner_radius[3],
-                ),
+                Point2 {
+                    x: target.x + self.border_widths[3] + inner_radius[3],
+                    y: target.y + self.border_widths[0] + inner_radius[3],
+                },
                 inner_radius[3],
                 tolerance,
                 self.background,

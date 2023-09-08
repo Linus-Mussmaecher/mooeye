@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use super::*;
 
-use good_web_game::{graphics::Canvas, Context};
+use good_web_game::{event::GraphicsContext, Context};
 
 /// A trait that marks any struct that can be the content of a UI element. Should not be used directly, only when wrapped in such an element.
 /// ### Basic elements
@@ -31,7 +31,12 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     /// Takes in a rectangle target, a canvas, a context and draws the contents (not the border etc.) to that rectangle within that canvas using that context.
     /// Normally, this will only be called from within private functions, when the cache has been modified appropiately and only use the inner rectangle of the draw cache as content_bounds.
     /// Do not call otherwise.
-    fn draw_content(&mut self, ctx: &mut Context, canvas: &mut Canvas, param: UiDrawParam);
+    fn draw_content(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        param: UiDrawParam,
+    );
 
     /// Returns a bool value. Returning true indicates to any container this element is a child of that this element wishes to be removed from the container (and discarded).
     fn expired(&self) -> bool {

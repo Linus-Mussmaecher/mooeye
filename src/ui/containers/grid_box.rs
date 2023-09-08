@@ -1,4 +1,4 @@
-use ggez::{graphics::Rect, GameResult};
+use good_web_game::{graphics::Rect, GameResult};
 use std::hash::Hash;
 use tinyvec::TinyVec;
 
@@ -65,7 +65,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
     /// Keep in mind that the basic [ui::UiElement::add_element] function will not work on a [GridBox].
     pub fn add(&mut self, element: ui::UiElement<T>, x: usize, y: usize) -> GameResult {
         if x >= self.cols || y >= self.rows {
-            Err(ggez::GameError::CustomError(format!(
+            Err(good_web_game::GameError::CustomError(format!(
                 "Index out of bounds: ({}, {}) does not fit in ({}, {}).",
                 x, y, self.cols, self.rows
             )))
@@ -263,7 +263,7 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
 }
 
 impl<T: Copy + Eq + Hash> ui::UiContent<T> for GridBox<T> {
-    fn to_element_builder(self, id: u32, _ctx: &ggez::Context) -> ui::UiElementBuilder<T>
+    fn to_element_builder(self, id: u32, _ctx: &good_web_game::Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
@@ -275,8 +275,8 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for GridBox<T> {
 
     fn draw_content(
         &mut self,
-        ctx: &mut ggez::Context,
-        canvas: &mut ggez::graphics::Canvas,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
         param: ui::UiDrawParam,
     ) {
         // get column widths
@@ -305,7 +305,7 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for GridBox<T> {
         for (index, element) in self.children.iter_mut().enumerate() {
             element.draw_to_rectangle(
                 ctx,
-                canvas,
+                gfx_ctx,
                 param.target(Rect::new(
                     *column_widths_ps.get(index % self.cols).unwrap_or(&0.),
                     *row_heights_ps.get(index / self.cols).unwrap_or(&0.),

@@ -1,6 +1,7 @@
 use std::{collections::HashMap, ffi::OsStr, path::Path, time::Duration};
 
-use ggez::{
+use good_web_game::{
+    event::GraphicsContext,
     graphics::{Drawable, Image, Rect},
     *,
 };
@@ -36,9 +37,9 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    /// Create a new sprite using the passed [ggez::graphics::Image] and set the duration after which a frame change occurs.
+    /// Create a new sprite using the passed [good_web_game::graphics::Image] and set the duration after which a frame change occurs.
     /// The values for the width and height of a single image within the sheet have to be passed manually.
-    /// Will never fail, as the image is already loaded by ggez.
+    /// Will never fail, as the image is already loaded by good_web_game.
     pub fn new(spritesheet: Image, w: u32, h: u32, frame_time: Duration) -> Self {
         Self {
             frame_time,
@@ -141,7 +142,7 @@ impl Sprite {
                 self.current_variant %= self
                     .spritesheet
                     .as_ref()
-                    .map(|img| img.height())
+                    .map(|img| img.height() as u32)
                     .unwrap_or_default()
                     / self.h;
             }
@@ -177,7 +178,7 @@ impl Sprite {
             * self
                 .spritesheet
                 .as_ref()
-                .map(|img| img.width())
+                .map(|img| img.width() as u32)
                 .unwrap_or_default()
             / self.w
     }
@@ -185,45 +186,59 @@ impl Sprite {
     /// Draws this sprite as given by the paramters, advancing the displayed frame as needed.
     pub fn draw_sprite(
         &mut self,
-        ctx: &Context,
-        canvas: &mut graphics::Canvas,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
         param: impl Into<graphics::DrawParam>,
     ) {
-        self.current_frame_time += ctx.time.delta();
+        self.current_frame_time += good_web_game::timer::delta(ctx);
         while self.current_frame_time >= self.frame_time && !self.frame_time.is_zero() {
             self.current_frame_time -= self.frame_time;
             self.current_frame = (self.current_frame + 1)
                 % (self
                     .spritesheet
                     .as_ref()
-                    .map(|img| img.width())
+                    .map(|img| img.width() as u32)
                     .unwrap_or_default()
                     / self.w);
         }
 
-        self.draw(canvas, param);
+        self.draw(ctx, gfx_ctx, param.into());
     }
 }
 
 impl Drawable for Sprite {
-    fn draw(&self, canvas: &mut graphics::Canvas, param: impl Into<graphics::DrawParam>) {
+    fn draw(
+        &self,
+        ctx: &mut Context,
+        quad_ctx: &mut miniquad::graphics::GraphicsContext,
+        param: graphics::DrawParam,
+    ) -> GameResult {
         if let Some(spritesheet) = &self.spritesheet {
             spritesheet.draw(
-                canvas,
-                (param.into() as graphics::DrawParam).src(Rect::new(
+                ctx,
+                quad_ctx,
+                param.src(Rect::new(
                     (self.w * self.current_frame) as f32 / spritesheet.width() as f32,
                     (self.h * self.current_variant) as f32 / spritesheet.height() as f32,
                     self.w as f32 / spritesheet.width() as f32,
                     self.h as f32 / spritesheet.height() as f32,
                 )),
             );
+            Ok(())
+        } else {
+            Err(GameError::UnknownError(
+                "Something went wrong when drawinga sprite".to_owned(),
+            ))
         }
     }
 
-    fn dimensions(
-        &self,
-        _gfx: &impl ggez::context::Has<ggez::graphics::GraphicsContext>,
-    ) -> Option<ggez::graphics::Rect> {
+    fn set_blend_mode(&mut self, mode: Option<graphics::BlendMode>) {}
+
+    fn blend_mode(&self) -> Option<graphics::BlendMode> {
+        None
+    }
+
+    fn dimensions(&self, _: &mut Context) -> Option<Rect> {
         Some(Rect::new(0., 0., self.w as f32, self.h as f32))
     }
 }
@@ -245,18 +260,22 @@ impl<T: Copy + Eq + Hash> UiContent<T> for Sprite {
     fn draw_content(
         &mut self,
         ctx: &mut Context,
-        canvas: &mut graphics::Canvas,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
         param: crate::ui::UiDrawParam,
     ) {
         self.draw_sprite(
             ctx,
-            canvas,
-            param.param.dest_rect(Rect::new(
-                param.target.x,
-                param.target.y,
-                param.target.w / self.w as f32,
-                param.target.h / self.h as f32,
-            )),
+            gfx_ctx,
+            param
+                .param
+                .dest(graphics::Point2 {
+                    x: param.target.x,
+                    y: param.target.y,
+                })
+                .scale(graphics::Vector2 {
+                    x: param.target.w / self.w as f32,
+                    y: param.target.h / self.h as f32,
+                }),
         );
     }
 }
@@ -306,7 +325,7 @@ impl SpritePool {
         self
     }
 
-    /// Loads all sprites within the given folder (relative to the ggez resource directory, see [ggez::context::ContextBuilder]) into the sprite pool.
+    /// Loads all sprites within the given folder (relative to the good_web_game resource directory, see [good_web_game::context::ContextBuilder]) into the sprite pool.
     /// Can also search all subfolders.
     /// See [SpritePool] for required name formatting in order to load sprites correctly.
     pub fn with_folder(
@@ -347,7 +366,7 @@ impl SpritePool {
     }
 
     /// Initialies a sprite from the sprite pool.
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the good_web_game resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
     /// For lazy initalization, use [SpritePool::init_sprite_lazy] instead.
@@ -368,7 +387,7 @@ impl SpritePool {
     }
 
     /// Initialies a sprite from the sprite pool.
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the good_web_game resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, this panics.
     /// If you want to return an error, use [SpritePool::init_sprite] instead.
@@ -391,7 +410,7 @@ impl SpritePool {
     }
 
     /// Initialies a sprite from the sprite pool.
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the good_web_game resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
     /// If this also fails, an error is returned.
@@ -467,7 +486,7 @@ impl SpritePool {
     ///
     /// Of course, this function is supremely useful if you only need to draw a sprite once.
     /// ## Syntax
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the good_web_game resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
     /// For lazy initalization, use [SpritePool::sprite_ref_lazy] instead.

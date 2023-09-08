@@ -138,7 +138,7 @@ impl Layout {
     pub fn get_outer_inner_bounds_in_target(
         &self,
         target: &Rect,
-        content_min: Vec2,
+        content_min: glam::Vec2,
     ) -> (Rect, Rect) {
         //calculate inner sizes via pref method of size
 
