@@ -86,7 +86,7 @@ impl FScene {
 
         let sprite_pool = sprite::SpritePool::new()
             // with_folder loads all .png/.bmp/.jpg/.jpeg files from the passed folder and optionally its subfolders
-            .with_folder(ctx, "/", true);
+            .with_path_list(ctx, "/", true);
 
         // We can now init a sprite from the pool. Sprites are saved in the pool with a key corresponding to their relative path
         // (from the resource folder) with the format information and file ending removed.

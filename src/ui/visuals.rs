@@ -68,7 +68,8 @@ impl Visuals {
             .unwrap_or_default()
             .build(ctx, gfx_ctx)
             .unwrap()
-            .draw(ctx, gfx_ctx, param.param);
+            .draw(ctx, gfx_ctx, param.param)
+            .expect("[ERROR/Mooeye] Drawing mesh error.");
     }
 
     /// Creates a mesh that can be used to draw this visual based on its attributes.

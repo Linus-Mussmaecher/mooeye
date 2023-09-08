@@ -558,15 +558,15 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 let tt_size = (tt.width_range().0, tt.height_range().0);
 
                 // check if element center is left or right on the screen
-                let x = if 2. * inner.x + inner.w > screen_size.0 as f32 {
+                let x = if 2. * inner.x + inner.w > screen_size.0 {
                     mouse_pos.x - tt_size.0 - 10.
                 } else {
                     mouse_pos.x + 10.
                 }
-                .clamp(0., screen_size.0 as f32 - tt_size.0);
+                .clamp(0., screen_size.0 - tt_size.0);
 
                 // check if element is on the top or bottom of the screen
-                let y = (if 2. * inner.y + inner.h > screen_size.1 as f32 {
+                let y = (if 2. * inner.y + inner.h > screen_size.1 {
                     mouse_pos.y - tt_size.1
                 } else {
                     mouse_pos.y

@@ -27,7 +27,7 @@ impl SceneManager {
         initial_scene: T,
     ) -> Result<(), GameError> {
         let sm = SceneManager::new(initial_scene);
-        good_web_game::start(conf, |mut ctx, mut gfx_ctx| Box::new(sm))
+        good_web_game::start(conf, |mut _ctx, mut _gfx_ctx| Box::new(sm))
     }
 }
 

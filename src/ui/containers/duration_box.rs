@@ -37,7 +37,7 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for DurationBox<T> {
     ) {
         self.duration = self
             .duration
-            .saturating_sub(good_web_game::timer::delta(&ctx));
+            .saturating_sub(good_web_game::timer::delta(ctx));
 
         self.child.draw_to_rectangle(ctx, gfx_ctx, param);
     }

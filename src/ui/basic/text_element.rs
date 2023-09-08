@@ -41,6 +41,7 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for good_web_game::graphics::Text {
                     x: param.target.w / dim.w,
                     y: param.target.h / dim.h,
                 }),
-        );
+        )
+        .expect("[ERROR/Mooeye] Drawing text error.");
     }
 }

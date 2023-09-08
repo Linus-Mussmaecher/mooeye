@@ -19,7 +19,6 @@ glam = "0.24"
 
 # Tests. GGEZ panicks when creating an event loop outside of the main thread, so we have to disable the cargo test harness to force this tests onto the main thread.
 # This disables the usual testing output, but since tests are mostly visual checks or panic checks (since most functions cant be tested for their 'output'), we at least get an easy way to start a gui window with cargo test.
-[[test]]
+[[example]]
 name = "ui-examples"
 path = "examples/ui_examples/main.rs"
-harness = false

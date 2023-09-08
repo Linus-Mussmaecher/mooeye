@@ -7,7 +7,7 @@ use std::hash::Hash;
 use crate::ui;
 
 impl<T: Copy + Eq + Hash> ui::UiContent<T> for good_web_game::graphics::Image {
-    fn to_element_builder(self, id: u32, ctx: &Context) -> ui::UiElementBuilder<T>
+    fn to_element_builder(self, id: u32, _ctx: &Context) -> ui::UiElementBuilder<T>
     where
         Self: Sized + 'static,
     {
@@ -40,6 +40,7 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for good_web_game::graphics::Image {
                     x: param.target.w / self.dimensions().w,
                     y: param.target.h / self.dimensions().h,
                 }),
-        );
+        )
+        .expect("[ERROR/Mooeye] Drawing image error.");
     }
 }
