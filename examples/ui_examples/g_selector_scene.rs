@@ -39,26 +39,30 @@ impl SelectorScene {
 
         for (i, &cont) in contents.iter().enumerate() {
             grid.add(
-                graphics::Text::new(graphics::TextFragment::new(cont).scale(32.))
-                    .to_owned()
-                    .to_element_builder(i as u32 + 1, ctx)
-                    .with_visuals(vis)
-                    .with_hover_visuals(hover_vis)
-                    .with_tooltip(
-                        graphics::Text::new(
-                            graphics::TextFragment::new(format!(
-                                "Click to look at the Scene created in the file {}.",
-                                contents[i].to_lowercase()
-                            ))
-                            .scale(24.),
-                        )
-                        .set_bounds(graphics::Point2::new(240., 500.), graphics::Align::Left)
-                        .to_owned()
-                        .to_element_builder(0, ctx)
-                        .with_visuals(hover_vis)
-                        .build(),
+                graphics::Text::new(
+                    graphics::TextFragment::new(cont)
+                        .scale(32.)
+                        .font(super::BAHNSCHRIFT.with(|f| f.borrow().unwrap())),
+                )
+                .to_owned()
+                .to_element_builder(i as u32 + 1, ctx)
+                .with_visuals(vis)
+                .with_hover_visuals(hover_vis)
+                .with_tooltip(
+                    graphics::Text::new(
+                        graphics::TextFragment::new(format!(
+                            "Click to look at the Scene created in the file {}.",
+                            contents[i].to_lowercase()
+                        ))
+                        .scale(24.),
                     )
+                    .set_bounds(graphics::Point2::new(240., 500.), graphics::Align::Left)
+                    .to_owned()
+                    .to_element_builder(0, ctx)
+                    .with_visuals(hover_vis)
                     .build(),
+                )
+                .build(),
                 i % 3,
                 i / 3,
             )?;
@@ -67,12 +71,16 @@ impl SelectorScene {
         // Add quit button
 
         grid.add(
-            graphics::Text::new(graphics::TextFragment::new("Quit").scale(32.))
-                .to_owned()
-                .to_element_builder(6, ctx)
-                .with_visuals(vis)
-                .with_hover_visuals(hover_vis)
-                .build(),
+            graphics::Text::new(
+                graphics::TextFragment::new("Quit")
+                    .scale(32.)
+                    .font(super::BAHNSCHRIFT.with(|f| f.borrow().unwrap())),
+            )
+            .to_owned()
+            .to_element_builder(6, ctx)
+            .with_visuals(vis)
+            .with_hover_visuals(hover_vis)
+            .build(),
             2,
             1,
         )?;

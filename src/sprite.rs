@@ -67,7 +67,10 @@ impl Sprite {
             frame_time,
             w,
             h,
-            spritesheet: Image::new(ctx, gfx_ctx, path).ok(),
+            spritesheet: Image::new(ctx, gfx_ctx, path).ok().map(|mut f| {
+                f.set_filter(miniquad::FilterMode::Nearest);
+                f
+            }),
             current_frame_time: Duration::ZERO,
             current_frame: 0,
             current_variant: 0,
@@ -129,7 +132,10 @@ impl Sprite {
             frame_time,
             w,
             h,
-            spritesheet: Image::new(ctx, gfx_ctx, path).ok(),
+            spritesheet: Image::new(ctx, gfx_ctx, path).ok().map(|mut f| {
+                f.set_filter(miniquad::FilterMode::Nearest);
+                f
+            }),
             current_frame_time: Duration::ZERO,
             current_frame: 0,
             current_variant: 0,
@@ -345,6 +351,7 @@ impl SpritePool {
         let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
 
         for sub_path in paths.flatten() {
+            let sub_path = sub_path.replace('\n', "");
             if sprite_match.is_match(&sub_path) {
                 if let Ok(sprite) =
                     Sprite::from_path_fmt(sub_path.clone(), ctx, gfx_ctx, self.default_duration)

@@ -8,6 +8,11 @@
 //!
 //! You can run the example code (which is also the test code) using ```cargo  test```.
 
+thread_local! {
+    /// The font used in this example.
+    pub static BAHNSCHRIFT: std::cell::RefCell<Option<graphics::Font>>  = std::cell::RefCell::new(None);
+}
+
 use good_web_game::*;
 
 /// ## A - Setup
