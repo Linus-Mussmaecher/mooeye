@@ -39,11 +39,6 @@ impl mooeye::scene_manager::Scene for BScene {
         self.duration = self
             .duration
             .saturating_sub(good_web_game::timer::delta(ctx));
-        log::info!(
-            "{} from {}",
-            good_web_game::timer::delta(ctx).as_secs_f32(),
-            self.duration.as_secs_f32()
-        );
 
         // Lastly, return a Result containing a (possible) possible SceneSwitch.
 

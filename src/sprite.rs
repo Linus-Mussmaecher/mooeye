@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ffi::OsStr, io::BufReader, path::Path, time::Duration};
+use std::{collections::HashMap, ffi::OsStr, path::Path, time::Duration};
 
 use good_web_game::{
     event::GraphicsContext,
@@ -11,8 +11,6 @@ use crate::{
     ui::{Size, UiElementBuilder},
 };
 use std::hash::Hash;
-
-use regex;
 
 /// A Sprite is an advanced version of an image element, displaying an animated picture that can have multiple states (e.g. a walking, attacking, etc. version of a player character)
 /// The sprite is initalized using an image file that contains multiple rows of images (each row representing a variant), where each row contains the same number of animation frames for each variant.
@@ -334,60 +332,37 @@ impl SpritePool {
         self
     }
 
-    /// Loads all sprites within the given folder (relative to the good_web_game resource directory, see [good_web_game::context::ContextBuilder]) into the sprite pool.
-    /// Can also search all subfolders.
-    /// See [SpritePool] for required name formatting in order to load sprites correctly.
-    pub fn with_path_list(
-        mut self,
-        ctx: &mut Context,
-        gfx_ctx: &mut GraphicsContext,
-        path_list_path: impl AsRef<Path>,
-        search_subfolders: bool,
-    ) -> Self {
-        let paths_file = ctx.filesystem.open(path_list_path.as_ref()).unwrap();
-        let paths_reader = BufReader::new(paths_file);
-        let paths = std::io::BufRead::lines(paths_reader);
-
-        let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
-
-        for sub_path in paths.flatten() {
-            let sub_path = sub_path.replace('\n', "");
-            if sprite_match.is_match(&sub_path) {
-                if let Ok(sprite) =
-                    Sprite::from_path_fmt(sub_path.clone(), ctx, gfx_ctx, self.default_duration)
-                {
-                    self.sprites.insert(
-                        sprite_match
-                            .captures(&sub_path)
-                            .map(|c| c.get(1).map(|m| m.as_str()))
-                            .unwrap_or_default()
-                            .unwrap_or_default()
-                            .replace('\\', "/"),
-                        sprite,
-                    );
-                }
-            } else if search_subfolders {
-                self = self.with_path_list(ctx, gfx_ctx, sub_path, search_subfolders);
-            }
-        }
-        //println!("Now containing {} files.", self.sprites.len());
-        self
+    /// Returns wether or not the given path is already loaded into the pool.
+    pub fn contains_key(&self, key: impl AsRef<Path>) -> bool {
+        let path_string = key.as_ref().to_string_lossy().to_string();
+        self.sprites.contains_key(&path_string)
     }
 
     /// Initialies a sprite from the sprite pool.
     /// The path syntax is exactly the same as for initalizing images or sprites, relative to the good_web_game resource folder.
     /// See [graphics::Image] and [Sprite].
-    /// If the sprite (path) is not yet contained in the pool, an error is returned.
-    /// For lazy initalization, use [SpritePool::init_sprite_lazy] instead.
-    /// See [SpritePool] for rules related to key assignment.
+    /// If the sprite (path) is not yet contained in the pool, the pool will attempt to load it.
+    /// Afterwards, if sprite is still not contained, this function will return an Error.
     pub fn init_sprite(
-        &self,
+        &mut self,
         path: impl AsRef<Path>,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        w: u32,
+        h: u32,
         frame_time: Duration,
     ) -> Result<Sprite, GameError> {
+        let path_string = path.as_ref().to_string_lossy().to_string();
+
+        if !self.sprites.contains_key(&path_string) {
+            if let Ok(sprite) = Sprite::from_path(path, ctx, gfx_ctx, w, h, frame_time) {
+                self.sprites.insert(path_string.clone(), sprite);
+            }
+        }
+
         let sprite = self
             .sprites
-            .get(&path.as_ref().to_string_lossy().to_string())
+            .get(&path_string)
             .ok_or_else(|| GameError::CustomError("Could not find sprite.".to_owned()))?;
         Ok(Sprite {
             frame_time,
@@ -400,96 +375,65 @@ impl SpritePool {
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, this panics.
     /// If you want to return an error, use [SpritePool::init_sprite] instead.
-    /// For lazy initalization, use [SpritePool::init_sprite_lazy] instead.
-    /// See [SpritePool] for rules related to key assignment.
-    pub fn init_sprite_unchecked(&self, path: impl AsRef<Path>, frame_time: Duration) -> Sprite {
-        let sprite = self
-            .sprites
-            .get(&path.as_ref().to_string_lossy().to_string())
-            .unwrap_or_else(|| {
-                panic!(
-                    "[ERROR/Mooeye] Could not find sprite {}.",
-                    path.as_ref().to_string_lossy()
-                )
-            });
-        Sprite {
-            frame_time,
-            ..sprite.clone()
-        }
+    pub fn init_sprite_unchecked(
+        &mut self,
+        path: impl AsRef<Path>,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        w: u32,
+        h: u32,
+        frame_time: Duration,
+    ) -> Sprite {
+        self.init_sprite(path, ctx, gfx_ctx, w, h, frame_time)
+            .unwrap()
     }
 
-    // /// Initialies a sprite from the sprite pool.
-    // /// The path syntax is exactly the same as for initalizing images or sprites, relative to the good_web_game resource folder.
-    // /// See [graphics::Image] and [Sprite].
-    // /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
-    // /// If this also fails, an error is returned.
-    // /// See [SpritePool] for rules related to key assignment.
-    // pub fn init_sprite_lazy(
-    //     &mut self,
-    //     ctx: &mut Context,
-    //     gfx_ctx: &mut GraphicsContext,
-    //     path: impl AsRef<Path>,
-    //     frame_time: Duration,
-    // ) -> Result<Sprite, GameError> {
-    //     // convert the key to a string
-    //     let key = path.as_ref().to_string_lossy().to_string();
-    //     // if it is not in the pool yet
-    //     if !self.sprites.contains_key(&key) {
-    //         // attempt to load the sprite
-    //         self.attempt_load(ctx, gfx_ctx, &key)?;
-    //     }
-    //     // try to return the sprite (that should now be inserted).
-    //     // If no sprite could be inserted, this will error
-    //     self.init_sprite(path, frame_time)
-    // }
+    /// Initialies a sprite from the sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the good_web_game resource folder.
+    /// See [graphics::Image] and [Sprite].
+    /// If the sprite (path) is not yet contained in the pool, the pool will attempt to load it.
+    /// Afterwards, if sprite is still not contained, this function will return an Error.
+    /// Image dimensions are read from the file, whose name needs to be formatted accordingly.
+    pub fn init_sprite_fmt(
+        &mut self,
+        path: impl AsRef<Path>,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        frame_time: Duration,
+    ) -> Result<Sprite, GameError> {
+        let path_string = path.as_ref().to_string_lossy().to_string();
 
-    // /// Splits the given path into a folder and file name.
-    // /// Then searches the folder for a file with the name and suffix _w_h.imageformat.
-    // /// If found, loads that sprite into the pool.
-    // fn attempt_load(
-    //     &mut self,
-    //     ctx: &mut Context,
-    //     gfx_ctx: &mut GraphicsContext,
-    //     key: &str,
-    // ) -> Result<(), GameError> {
-    //     // split off the directory to search
-    //     let directory = key.rsplit_once('/').unwrap_or_default().0.to_owned() + "/";
-    //     // get all branching paths
-    //     let paths = ctx.fs.read_dir(directory)?;
-    //     // genreate a regex to match image files
-    //     let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
+        if !self.sprites.contains_key(&path_string) {
+            if let Ok(sprite) = Sprite::from_path_fmt(path, ctx, gfx_ctx, frame_time) {
+                self.sprites.insert(path_string.clone(), sprite);
+            }
+        }
 
-    //     for sub_path in paths {
-    //         // for every file in path
-    //         let path_string = sub_path.to_string_lossy().to_string();
-    //         // check if its an image
-    //         if sprite_match.is_match(&path_string) {
-    //             // check what name the sprite would have
-    //             if let Some(Some(path_str)) = sprite_match
-    //                 .captures(&path_string)
-    //                 .map(|c| c.get(1).map(|m| m.as_str().replace('\\', "/").to_owned()))
-    //             {
-    //                 // compare to the requested name
-    //                 if path_str == key {
-    //                     // if it fits and can be loaded, put it into the pool
-    //                     if let Ok(sprite) = Sprite::from_path_fmt(
-    //                         sub_path.clone(),
-    //                         ctx,
-    //                         gfx_ctx,
-    //                         self.default_duration,
-    //                     ) {
-    //                         self.sprites.insert(path_str, sprite);
-    //                         return Ok(());
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
+        let sprite = self
+            .sprites
+            .get(&path_string)
+            .ok_or_else(|| GameError::CustomError("Could not find sprite.".to_owned()))?;
+        Ok(Sprite {
+            frame_time,
+            ..sprite.clone()
+        })
+    }
 
-    //     Err(GameError::CustomError(
-    //         "[ERROR/Mooeye] Could not find sprite.".to_owned(),
-    //     ))
-    // }
+    /// Initialies a sprite from the sprite pool.
+    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the good_web_game resource folder.
+    /// See [graphics::Image] and [Sprite].
+    /// If the sprite (path) is not yet contained in the pool, this panics.
+    /// If you want to return an error, use [SpritePool::init_sprite] instead.
+    pub fn init_sprite_fmt_unchecked(
+        &mut self,
+        path: impl AsRef<Path>,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        frame_time: Duration,
+    ) -> Sprite {
+        self.init_sprite_fmt(path, ctx, gfx_ctx, frame_time)
+            .unwrap()
+    }
 }
 
 impl Default for SpritePool {

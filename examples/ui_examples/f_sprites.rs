@@ -81,31 +81,27 @@ impl FScene {
         .as_shrink()
         .build();
 
-        // Sprites can also be initiated from a sprite pool, to make repeated file system access unneccessary
-        // and streamline loading of multiple sprites. This requires sprites in the folder to be formatted appropriately.
+        // Sprites can also be initiated from a sprite pool, to make repeated file system access unneccessary.
+        // This requires sprites in the folder to be formatted appropriately.
 
-        // let sprite_pool = sprite::SpritePool::new()
-        //     // with_folder loads all .png/.bmp/.jpg/.jpeg files from the passed folder and optionally its subfolders
-        //     .with_path_list(ctx, gfx_ctx, "./sprites.txt", true);
+        let mut sprite_pool = sprite::SpritePool::new();
 
-        // We can now init a sprite from the pool. Sprites are saved in the pool with a key corresponding to their relative path
-        // (from the resource folder) with the format information and file ending removed.
-        let non_ui_sprite = sprite::Sprite::from_path(
+        // We can now init a sprite from the pool. Sprites are saved in the pool with a key corresponding to their relative path.
+        let non_ui_sprite = sprite_pool.init_sprite_fmt(
             "./mage-sheet_8_16.png",
             ctx,
             gfx_ctx,
-            8,
-            16,
             Duration::from_secs_f32(0.2),
         )?;
-        //sprite_pool.init_sprite("/mage-sheet", Duration::from_secs_f32(0.2))?;
-        let other_sprite = sprite::Sprite::from_path_fmt(
+        // Sprites can also be initialized unchecked, or with non-formatted file names.
+        let other_sprite = sprite_pool.init_sprite_unchecked(
             "./moo-sheet_16_16.png",
             ctx,
             gfx_ctx,
-            Duration::from_secs_f32(0.2),
-        )?;
-        //sprite_pool.init_sprite("/moo-sheet", Duration::from_secs_f32(0.2))?;
+            16,
+            16,
+            Duration::from_secs_f32(0.25),
+        );
 
         Ok(Self {
             gui: ui_sprite,
