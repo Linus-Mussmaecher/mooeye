@@ -1,11 +1,16 @@
-# MooEye - A ggez-based UI library
+# MooEyeWeb - A GoodWebGame-based UI library
+
+This is the web version of [Mooeye](https://github.com/Linus-Mussmaecher/mooeye), building on [Good Web Game](https://github.com/ggez/good-web-game) instead of [ggez game library](https://github.com/ggez/ggez).
+
+Badges for Mooeye:
 
 [![Docs Status](https://docs.rs/mooeye/badge.svg)](https://docs.rs/mooeye)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Linus-Mussmaecher/mooeye/blob/main/LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/mooeye.svg)](https://crates.io/crates/mooeye)
 [![Crates.io](https://img.shields.io/crates/d/mooeye.svg)](https://crates.io/crates/mooeye)
 
-This is a very simple UI library building upon [ggez game library](https://github.com/ggez/ggez). It was originally written for personal use with my own Rust gamedev projets.
+Unlike Mooeye, mooeye web is less polished and does not have a cargo released. Some docs may falsely be referring to mooeye or ggez features.
+The intent behind mooeye was transporting some of my ggez-based games to the web.
 
 ## UI Features
 
