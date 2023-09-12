@@ -548,9 +548,40 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         // draw content
 
         self.content.draw_content(ctx, gfx_ctx, param.target(inner));
+    }
 
-        // draw tooltip
-        if param.mouse_listen && outer.contains(ctx.mouse_context.mouse_position()) {
+    /// Draws the tooltip of this element and (possibly) its children.
+    /// This is performed after normal drawing, so tooltips are always on top.
+    /// Returns wether or not a tooltip was drawn to prevent multiple tooltips from showing simultanously.
+    pub(crate) fn draw_tooltip(
+        &mut self,
+        ctx: &mut Context,
+        gfx_ctx: &mut GraphicsContext,
+        param: UiDrawParam,
+    ) -> bool {
+        // Go through all children. If any draw their tooltip, early return.
+        if let Some(cont) = self.content.container_mut() {
+            if cont
+                .get_children_mut()
+                .iter_mut()
+                .any(|child| child.draw_tooltip(ctx, gfx_ctx, param))
+            {
+                return true;
+            }
+        }
+        // Get chache that should have been generated in draw_to_rectangle.
+        let (outer, inner) = match self.draw_cache {
+            DrawCache::Invalid => return false,
+            DrawCache::Valid {
+                outer,
+                inner,
+                target: _,
+            } => (outer, inner),
+        };
+
+        // Check if element is hovered.
+        if outer.contains(ctx.mouse_context.mouse_position()) {
+            // Draw tooltip.
             if let Some(tt) = &mut self.tooltip {
                 // get relevant positions
                 let mouse_pos = ctx.mouse_context.mouse_position();
@@ -581,8 +612,11 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                         .target(Rect::new(x, y, tt_size.0, tt_size.1))
                         .z_level(param.z_level + 1),
                 );
+
+                return true;
             }
         }
+        false
     }
 
     /// Draws this UiElement to the current screen. Call this on your root element every frame.
@@ -592,17 +626,22 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         gfx_ctx: &mut GraphicsContext,
         mouse_listen: bool,
     ) {
-        self.draw_to_rectangle(
-            ctx,
-            gfx_ctx,
-            UiDrawParam::default()
-                .target(Rect::new(
-                    0.,
-                    0.,
-                    gfx_ctx.screen_size().0,
-                    gfx_ctx.screen_size().1,
-                ))
-                .mouse_listen(mouse_listen),
-        );
+        // Generate param
+        let param = UiDrawParam::default()
+            .target(Rect::new(
+                0.,
+                0.,
+                gfx_ctx.screen_size().0,
+                gfx_ctx.screen_size().1,
+            ))
+            .mouse_listen(mouse_listen);
+
+        // Generate draw chaches, draw content.
+        self.draw_to_rectangle(ctx, gfx_ctx, param);
+
+        // Draw tooltip.
+        if mouse_listen {
+            self.draw_tooltip(ctx, gfx_ctx, param);
+        }
     }
 }
