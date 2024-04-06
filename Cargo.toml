@@ -1,6 +1,6 @@
 [package]
 name = "mooeye"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
 authors = ["Linus Mußmächer linus.mussmaecher@gmail.com"]
 license = "MIT"
@@ -11,7 +11,7 @@ homepage = "https://github.com/Linus-Mussmaecher/mooeye"
 keywords = ["UI", "ggez", "game-development", "static-UI", "game"]
 
 [dependencies]
-ggez = "=0.9.1"
+ggez = "0.9"
 tinyvec = "^1.6"
 regex = "^1.7"
 # for dependabot

@@ -1509,7 +1509,7 @@ dependencies = [
 
 [[package]]
 name = "mooeye"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "ggez",
  "image 0.23.14",
