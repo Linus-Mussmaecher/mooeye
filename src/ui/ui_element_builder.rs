@@ -9,7 +9,7 @@ use super::Layout;
 /// Also contains shorthand functions for some very frequently used combination of layout settings.
 #[derive(Debug)]
 pub struct UiElementBuilder<T: Copy + Eq + Hash> {
-    /// The element currenty being built.
+    /// The element current being built.
     element: UiElement<T>,
 }
 
@@ -116,7 +116,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
         self
     }
 
-    /// Sets only the alingment of the elements layout. Pass None in any argument to leave that alignment as-is.
+    /// Sets only the alignment of the elements layout. Pass None in any argument to leave that alignment as-is.
     pub fn with_alignment(
         mut self,
         x_alignment: impl Into<Option<super::Alignment>>,
@@ -147,7 +147,7 @@ impl<T: Copy + Eq + Hash> UiElementBuilder<T> {
         self
     }
 
-    /// Sets only the presever_ratio parameter of the elements layout.
+    /// Sets only the preserver_ratio parameter of the elements layout.
     pub fn with_preserve_ratio(mut self, preserve_ratio: bool) -> Self {
         self.element.layout.preserve_ratio = preserve_ratio;
         self

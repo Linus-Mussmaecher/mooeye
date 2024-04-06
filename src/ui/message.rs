@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-/// A simple enum that specififes what kind of messages a UI element can send or receive.
+/// A simple enum that specifies what kind of messages a UI element can send or receive.
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
 pub enum UiMessage<T: Copy + Eq + Hash + Hash> {
     /// An extern message, containing another Message of the specified type used by your gamestate. Never sent by elements on their own.

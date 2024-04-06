@@ -40,7 +40,7 @@ pub use transition::Transition;
 mod draw_cache;
 use draw_cache::DrawCache;
 
-/// The [UiMessage] struct to facilitate communcation between elements and between elements an the game state.
+/// The [UiMessage] struct to facilitate communication between elements and between elements an the game state.
 mod message;
 pub use message::UiMessage;
 
@@ -48,7 +48,7 @@ pub use message::UiMessage;
 mod ui_element_builder;
 pub use ui_element_builder::UiElementBuilder;
 
-/// The [UiDrawParam] struct is an extension of the [ggez::graphics::DrawParam] struct and contains some additonal information specific to UiElements.
+/// The [UiDrawParam] struct is an extension of the [ggez::graphics::DrawParam] struct and contains some additional information specific to UiElements.
 mod ui_draw_param;
 pub use ui_draw_param::UiDrawParam;
 
@@ -64,7 +64,7 @@ pub struct UiElement<T: Copy + Eq + Hash> {
     /// The sound that is played whenever the element is triggered via mouse or key press.
     trigger_sound: Option<Source>,
 
-    /// The elements ID. Not neccessarily guaranteed to be unique.
+    /// The elements ID. Not necessarily guaranteed to be unique.
     id: u32,
 
     /// This elements draw cache.
@@ -108,7 +108,7 @@ impl<T: Copy + Eq + Hash> std::fmt::Debug for UiElement<T> {
 }
 
 impl<T: Copy + Eq + Hash> UiElement<T> {
-    /// Creates a new UiElement containig the specified content and the specified ID.
+    /// Creates a new UiElement containing the specified content and the specified ID.
     /// The element will be treated as a leaf node, even if its implements [UiContainer].
     /// ID should be as unique as you require it.
     /// Layout and visuals will be set to default values, hover_visuals is initialized as None.
@@ -167,7 +167,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         }
     }
 
-    /// Returns this elements (not neccessarily unique) ID within this UI. This ID is used to indentify the source of intern messages.
+    /// Returns this elements (not necessarily unique) ID within this UI. This ID is used to identify the source of intern messages.
     pub fn get_id(&self) -> u32 {
         self.id
     }
@@ -334,7 +334,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 } => outer.contains(ctx.mouse.position()),
             }
         {
-            // yes: get what this element, diregarding transitions, would display on hover
+            // yes: get what this element, disregarding transitions, would display on hover
             let own_vis = if let Some(hover_visuals) = self.hover_visuals {
                 hover_visuals
             } else {
@@ -363,7 +363,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
                 }
             }
         } else {
-            // not hovered: check wether there are transitons in the queue
+            // not hovered: check wether there are transitions in the queue
             if self.transitions.is_empty() {
                 // no transitions: just return own visuals
                 self.visuals
@@ -383,7 +383,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     /// Updates this element's draw cache by checking for validity.
     /// If the draw cache is still valid (see [UiElement::cache_valid]), nothing happens.
     /// Otherwise, the function uses ```content_min```, the ```layout``` and the currently active ```Transition``` to generate a valid draw cache
-    /// If no valid draw chache can be generated, the draw_cache wil be reset to default value.
+    /// If no valid draw cache can be generated, the draw_cache wil be reset to default value.
     /// The function will only change ```draw_cache::valid``` to ```true``` if the generated rectangles fit within the target ```rect```.
     fn update_draw_cache(&mut self, _ctx: &Context, target: Rect) {
         // check wether draw cache needs to be updated at all (or a transition is going on)
@@ -444,7 +444,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
     }
 
     /// Returns wether this elements cache is still valid. The cache may be invalidated manually or because the target_rect has changed.
-    /// Any chache is considered invalid if there is currently an active transition that is actively changing the layout
+    /// Any cache is considered invalid if there is currently an active transition that is actively changing the layout
     /// In the case of containers, the cache may also be invalidated because the cache of a child element has turned invalid. The default implementation for this case can e.g. be found in the code for [VerticalBox].
     fn cache_valid(&self, target: Rect) -> bool {
         let init = match self.draw_cache {
@@ -531,7 +531,7 @@ impl<T: Copy + Eq + Hash> UiElement<T> {
         // update draw_cache
         self.update_draw_cache(ctx, param.target);
 
-        // if draw chache is still invalid, early return and try again next frame
+        // if draw cache is still invalid, early return and try again next frame
 
         let (outer, inner) = match self.draw_cache {
             DrawCache::Invalid => return,

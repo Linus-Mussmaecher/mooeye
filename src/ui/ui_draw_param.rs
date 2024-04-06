@@ -8,7 +8,7 @@ pub struct UiDrawParam {
     /// Wether or not the element should listen to the mouse position and possible change its visuals or display a tooltip when hovered over.
     pub mouse_listen: bool,
     /// A basic draw param struct to manage things like z-level, color and src-rect.
-    /// Setting dest_rect may yield unexpected behaviour, as it will likely be overwritten by target when drawing.
+    /// Setting dest_rect may yield unexpected behavior, as it will likely be overwritten by target when drawing.
     pub param: DrawParam,
 }
 

@@ -29,7 +29,7 @@ pub trait UiContent<T: Copy + Eq + Hash> {
     }
 
     /// Takes in a rectangle target, a canvas, a context and draws the contents (not the border etc.) to that rectangle within that canvas using that context.
-    /// Normally, this will only be called from within private functions, when the cache has been modified appropiately and only use the inner rectangle of the draw cache as content_bounds.
+    /// Normally, this will only be called from within private functions, when the cache has been modified appropriately and only use the inner rectangle of the draw cache as content_bounds.
     /// Do not call otherwise.
     fn draw_content(&mut self, ctx: &mut Context, canvas: &mut Canvas, param: UiDrawParam);
 
@@ -57,13 +57,13 @@ pub trait UiContent<T: Copy + Eq + Hash> {
 /// Remember to overwrite the [UiContent::container] and [UiContent::container_mut] functions of [UiContent].
 pub trait UiContainer<T: Copy + Eq + Hash>: UiContent<T> {
     /// Returns any dynamic width restrictions induced by the content, not the layout. Usually, this refers to the layout of child elements of containers.
-    /// Default implementation returns (0., infinty) (no restrictions).
+    /// Default implementation returns (0., infinity) (no restrictions).
     fn content_width_range(&self) -> (f32, f32) {
         (0., f32::INFINITY)
     }
 
     /// Returns any dynamic width restrictions induced by the content, not the layout. Usually, this refers to the layout of child elements of containers.
-    /// Default implementation returns (0., infinty) (no restrictions).
+    /// Default implementation returns (0., infinity) (no restrictions).
     fn content_height_range(&self) -> (f32, f32) {
         (0., f32::INFINITY)
     }
@@ -71,7 +71,7 @@ pub trait UiContainer<T: Copy + Eq + Hash>: UiContent<T> {
     /// Returns access to this elements children, if there are any. Returns None if this is a leaf node.
     fn get_children(&self) -> &[UiElement<T>];
 
-    /// Returns mutatble access to this elements children, if there are any. Returns None if this is a leaf node.
+    /// Returns mutable access to this elements children, if there are any. Returns None if this is a leaf node.
     fn get_children_mut(&mut self) -> &mut [UiElement<T>];
 
     /// Attempts to add a UiElement to this elements children.

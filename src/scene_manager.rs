@@ -98,7 +98,7 @@ pub enum SceneSwitch {
     Pop(u32),
     /// Pushes a new Scene on top of the scene stack, thus temporarily halting running of the current scene. Current scene will resume as soon as this scene above is popped of the stack.
     Push(Box<dyn Scene>),
-    /// Pops a specified numer of scenes (as with [SceneSwitch::Pop]) of the stack and pushes a new one in the same action.
+    /// Pops a specified number of scenes (as with [SceneSwitch::Pop]) of the stack and pushes a new one in the same action.
     Replace(u32, Box<dyn Scene>),
 }
 

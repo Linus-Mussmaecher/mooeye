@@ -57,7 +57,7 @@ impl<T: Copy + Eq + Hash> VerticalBox<T> {
         res
     }
 
-    /// Iterates over the vector and all elements in this box that fullfil the predicate simulateously, adding height to each element (reducing leftover in parallel) until
+    /// Iterates over the vector and all elements in this box that fullfil the predicate simultaneously, adding height to each element (reducing leftover in parallel) until
     ///  - leftover has reached 0 and no height is left to distribute
     ///  - all elements fulfilling the predicate have reached their maximum height.
     fn distribute_height_to_fitting(

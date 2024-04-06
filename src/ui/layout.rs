@@ -1,7 +1,7 @@
 use ggez::{glam::Vec2, graphics::Rect};
 
 #[derive(Copy, Clone, PartialEq, Debug, Default)]
-/// An enum that describes the alignment behaviour of an element.
+/// An enum that describes the alignment behavior of an element.
 pub enum Alignment {
     /// Element aligns top or left
     Min,
@@ -13,7 +13,7 @@ pub enum Alignment {
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-/// An enum that describes the size and growth behaviour of an element.
+/// An enum that describes the size and growth behavior of an element.
 pub enum Size {
     /// Element will always have this size.
     Fixed(f32),
@@ -48,7 +48,7 @@ impl Size {
         }
     }
 
-    /// Returs the size this element would prefer within a range.
+    /// Recurs the size this element would prefer within a range.
     /// Elements will never leave their layout bounds, even if that means ignoring the passed  bounds.
     /// Thus, FIXED elements will always just return their own size.
     pub(crate) fn pref(&self, min: f32, max: f32) -> f32 {
@@ -107,9 +107,9 @@ pub struct Layout {
     pub x_offset: f32,
     /// How many pixels away from the most top- or bottommost position this element aligns. Should be positive. Does not work with [Alignment::Center].
     pub y_offset: f32,
-    /// The size and growth behaviour of this element in the horizontal direction. See [Size].
+    /// The size and growth behavior of this element in the horizontal direction. See [Size].
     pub x_size: Size,
-    /// The size and growth behaviour of this element in the vertical direction. See [Size].
+    /// The size and growth behavior of this element in the vertical direction. See [Size].
     pub y_size: Size,
     /// Specifies the padding, extra space around the cental element(s), of a container in the order top, right, bottom, left.
     pub padding: (f32, f32, f32, f32),

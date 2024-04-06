@@ -14,7 +14,7 @@ use std::hash::Hash;
 use regex;
 
 /// A Sprite is an advanced version of an image element, displaying an animated picture that can have multiple states (e.g. a walking, attacking, etc. version of a player character)
-/// The sprite is initalized using an image file that contains multiple rows of images (each row representing a variant), where each row contains the same number of animation frames for each variant.
+/// The sprite is initialized using an image file that contains multiple rows of images (each row representing a variant), where each row contains the same number of animation frames for each variant.
 /// Drawing the sprite repeatedly draws every frame of the selected variant in order and then repeats from the beginning.
 #[derive(Debug, Clone)]
 pub struct Sprite {
@@ -165,7 +165,7 @@ impl Sprite {
         self.frame_time
     }
 
-    /// Set the duration to wait between displaying two succeding frames.
+    /// Set the duration to wait between displaying two succeeding frames.
     pub fn set_frame_time(&mut self, frame_time: Duration) {
         self.frame_time = frame_time;
     }
@@ -182,7 +182,7 @@ impl Sprite {
             / self.w
     }
 
-    /// Draws this sprite as given by the paramters, advancing the displayed frame as needed.
+    /// Draws this sprite as given by the parameters, advancing the displayed frame as needed.
     pub fn draw_sprite(
         &mut self,
         ctx: &Context,
@@ -276,7 +276,7 @@ impl Default for Sprite {
 }
 
 /// A pool that contains a number of initialized [Sprite]s at once and can be passed around and allows initialization of sprites using the prototype pattern and without having to re-access the file system or pass around a loading context.
-/// Provides functions for quickly initalizing folders of sprites and access methods similar to those of [graphics::Image] and [Sprite].
+/// Provides functions for quickly initializing folders of sprites and access methods similar to those of [graphics::Image] and [Sprite].
 /// ### File format and access
 /// File names must be formatted as ```NAME_WIDTH_HEIGHT.EXTENSION```.
 /// Access keys into the pool are the full path to the image file (relative to the resource directory), followed by only NAME, width, height and extension are stripped.
@@ -286,7 +286,7 @@ impl Default for Sprite {
 pub struct SpritePool {
     /// The sprites currently stored in this pool for cloning.
     sprites: HashMap<String, Sprite>,
-    /// The default-duration any newly loaded sprite will be initialized with. Mostly importat if you use references to sprites in this pool.
+    /// The default-duration any newly loaded sprite will be initialized with. Mostly important if you use references to sprites in this pool.
     default_duration: Duration,
 }
 
@@ -346,11 +346,11 @@ impl SpritePool {
         self
     }
 
-    /// Initialies a sprite from the sprite pool.
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// Initializes a sprite from the sprite pool.
+    /// The path syntax is exactly the same as for initializing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
-    /// For lazy initalization, use [SpritePool::init_sprite_lazy] instead.
+    /// For lazy initialization, use [SpritePool::init_sprite_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn init_sprite(
         &self,
@@ -367,12 +367,12 @@ impl SpritePool {
         })
     }
 
-    /// Initialies a sprite from the sprite pool.
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// Initializes a sprite from the sprite pool.
+    /// The path syntax is exactly the same as for initializing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, this panics.
     /// If you want to return an error, use [SpritePool::init_sprite] instead.
-    /// For lazy initalization, use [SpritePool::init_sprite_lazy] instead.
+    /// For lazy initialization, use [SpritePool::init_sprite_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn init_sprite_unchecked(&self, path: impl AsRef<Path>, frame_time: Duration) -> Sprite {
         let sprite = self
@@ -390,8 +390,8 @@ impl SpritePool {
         }
     }
 
-    /// Initialies a sprite from the sprite pool.
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// Initializes a sprite from the sprite pool.
+    /// The path syntax is exactly the same as for initializing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, the system will attempt to load it from the file system and return it.
     /// If this also fails, an error is returned.
@@ -422,7 +422,7 @@ impl SpritePool {
         let directory = key.rsplit_once('/').unwrap_or_default().0.to_owned() + "/";
         // get all branching paths
         let paths = ctx.fs.read_dir(directory)?;
-        // genreate a regex to match image files
+        // generate a regex to match image files
         let sprite_match = regex::Regex::new(r"(.*)_\d*_\d*.[png|jpg|jpeg]").unwrap();
 
         for sub_path in paths {
@@ -461,16 +461,16 @@ impl SpritePool {
     /// Note that the actual ```sprite_sheet``` in the [Sprite] struct is just a handle to data on the GPU, so the storage
     /// savings are not monumental.
     /// However, you still save some space as the state of the sprite does not need to be stored.
-    /// Not storing the sprite has a distince disadvantage: Different entities with the same reference cannot have different states,
+    /// Not storing the sprite has a distinct disadvantage: Different entities with the same reference cannot have different states,
     /// so they always need to display the same frame and the same sprite-state.
     /// The performance losses are dependent on the size of the sprite pool. Smaller sprite pools work better.
     ///
     /// Of course, this function is supremely useful if you only need to draw a sprite once.
     /// ## Syntax
-    /// The path syntax is exactly the same as for initalizing images or sprites, relative to the ggez resource folder.
+    /// The path syntax is exactly the same as for initializing images or sprites, relative to the ggez resource folder.
     /// See [graphics::Image] and [Sprite].
     /// If the sprite (path) is not yet contained in the pool, an error is returned.
-    /// For lazy initalization, use [SpritePool::sprite_ref_lazy] instead.
+    /// For lazy initialization, use [SpritePool::sprite_ref_lazy] instead.
     /// See [SpritePool] for rules related to key assignment.
     pub fn sprite_ref(&mut self, path: impl AsRef<Path>) -> Result<&mut Sprite, GameError> {
         let sprite = self

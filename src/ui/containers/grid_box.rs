@@ -20,7 +20,7 @@ pub struct GridBox<T: Copy + Eq + Hash> {
 
     /// The number of rows in this grid box.
     rows: usize,
-    /// The number of columns in thei grid box.
+    /// The number of columns in this grid box.
     cols: usize,
     ///// A rectangle cache to prevent recalculation of child boxes every frame.
     //children_rects: Vec<Rect>,
@@ -75,12 +75,12 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
         }
     }
 
-    /// Returns a Vector with as many entries as this element has columns, each describin the dynamically allocated width for that column.
+    /// Returns a Vector with as many entries as this element has columns, each describing the dynamically allocated width for that column.
     fn get_column_widths(&self, width_available: f32) -> TinyVec<[f32; VECSIZE]> {
         // Use helper function to calculate the width range of each column.
         let ranges = self.get_column_ranges();
 
-        // Initalize result vector with minimum sizes of columns.
+        // Initialize result vector with minimum sizes of columns.
         let mut res = ranges.iter().map(|(a, _)| *a).collect();
 
         // Calculate amount of remaining width to distribute
@@ -126,12 +126,12 @@ impl<T: Copy + Eq + Hash> GridBox<T> {
         res
     }
 
-    /// Returns a Vector with as many entries as this element has rows, each describin the dynamically allocated height for that row.
+    /// Returns a Vector with as many entries as this element has rows, each describing the dynamically allocated height for that row.
     fn get_row_heights(&self, height_available: f32) -> TinyVec<[f32; VECSIZE]> {
         // Use helper function to calculate the height range of each row.
         let ranges = self.get_row_ranges();
 
-        // Initalize result vector with minimum sizes of rows.
+        // Initialize result vector with minimum sizes of rows.
         let mut res = ranges.iter().map(|(a, _)| *a).collect();
 
         // Calculate amount of remaining height to distribute
