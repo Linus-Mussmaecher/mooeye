@@ -14,7 +14,7 @@ impl DScene {
     /// Creates a new DScene.
     /// As you can see, for scenes that do not change based on parameters, we would like to use something like ```DScene::default()``` to
     /// communicate that this is the standard way for a ```DScene``` to come into existence.
-    /// However, we cannot derive Default as the passing of a parameter ```ctx: &Context``` is almost always neccessary,
+    /// However, we cannot derive Default as the passing of a parameter ```ctx: &Context``` is almost always necessary,
     /// so we have to use ```new(ctx: &Context)``` instead.
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Predefine some visuals so we don't have to do it for every element.
@@ -50,7 +50,7 @@ impl DScene {
         );
 
         // Note that the constructor now returns a Result.
-        // This is neccessary as the 'add' function used to add UI elements to grid containers can fail, thus failing the constructor.
+        // This is necessary as the 'add' function used to add UI elements to grid containers can fail, thus failing the constructor.
 
         // The first container we use is a vertical box simply laying out elements from top to bottom.
         let mut ver_box = ui::containers::VerticalBox::new();
@@ -75,7 +75,7 @@ impl DScene {
         let ver_box = ver_box
             .to_element_builder(0, ctx)
             .with_visuals(cont_vis)
-            // Using larger padding to accomodate our thick borders.
+            // Using larger padding to accommodate our thick borders.
             .with_padding((24., 16., 16., 16.))
             .build();
 
@@ -90,7 +90,7 @@ impl DScene {
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(vis)
-                // Elements can be given alignment and will align within their respecitive cell in the grid.
+                // Elements can be given alignment and will align within their respective cell in the grid.
                 .with_alignment(ui::Alignment::Max, None)
                 .build();
             // Add the element to the box. This can fail, if ver_box were not an actual container
@@ -165,7 +165,7 @@ impl scene_manager::Scene for DScene {
     }
 
     fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
+        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we don't clear the background.
 
         let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);
         // Since we don't set the sampler to 'nearest', our corners will look more round, but the pixel-cow will look blurry.

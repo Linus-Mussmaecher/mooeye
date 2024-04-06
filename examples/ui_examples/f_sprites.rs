@@ -56,7 +56,7 @@ impl FScene {
         );
 
         // A sprite can be loaded by specifying a path, just like an Image.
-        // Additionaly, you need to inform the sprite of the grid size of its sheet and the duration each frame is displayed.
+        // Additionally, you need to inform the sprite of the grid size of its sheet and the duration each frame is displayed.
         let ui_sprite = sprite::Sprite::from_path(
             "/moo-sheet_16_16.png",
             ctx,
@@ -81,7 +81,7 @@ impl FScene {
         .as_shrink()
         .build();
 
-        // Sprites can also be initiated from a sprite pool, to make repeated file system access unneccessary
+        // Sprites can also be initiated from a sprite pool, to make repeated file system access unnecessary
         // and streamline loading of multiple sprites. This requires sprites in the folder to be formatted appropriately.
 
         let sprite_pool = sprite::SpritePool::new()
@@ -95,8 +95,8 @@ impl FScene {
         // you can also initialize a sprite pool without any folder at all
         let mut sprite_pool2 = sprite::SpritePool::new();
 
-        // in this case, you can use lazy initialisation of sprites to fill the sprite pool only with those sprites currently needed.
-        // Lazy initilisation draws from the pool if possible, from the file system if needed (and loads into the pool in this case) and panics if it can't find anything in the fs.
+        // in this case, you can use lazy initialization of sprites to fill the sprite pool only with those sprites currently needed.
+        // Lazy initialization draws from the pool if possible, from the file system if needed (and loads into the pool in this case) and panics if it can't find anything in the fs.
         // Requires a mutable sprite pool!
         // For testing purposes, we are loading a sprite we have already loaded - this should be drawn from the pool.
         let lazy_sprite =
@@ -155,7 +155,7 @@ impl scene_manager::Scene for FScene {
     }
 
     fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
+        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we don't clear the background.
 
         let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);
         canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());

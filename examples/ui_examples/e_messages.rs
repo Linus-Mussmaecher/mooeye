@@ -43,7 +43,7 @@ impl EScene {
 
                         // If yes, we add a new transition to the vector.
                         transitions.push_back(
-                            // Transitions are initalized with the duration they should take to complete and augmented via the builder pattern.
+                            // Transitions are initialized with the duration they should take to complete and augmented via the builder pattern.
                             ui::Transition::new(Duration::ZERO)
                             // Here, we add a new content that will replace the old text once the transition completes.
                             .with_new_content(Text::new(format!(

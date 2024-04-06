@@ -6,14 +6,14 @@ use mooeye::{scene_manager, ui, ui::UiContent};
 /// but feel free to read it to get a feeling for mooeye.
 pub struct SelectorScene {
     /// The root element of this scene's GUI.
-    /// As this is just a UI-scene with no underlying game state, no further fields are neccessary.
+    /// As this is just a UI-scene with no underlying game state, no further fields are necessary.
     gui: ui::UiElement<()>,
 }
 
 impl SelectorScene {
     /// Creates a new selector scene.
     /// This is the initial drop-in scene and it is always the same, so with the exception of the context
-    /// required for creating text and image elements no further parameters are neccessary.
+    /// required for creating text and image elements no further parameters are necessary.
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         // Defining visuals
 

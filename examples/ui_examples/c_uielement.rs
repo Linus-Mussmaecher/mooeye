@@ -3,11 +3,11 @@ use mooeye::{ui, ui::UiContent, scene_manager};
 
 
 // # UI, UI elements, UI element builder and basic messages
-// In this example, our scene struct contains a gui consiting of a single UI element.
+// In this example, our scene struct contains a gui consisting of a single UI element.
 
 
 /// Another very basic scene. This time, it contains a UiElement called gui.
-/// This is the root element of you GUI, and any interactions and acces to the GUI of this scene happen through this object.
+/// This is the root element of you GUI, and any interactions and access to the GUI of this scene happen through this object.
 pub struct CScene{
     /// The scenes GUI root element.
     gui: ui::UiElement<()>,
@@ -16,7 +16,7 @@ pub struct CScene{
 impl CScene {
     /// Creates a new CScene.
     /// Once again, we have no special parameters. Often, you ```new``` function will contain a lot of code
-    /// basically describing the laoyut of you GUI, so this can get lengthy.
+    /// basically describing the layout of you GUI, so this can get lengthy.
     /// Split in to helper functions as appropriate!    
     pub fn new(ctx: &Context) -> Self{
         // The scene constructor is usually the place where we create the state of our UI.
@@ -74,12 +74,12 @@ impl scene_manager::Scene for CScene{
             return Ok(scene_manager::SceneSwitch::pop(1));
         }
 
-        // Otherwise, no scene switch is neccessary.
+        // Otherwise, no scene switch is necessary.
         Ok(scene_manager::SceneSwitch::None)
     }
 
     fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we dont clear the background.
+        // Once again, we first create a canvas and set a pixel sampler. Note that this time, we don't clear the background.
         let mut canvas = ggez::graphics::Canvas::from_frame(ctx, None);        
         canvas.set_sampler(ggez::graphics::Sampler::nearest_clamp());
         

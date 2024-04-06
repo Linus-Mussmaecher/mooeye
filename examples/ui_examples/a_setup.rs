@@ -43,7 +43,7 @@ pub fn setup_and_run() -> GameResult{
     );
 
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // Everyting above is normal ggez initialization and not specific to mooeye.
+    // Everything above is normal ggez initialization and not specific to mooeye.
     // Below, we will start our game loop not with event::run as one would normally, but use a SceneManager instead.
 
 
